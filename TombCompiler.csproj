@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{713D24BB-7120-4556-914F-4A29CB540244}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TombCompiler</RootNamespace>
-    <AssemblyName>TombCompiler</AssemblyName>
+    <RootNamespace>Phantasma.Tomb.Compiler</RootNamespace>
+    <AssemblyName>TOMB</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -43,8 +43,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGenerator.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="Node.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="Statement.cs" />
+    <Compile Include="Contract.cs" />
+    <Compile Include="Declaration.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="Expression.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Lexer.cs" />
+    <Compile Include="MethodInterface.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Register.cs" />
+    <Compile Include="Scope.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
