@@ -1,4 +1,4 @@
-﻿using Phantasma.Contracts;
+using Phantasma.Contracts;
 using Phantasma.Cryptography;
 using Phantasma.Numerics;
 using Phantasma.VM;
@@ -1069,11 +1069,26 @@ namespace TombCompiler
                     break;
 
                 case "Runtime":
+                    libDecl.AddMethod("log", VarKind.None, new[] { new ParameterDeclaration("message", VarKind.String) });
+                    libDecl.AddMethod("isWitness", VarKind.Bool, new[] { new ParameterDeclaration("address", VarKind.Address) });
                     libDecl.AddMethod("getTime", VarKind.Timestamp, new ParameterDeclaration[] { });
-                    libDecl.AddMethod("transferTokens", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("to", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String), new ParameterDeclaration("amount", VarKind.Number) });
-                    libDecl.AddMethod("getBalance", VarKind.Number, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String)});
                     libDecl.AddMethod("startTask", VarKind.None, new ParameterDeclaration[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("taskName", VarKind.String) });
                     libDecl.AddMethod("stopTask", VarKind.None, new ParameterDeclaration[] { });
+                    break;
+
+                case "Token":
+                    libDecl.AddMethod("create", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String), new ParameterDeclaration("name", VarKind.String), new ParameterDeclaration("maxSupply", VarKind.Number), new ParameterDeclaration("decimals", VarKind.Number), new ParameterDeclaration("flags", VarKind.Number), new ParameterDeclaration("script", VarKind.Bytes) });
+                    libDecl.AddMethod("transfer", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("to", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String), new ParameterDeclaration("amount", VarKind.Number) });
+                    libDecl.AddMethod("transferAll", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("to", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String) });
+                    libDecl.AddMethod("mint", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("to", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String), new ParameterDeclaration("amount", VarKind.Number) });
+                    libDecl.AddMethod("burn", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String), new ParameterDeclaration("amount", VarKind.Number) });
+                    libDecl.AddMethod("swap", VarKind.None, new[] { new ParameterDeclaration("targetChain", VarKind.String), new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("to", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String), new ParameterDeclaration("amount", VarKind.Number) });
+                    libDecl.AddMethod("getBalance", VarKind.Number, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("symbol", VarKind.String) });
+                    break;
+
+                case "Organization":
+                    libDecl.AddMethod("create", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("id", VarKind.String), new ParameterDeclaration("name", VarKind.String), new ParameterDeclaration("script", VarKind.Bytes) });
+                    libDecl.AddMethod("addMember", VarKind.None, new[] { new ParameterDeclaration("from", VarKind.Address), new ParameterDeclaration("name", VarKind.String), new ParameterDeclaration("target", VarKind.Address)});
                     break;
 
                 case "Leaderboard":
