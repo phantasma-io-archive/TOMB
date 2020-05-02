@@ -1,4 +1,5 @@
-﻿using Phantasma.Numerics;
+﻿using Phantasma.Contracts;
+using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
@@ -121,6 +122,11 @@ namespace TombCompiler
         {
             return $"var {Name}:{Kind}";
         }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return node == this;
+        }
     }
 
     public class ConstDeclaration : Declaration
@@ -142,6 +148,11 @@ namespace TombCompiler
         public override string ToString()
         {
             return $"const {Name}:{Kind}";
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return node == this;
         }
     }
 
@@ -192,6 +203,11 @@ namespace TombCompiler
         public override string ToString()
         {
             return $"library {Name}";
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return node == this;
         }
     }
 
@@ -286,6 +302,8 @@ namespace TombCompiler
             this.Column = Parser.Instance.CurrentColumn;
             this.NodeID = this.GetType().Name.ToLower() + Parser.Instance.AllocateLabel();
         }
+
+        public abstract bool IsNodeUsed(CodeNode node);
     }
 
     public abstract class CommandNode: CodeNode
@@ -310,6 +328,23 @@ namespace TombCompiler
             {
                 cmd.GenerateCode(output);
             }
+        }
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            if (node == this)
+            {
+                return true;
+            }
+
+            foreach (var cmd in Commands)
+            {
+                if (cmd.IsNodeUsed(node))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -449,10 +484,10 @@ namespace TombCompiler
 
             Console.WriteLine("entering " + this.Name);
 
-            foreach (var variable in this.Variables.Values)
+            /*foreach (var variable in this.Variables.Values)
             {
                 variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
-            }
+            }*/
         }
 
         public void Leave(CodeGenerator output)
@@ -461,6 +496,16 @@ namespace TombCompiler
 
             foreach (var variable in this.Variables.Values)
             {
+                if (variable.Storage == VarStorage.Global)
+                {
+                    continue;
+                }
+
+                if (variable.Register == null)
+                {
+                    throw new CompilerException("unused variable: " + variable.Name);
+                }
+
                 Parser.Instance.DeallocRegister(variable.Register);
                 variable.Register = null;
             }
@@ -750,14 +795,115 @@ namespace TombCompiler
             this.@interface = @interface;
         }
 
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this) || (body.IsNodeUsed(node));
+        }
+
         public void GenerateCode(CodeGenerator output)
         {
             output.AppendLine(this);
             output.AppendLine(this, $"// ********* {this.Name} {this.@interface.Kind} ***********");
             output.AppendLine(this, $"@{GetEntryLabel()}:");
+
+            Register tempReg1 = null;
+
+            bool isConstructor = this.@interface.Kind == MethodKind.Constructor;
+
+            // here we generate code that runs at the entry point of this method
+            // we need to fetch the global variables from storage and allocate registers for them
+            foreach (var variable in this.scope.Parent.Variables.Values)
+            {
+                if (variable.Storage != VarStorage.Global)
+                {
+                    continue;
+                }
+
+                if (!this.IsNodeUsed(variable))
+                {
+                    variable.Register = null;
+                    continue;
+                }
+
+                if (tempReg1 == null && !isConstructor)
+                {
+                    tempReg1 = Parser.Instance.AllocRegister(output, this);
+                    output.AppendLine(this, $"LOAD {tempReg1} 'Data.Get'");
+                }
+
+                var reg = Parser.Instance.AllocRegister(output, variable, variable.Name);
+                variable.Register = reg;
+
+                if (isConstructor)
+                {
+                    continue; // in a constructor we don't need to read the vars from storage as they dont exist yet
+                }
+
+                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name);
+
+                output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
+                output.AppendLine(this, $"PUSH r0");
+                output.AppendLine(this, $"EXTCALL {tempReg1}");
+                output.AppendLine(this, $"POP {reg}");
+            }
+            Parser.Instance.DeallocRegister(tempReg1);
+            tempReg1 = null;
+
+            foreach (var variable in this.scope.Variables.Values)
+            {
+                if (variable.Storage != VarStorage.Argument)
+                {
+                    continue;
+                }
+
+                variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
+            }
+
             this.scope.Enter(output);
             body.GenerateCode(output);
             this.scope.Leave(output);
+
+            // NOTE we don't need to dealloc anything here besides the global vars
+            foreach (var variable in this.scope.Parent.Variables.Values)
+            {
+                if (variable.Storage != VarStorage.Global)
+                {
+                    continue;
+                }
+
+                if (variable.Register == null)
+                {
+                    if (isConstructor)
+                    {
+                        throw new CompilerException("global variable not assigned in constructor: " + variable.Name);
+                    }
+
+                    continue; // if we hit this, means it went unused 
+                }
+
+                if (tempReg1 == null)
+                {
+                    tempReg1 = Parser.Instance.AllocRegister(output, this);
+                    output.AppendLine(this, $"LOAD {tempReg1} 'Data.Set'");
+                }
+
+                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name);
+
+                // NOTE we could keep this key loaded in a register if we had enough spare registers..
+                output.AppendLine(this, $"PUSH {variable.Register}");
+                output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
+                output.AppendLine(this, $"PUSH r0");
+                output.AppendLine(this, $"EXTCALL {tempReg1}");
+
+                if (variable.Register != null)
+                {
+                    Parser.Instance.DeallocRegister(variable.Register);
+                    variable.Register = null;
+                }
+            }
+            Parser.Instance.DeallocRegister(tempReg1);
+            tempReg1 = null;
+
             output.AppendLine(this, "RET");
         }
 
@@ -791,6 +937,32 @@ namespace TombCompiler
             this.Name = name;
             this.Scope = new Scope(this);
             this.library = AddLibrary("this");             
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            if (node == this)
+            {
+                return true;
+            }
+
+            foreach (var method in Methods.Values)
+            {
+                if (method.IsNodeUsed(node))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var lib in Libraries.Values)
+            {
+                if (lib.IsNodeUsed(node))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void GenerateCode(CodeGenerator output)
@@ -940,6 +1112,11 @@ namespace TombCompiler
             output.AppendLine(this, $"NOT {reg} {reg}");
             return reg;
         }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this) || expr.IsNodeUsed(node);
+        }
     }
 
     public class BinaryExpression : Expression
@@ -960,6 +1137,11 @@ namespace TombCompiler
             this.op = op;
             this.left = leftSide;
             this.right = rightSide;
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this) || left.IsNodeUsed(node) || right.IsNodeUsed(node);
         }
 
         public override Register GenerateCode(CodeGenerator output)
@@ -1010,6 +1192,24 @@ namespace TombCompiler
 
         }
 
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            if (node == this)
+            {
+                return true;
+            }
+
+            foreach (var arg in arguments)
+            {
+                if (arg.IsNodeUsed(node))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public override Register GenerateCode(CodeGenerator output)
         {
             foreach (var arg in arguments)
@@ -1050,6 +1250,11 @@ namespace TombCompiler
             return reg;
         }
 
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this);
+        }
+
         public override VarKind ResultType => kind;
     }
 
@@ -1071,12 +1276,17 @@ namespace TombCompiler
         {
             if (decl.Register == null)
             {
-                throw new CompilerException("implementation error, register missing for var decl");
+                throw new CompilerException(this, $"var not initialized:" + decl.Name);
             }
 
             var reg = Parser.Instance.AllocRegister(output, this, decl.Name);            
             output.AppendLine(this, $"MOVE {reg} {decl.Register}");
             return reg;
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this) || node == decl;
         }
 
         public override VarKind ResultType => decl.Kind;
@@ -1103,6 +1313,11 @@ namespace TombCompiler
             return reg;
         }
 
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this) || node == decl;
+        }
+
         public override VarKind ResultType => decl.Kind;
     }
 
@@ -1116,11 +1331,16 @@ namespace TombCompiler
         
         }
 
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this)  || variable.IsNodeUsed(node) || expression.IsNodeUsed(node);
+        }
+
         public override void GenerateCode(CodeGenerator output)
         {
             if (variable.Register == null)
             {
-                throw new CompilerException("implementation error, register missing for var decl");
+                variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
             }
 
             var srcReg = expression.GenerateCode(output);
@@ -1133,6 +1353,11 @@ namespace TombCompiler
     {
         public ReturnCommand() : base()
         {
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this);
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -1148,6 +1373,11 @@ namespace TombCompiler
         public ThrowCommand(string msg) : base()
         {
             this.message = msg;
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this);
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -1169,6 +1399,16 @@ namespace TombCompiler
         {
             this.Scope = new Scope(parentScope, this.NodeID);
             this.label = Parser.Instance.AllocateLabel();
+        }
+
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            if (@else != null && @else.IsNodeUsed(node))
+            {
+                return true;
+            }
+
+            return (node == this) || condition.IsNodeUsed(node) || body.IsNodeUsed(node);
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -1204,6 +1444,10 @@ namespace TombCompiler
         public MethodCallCommand() : base()
         {
             
+        }
+        public override bool IsNodeUsed(CodeNode node)
+        {
+            return (node == this) || expression.IsNodeUsed(node);
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -1877,7 +2121,9 @@ namespace TombCompiler
             return expr;
         }
 
-        private object[] registerAllocs = new object[32];
+        private const int MaxRegisters = 32;
+        private CodeNode[] registerAllocs = new CodeNode[MaxRegisters];
+        private string[] registerAlias = new string[MaxRegisters];
 
         public Register AllocRegister(CodeGenerator generator, CodeNode node, string alias = null)
         {
@@ -1887,6 +2133,7 @@ namespace TombCompiler
                 if (registerAllocs[i] == null)
                 {
                     registerAllocs[i] = node;
+                    registerAlias[i] = alias;
 
                     string extra = alias != null ? " => " + alias : "";
                     Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "alloc r" + i + extra);
@@ -1905,11 +2152,20 @@ namespace TombCompiler
 
         public void DeallocRegister(Register register)
         {
-            if (registerAllocs[register.Index] != null)
+            if (register == null)
             {
-                Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "dealloc r" + register.Index);
+                return;
+            }
 
-                registerAllocs[register.Index] = null;
+            var index = register.Index;
+
+            if (registerAllocs[index] != null)
+            {
+                var alias = registerAlias[index];
+
+                Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "dealloc r" + index);
+
+                registerAllocs[index] = null;
                 return;
             }
 
@@ -1933,6 +2189,11 @@ namespace TombCompiler
     public class CompilerException : Exception
     {
         public CompilerException(string msg) : base($"line {Parser.Instance.CurrentLine}: {msg}")
+        {
+
+        }
+
+        public CompilerException(CodeNode node, string msg) : base($"line {node.LineNumber}: {msg}")
         {
 
         }

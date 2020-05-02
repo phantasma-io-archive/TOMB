@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Cryptography", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.VM", "..\PhantasmaChain\Phantasma.VM\Phantasma.VM.csproj", "{A41800BA-E4FB-4666-8137-6221315DE9D4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Blockchain", "..\PhantasmaChain\Phantasma.Blockchain\Phantasma.Blockchain.csproj", "{B503EA99-7209-45AE-995D-23D00412DDC3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Contracts", "..\PhantasmaChain\Phantasma.Contracts\Phantasma.Contracts.csproj", "{9943D188-193C-454D-A0A9-0EC1844DD504}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{A41800BA-E4FB-4666-8137-6221315DE9D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A41800BA-E4FB-4666-8137-6221315DE9D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A41800BA-E4FB-4666-8137-6221315DE9D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B503EA99-7209-45AE-995D-23D00412DDC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B503EA99-7209-45AE-995D-23D00412DDC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B503EA99-7209-45AE-995D-23D00412DDC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B503EA99-7209-45AE-995D-23D00412DDC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9943D188-193C-454D-A0A9-0EC1844DD504}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9943D188-193C-454D-A0A9-0EC1844DD504}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9943D188-193C-454D-A0A9-0EC1844DD504}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9943D188-193C-454D-A0A9-0EC1844DD504}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
