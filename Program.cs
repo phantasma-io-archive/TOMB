@@ -1,5 +1,6 @@
 ﻿using Phantasma.Contracts;
 using Phantasma.Cryptography;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -1763,11 +1764,32 @@ namespace TombCompiler
                             break;
                         }
 
-                    case "on":
+                    case "trigger":
                         {
                             var line = this.CurrentLine;
                             var name = ExpectIdentifier();
 
+                            if (!name.StartsWith("on"))
+                            {
+                                name = "on" + name;
+                            }
+
+                            var isValid = false;
+                            foreach (var allowedName in Parser.ValidTriggerNames)
+                            {
+                                if (allowedName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    name = allowedName;
+                                    isValid = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isValid)
+                            {
+                                throw new CompilerException("invalid trigger name:" + name);
+                            }
+                            
                             var parameters = ParseParameters(contract.Scope);
                             var scope = new Scope(contract.Scope, name, parameters);
 
@@ -2173,6 +2195,8 @@ namespace TombCompiler
 
             return expr;
         }
+
+        public static readonly string[] ValidTriggerNames = Enum.GetNames(typeof(AccountTrigger)).Union(Enum.GetNames(typeof(TokenTrigger))).ToArray();
 
         private const int MaxRegisters = VirtualMachine.DefaultRegisterCount;
         private CodeNode[] registerAllocs = new CodeNode[MaxRegisters];

@@ -58,6 +58,10 @@
       <Project>{EF00D2BF-BF5E-4DB6-8A81-C9C3A8467711}</Project>
       <Name>Phantasma.Cryptography</Name>
     </ProjectReference>
+    <ProjectReference Include="..\PhantasmaChain\Phantasma.Domain\Phantasma.Domain.csproj">
+      <Project>{EE279FA5-FAD8-4454-B55C-F783A7AAB768}</Project>
+      <Name>Phantasma.Domain</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PhantasmaChain\Phantasma.Numerics\Phantasma.Numerics.csproj">
       <Project>{559A204E-33EE-4D70-A5CC-1D52CA6B6D0C}</Project>
       <Name>Phantasma.Numerics</Name>
