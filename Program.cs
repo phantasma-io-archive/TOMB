@@ -1,4 +1,4 @@
-using Phantasma.Contracts;
+﻿using Phantasma.Contracts;
 using Phantasma.Cryptography;
 using Phantasma.Numerics;
 using Phantasma.VM;
@@ -19,6 +19,7 @@ namespace TombCompiler
         String,
         Timestamp,
         Address,
+        Bytes,
         Task
     }
 
@@ -527,6 +528,7 @@ namespace TombCompiler
         Number,
         Bool,
         Address,
+        Bytes,
     }
 
     public struct LexerToken
@@ -542,6 +544,11 @@ namespace TombCompiler
             this.line = line;
             this.value = value;
 
+            if (value.StartsWith("0x"))
+            {
+                this.kind = TokenKind.Bytes;
+            }
+            else
             if (value.StartsWith("@"))
             {
                 this.kind = TokenKind.Address;
@@ -1047,7 +1054,7 @@ namespace TombCompiler
 
             if (required)
             {
-                throw new CompilerException("unimported library: " + name);
+                throw new CompilerException("possibly unimported library: " + name);
             }
 
             return null;
@@ -2013,6 +2020,11 @@ namespace TombCompiler
                 case TokenKind.Address:
                     {
                         return new LiteralExpression(scope, first.value, VarKind.Address);
+                    }
+
+                case TokenKind.Bytes:
+                    {
+                        return new LiteralExpression(scope, first.value, VarKind.Bytes);
                     }
 
                 default:
