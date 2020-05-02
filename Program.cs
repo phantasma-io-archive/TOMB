@@ -1,4 +1,5 @@
 ﻿using Phantasma.Contracts;
+using Phantasma.Cryptography;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -525,6 +526,7 @@ namespace TombCompiler
         String,
         Number,
         Bool,
+        Address,
     }
 
     public struct LexerToken
@@ -540,6 +542,25 @@ namespace TombCompiler
             this.line = line;
             this.value = value;
 
+            if (value.StartsWith("@"))
+            {
+                this.kind = TokenKind.Address;
+                this.value = value.Substring(1);
+
+                Address addr;
+
+                if (this.value.Equals("null", StringComparison.OrdinalIgnoreCase))
+                {
+                    addr = Address.Null;
+                }
+                else
+                {
+                    addr = Address.FromText(value);
+                }
+
+                this.value = "0x"+Base16.Encode(addr.ToByteArray());
+            }
+            else
             if (value == "true" || value == "false")
             {
                 this.kind = TokenKind.Bool;
@@ -1972,6 +1993,11 @@ namespace TombCompiler
                 case TokenKind.Bool:
                     {
                         return new LiteralExpression(scope, first.value, VarKind.Bool);
+                    }
+
+                case TokenKind.Address:
+                    {
+                        return new LiteralExpression(scope, first.value, VarKind.Address);
                     }
 
                 default:
