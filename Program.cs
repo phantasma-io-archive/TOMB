@@ -2147,7 +2147,7 @@ namespace TombCompiler
             return expr;
         }
 
-        private const int MaxRegisters = 32;
+        private const int MaxRegisters = VirtualMachine.DefaultRegisterCount;
         private CodeNode[] registerAllocs = new CodeNode[MaxRegisters];
         private string[] registerAlias = new string[MaxRegisters];
 
