@@ -64,23 +64,23 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PhantasmaChain\Phantasma.Contracts\Phantasma.Contracts.csproj">
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Contracts\Phantasma.Contracts.csproj">
       <Project>{9943D188-193C-454D-A0A9-0EC1844DD504}</Project>
       <Name>Phantasma.Contracts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\PhantasmaChain\Phantasma.Cryptography\Phantasma.Cryptography.csproj">
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Cryptography\Phantasma.Cryptography.csproj">
       <Project>{EF00D2BF-BF5E-4DB6-8A81-C9C3A8467711}</Project>
       <Name>Phantasma.Cryptography</Name>
     </ProjectReference>
-    <ProjectReference Include="..\PhantasmaChain\Phantasma.Domain\Phantasma.Domain.csproj">
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Domain\Phantasma.Domain.csproj">
       <Project>{EE279FA5-FAD8-4454-B55C-F783A7AAB768}</Project>
       <Name>Phantasma.Domain</Name>
     </ProjectReference>
-    <ProjectReference Include="..\PhantasmaChain\Phantasma.Numerics\Phantasma.Numerics.csproj">
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Numerics\Phantasma.Numerics.csproj">
       <Project>{559A204E-33EE-4D70-A5CC-1D52CA6B6D0C}</Project>
       <Name>Phantasma.Numerics</Name>
     </ProjectReference>
-    <ProjectReference Include="..\PhantasmaChain\Phantasma.VM\Phantasma.VM.csproj">
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.VM\Phantasma.VM.csproj">
       <Project>{A41800BA-E4FB-4666-8137-6221315DE9D4}</Project>
       <Name>Phantasma.VM</Name>
     </ProjectReference>
