@@ -57,7 +57,7 @@ namespace Phantasma.Tomb.Compiler
                 foreach (var entry in Methods.Values)
                 {
                     output.AppendLine(this, $"LOAD r0, \"{entry.Name}\"");
-                    output.AppendLine(this, $"CMP r0, {reg}");
+                    output.AppendLine(this, $"EQUAL r0, {reg}");
                     output.AppendLine(this, $"JMPIF r0, @{entry.GetEntryLabel()}");
                 }
                 Parser.Instance.DeallocRegister(reg);
