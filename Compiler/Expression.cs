@@ -68,6 +68,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var regLeft = left.GenerateCode(output);
             var regRight = right.GenerateCode(output);
+            var regResult = Parser.Instance.AllocRegister(output, this);
 
             Opcode opcode;
             switch (this.op)
@@ -87,11 +88,12 @@ namespace Phantasma.Tomb.Compiler
                     throw new CompilerException("not implemented vmopcode for " + op);
             }
 
-            output.AppendLine(this, $"{opcode} {regLeft} {regLeft} {regRight}");
+            output.AppendLine(this, $"{opcode} {regResult} {regLeft} {regRight}");
 
             Parser.Instance.DeallocRegister(regRight);
+            Parser.Instance.DeallocRegister(regLeft);
 
-            return regLeft;
+            return regResult;
         }
 
         public override string ToString()
