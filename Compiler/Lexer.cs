@@ -84,6 +84,7 @@ namespace Phantasma.Tomb.Compiler
                 switch (first)
                 {
                     case '\'':
+                        this.value = this.value.Replace('\'', '"');
                         this.kind = TokenKind.String;
                         break;
 

@@ -56,12 +56,12 @@ namespace Phantasma.Tomb.Compiler
                 output.AppendLine(this, $"POP {reg}");
                 foreach (var entry in Methods.Values)
                 {
-                    output.AppendLine(this, $"LOAD r0, '{entry.Name}'");
+                    output.AppendLine(this, $"LOAD r0, \"{entry.Name}\"");
                     output.AppendLine(this, $"CMP r0, {reg}");
                     output.AppendLine(this, $"JMPIF r0, @{entry.GetEntryLabel()}");
                 }
                 Parser.Instance.DeallocRegister(reg);
-                output.AppendLine(this, "THROW 'unknown method was called'");
+                output.AppendLine(this, "THROW \"unknown method was called\"");
             }
 
             foreach (var entry in Methods.Values)

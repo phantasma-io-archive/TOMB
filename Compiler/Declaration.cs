@@ -167,7 +167,7 @@ namespace Phantasma.Tomb.Compiler
                 if (tempReg1 == null && !isConstructor)
                 {
                     tempReg1 = Parser.Instance.AllocRegister(output, this);
-                    output.AppendLine(this, $"LOAD {tempReg1} 'Data.Get'");
+                    output.AppendLine(this, $"LOAD {tempReg1} \"Data.Get\"");
                 }
 
                 var reg = Parser.Instance.AllocRegister(output, variable, variable.Name);
@@ -223,7 +223,7 @@ namespace Phantasma.Tomb.Compiler
                 if (tempReg1 == null)
                 {
                     tempReg1 = Parser.Instance.AllocRegister(output, this);
-                    output.AppendLine(this, $"LOAD {tempReg1} 'Data.Set'");
+                    output.AppendLine(this, $"LOAD {tempReg1} \"Data.Set\"");
                 }
 
                 var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name);

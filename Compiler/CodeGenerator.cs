@@ -26,7 +26,7 @@ namespace Phantasma.Tomb.Compiler
                 if (currentLine > 0)
                 {
                     var lineContent = Parser.Instance.GetLine(currentLine);
-                    _sb.Append($"// Line {currentLine}:" + lineContent);
+                    _sb.AppendLine($"// Line {currentLine}:" + lineContent);
                 }
                 currentLine++;
             }
