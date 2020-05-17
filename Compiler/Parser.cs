@@ -133,7 +133,7 @@ namespace Phantasma.Tomb.Compiler
             ExpectToken("contract");
             var contractName = ExpectIdentifier();
 
-            this.lines = sourceCode.Split('\n');
+            this.lines = sourceCode.Replace("\r", "").Split('\n');
 
             var contractBlock = new Contract(contractName);
             ExpectToken("{");
