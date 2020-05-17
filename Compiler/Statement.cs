@@ -141,7 +141,7 @@ namespace Phantasma.Tomb.Compiler
             this.Scope.Enter(output);
             if (@else != null)
             {
-                output.AppendLine(this, $"JMPNOT @else_{this.NodeID} {reg}");
+                output.AppendLine(this, $"JMPNOT {reg} @else_{this.NodeID}");
                 body.GenerateCode(output);
                 output.AppendLine(this, $"JMP @then_{this.NodeID}");
                 output.AppendLine(this, $"@else_{this.NodeID}: NOP");
@@ -149,7 +149,7 @@ namespace Phantasma.Tomb.Compiler
             }
             else
             {
-                output.AppendLine(this, $"JMPNOT @then_{this.NodeID} {reg}");
+                output.AppendLine(this, $"JMPNOT {reg} @then_{this.NodeID}");
                 body.GenerateCode(output);
             }
             output.AppendLine(this, $"@then_{this.NodeID}: NOP");
