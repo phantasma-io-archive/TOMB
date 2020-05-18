@@ -178,7 +178,7 @@ namespace Phantasma.Tomb.Compiler
                     continue; // in a constructor we don't need to read the vars from storage as they dont exist yet
                 }
 
-                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name);
+                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
                 output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
                 output.AppendLine(this, $"PUSH r0");
@@ -226,7 +226,7 @@ namespace Phantasma.Tomb.Compiler
                     output.AppendLine(this, $"LOAD {tempReg1} \"Data.Set\"");
                 }
 
-                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name);
+                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
                 // NOTE we could keep this key loaded in a register if we had enough spare registers..
                 output.AppendLine(this, $"PUSH {variable.Register}");
