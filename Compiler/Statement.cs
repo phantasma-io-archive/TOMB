@@ -67,7 +67,7 @@ namespace Phantasma.Tomb.Compiler
             }
 
             var srcReg = expression.GenerateCode(output);
-            output.AppendLine(this, $"MOVE {variable.Register} {srcReg}");
+            output.AppendLine(this, $"COPY {srcReg} {variable.Register}");
             Parser.Instance.DeallocRegister(srcReg);
         }
     }

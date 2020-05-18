@@ -202,7 +202,7 @@ namespace Phantasma.Tomb.Compiler
             }
 
             var reg = Parser.Instance.AllocRegister(output, this, decl.Name);
-            output.AppendLine(this, $"MOVE {reg} {decl.Register}");
+            output.AppendLine(this, $"COPY {decl.Register} {reg}");
             return reg;
         }
 
