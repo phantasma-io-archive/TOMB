@@ -709,6 +709,17 @@ namespace Phantasma.Tomb.Compiler
 
         public Register AllocRegister(CodeGenerator generator, Node node, string alias = null)
         {
+            if (alias != null)
+            {
+                foreach (var entry in registerAlias)
+                {
+                    if (entry == alias)
+                    {
+                        throw new Exception("alias already exists: " + alias);
+                    }
+                }
+            }
+
             int baseRegister = 1;
             for (int i = baseRegister; i < registerAllocs.Length; i++)
             {

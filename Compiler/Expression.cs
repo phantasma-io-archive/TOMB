@@ -201,7 +201,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException(this, $"var not initialized:" + decl.Name);
             }
 
-            var reg = Parser.Instance.AllocRegister(output, this, decl.Name);
+            var reg = Parser.Instance.AllocRegister(output, this);
             output.AppendLine(this, $"COPY {decl.Register} {reg}");
             return reg;
         }
