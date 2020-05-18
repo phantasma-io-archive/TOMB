@@ -180,6 +180,33 @@ namespace Phantasma.Tomb.Compiler
 
                 var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
+                VM.VMType vmType;
+
+                switch (variable.Kind)
+                {
+                    case VarKind.Number:
+                        vmType = VM.VMType.Number;
+                        break;
+
+                    case VarKind.String:
+                        vmType = VM.VMType.String;
+                        break;
+
+                    case VarKind.Timestamp:
+                        vmType = VM.VMType.Timestamp;
+                        break;
+
+                    case VarKind.Bool:
+                        vmType = VM.VMType.Bool;
+                        break;
+
+                    default:
+                        vmType = VM.VMType.Bytes;
+                        break;
+                }
+
+                output.AppendLine(this, $"LOAD r0 {(int)vmType}");
+                output.AppendLine(this, $"PUSH r0");
                 output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
                 output.AppendLine(this, $"PUSH r0");
                 output.AppendLine(this, $"EXTCALL {tempReg1}");
