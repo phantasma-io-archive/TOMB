@@ -88,7 +88,7 @@ namespace Phantasma.Tomb.Compiler
                     throw new CompilerException("not implemented vmopcode for " + op);
             }
 
-            output.AppendLine(this, $"{opcode} {regResult} {regLeft} {regRight}");
+            output.AppendLine(this, $"{opcode} {regLeft} {regRight} {regResult}");
 
             Parser.Instance.DeallocRegister(regRight);
             Parser.Instance.DeallocRegister(regLeft);
