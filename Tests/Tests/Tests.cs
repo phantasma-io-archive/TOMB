@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Phantasma.CodeGen.Assembler;
+using Phantasma.Core.Utils;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
 using Phantasma.VM.Utils;
@@ -20,10 +21,11 @@ namespace Tests
             private Dictionary<string, Func<ExecutionFrame, ExecutionState>> _interops = new Dictionary<string, Func<ExecutionFrame, ExecutionState>>();
             private Func<string, ExecutionContext> _contextLoader;
             private Dictionary<string, ScriptContext> contexts;
-            private Dictionary<byte[], byte[]> storage = new Dictionary<byte[], byte[]>();
+            private Dictionary<byte[], byte[]> storage;
 
-            public TestVM(byte[] script) : base(script)
+            public TestVM(byte[] script, Dictionary<byte[], byte[]> storage) : base(script)
             {
+                this.storage = storage;
                 RegisterContextLoader(ContextLoader);
                 RegisterInterop("Data.Set", Data_Set);
                 RegisterInterop("Data.Get", Data_Get);
@@ -186,13 +188,16 @@ namespace Tests
 
             var script = AssemblerUtils.BuildScript(lines);
 
-            var vm = new TestVM(script);
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            var vm = new TestVM(script, storage);
             vm.Stack.Push(VMObject.FromObject("test()"));
             var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
 
-
-            var obj = vm.Stack.Pop();
-
+            vm = new TestVM(script, storage);
+            vm.Stack.Push(VMObject.FromObject("increment"));
+            result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
         }
     }
