@@ -119,11 +119,14 @@ namespace Tests
                 var key = this.Stack.Pop();
                 var key_bytes = key.AsByteArray();
 
+                var type_obj = this.Stack.Pop();
+                var vmType = type_obj.AsEnum<VMType>();
+
                 this.Expect(key_bytes.Length > 0, "invalid key");
 
                 var value_bytes = storage[key_bytes];
                 var val = new VMObject();
-                val.SetValue(value_bytes, VMType.Bytes);
+                val.SetValue(value_bytes, vmType);
                 this.Stack.Push(val);
 
                 return ExecutionState.Running;
