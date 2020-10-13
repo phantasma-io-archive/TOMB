@@ -10,7 +10,7 @@
         Timestamp,
         Address,
         Bytes,
-        Task
+        Method
     }
 
     public enum VarStorage

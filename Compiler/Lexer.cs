@@ -19,6 +19,7 @@ namespace Phantasma.Tomb.Compiler
         Bool,
         Address,
         Bytes,
+        Method,
     }
 
     public struct LexerToken
@@ -52,10 +53,16 @@ namespace Phantasma.Tomb.Compiler
                 }
                 else
                 {
-                    addr = Address.FromText(value);
+                    addr = Address.FromText(this.value);
                 }
 
                 this.value = "0x" + Base16.Encode(addr.ToByteArray());
+            }
+            else
+            if (value.StartsWith("&"))
+            {
+                this.kind = TokenKind.Method;
+                this.value = value.Substring(1);
             }
             else
             if (value == "true" || value == "false")
