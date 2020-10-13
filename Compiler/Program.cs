@@ -7,7 +7,7 @@ namespace Phantasma.Tomb.Compiler
     {
         static void Main(string[] args)
         {
-            var sourceFile = "code2.txt";
+            var sourceFile = "katacomb.txt";
             Console.WriteLine("Opening " + sourceFile);
             var sourceCode = File.ReadAllText(sourceFile);
 

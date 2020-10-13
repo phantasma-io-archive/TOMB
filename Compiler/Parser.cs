@@ -1,8 +1,10 @@
 ﻿using Phantasma.Domain;
+using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Schema;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -194,9 +196,25 @@ namespace Phantasma.Tomb.Compiler
                             var varName = ExpectIdentifier();
                             ExpectToken(":");
                             var kind = ExpectType();
-                            ExpectToken(";");
 
-                            var varDecl = new VarDeclaration(contract.Scope, varName, kind, VarStorage.Global);
+                            VarDeclaration varDecl;
+
+                            if (kind == VarKind.Map)
+                            {
+                                ExpectToken("<");
+                                var map_key = ExpectType();
+                                ExpectToken(",");
+                                var map_val = ExpectType();
+                                ExpectToken(">");
+
+                                varDecl = new MapDeclaration(contract.Scope, varName, map_key, map_val);
+                            }
+                            else
+                            {
+                                varDecl = new VarDeclaration(contract.Scope, varName, kind, VarStorage.Global);
+                            }
+
+                            ExpectToken(";");
                             contract.Scope.AddVariable(varDecl);
                             break;
                         }
@@ -466,10 +484,33 @@ namespace Phantasma.Tomb.Compiler
                             else
                             if (next.kind == TokenKind.Selector)
                             {
-                                var lib = scope.Root.FindLibrary(token.value);
+                                var varDecl = scope.FindVariable(token.value, false);
+
+                                LibraryDeclaration libDecl;
+                                
+                                if (varDecl != null)
+                                {
+                                    switch (varDecl.Kind)
+                                    {
+                                        case VarKind.Map:
+                                            {
+                                                var mapDecl = (MapDeclaration)varDecl;
+                                                libDecl = scope.Root.FindLibrary("Map");
+                                                libDecl.PatchMap(mapDecl);
+                                                break;
+                                            }
+
+                                        default:
+                                            throw new CompilerException($"expected {token.value} to be generic type, but is {varDecl.Kind} instead");
+                                    }
+                                }
+                                else
+                                {
+                                    libDecl = scope.Root.FindLibrary(token.value);
+                                }
 
                                 var methodCall = new MethodCallStatement();
-                                methodCall.expression = ParseMethodExpression(scope, lib);
+                                methodCall.expression = ParseMethodExpression(scope, libDecl, varDecl);
 
                                 block.Commands.Add(methodCall);
                             }
@@ -584,6 +625,9 @@ namespace Phantasma.Tomb.Compiler
                 case "/":
                     return OperatorKind.Division;
 
+                case "%":
+                    return OperatorKind.Modulus;
+
                 case "*":
                     return OperatorKind.Multiplication;
 
@@ -649,8 +693,32 @@ namespace Phantasma.Tomb.Compiler
 
                 case TokenKind.Selector:
                     {
-                        var libDecl = scope.Root.FindLibrary(first.value);
-                        var leftSide = ParseMethodExpression(scope, libDecl);
+                        var varDecl = scope.FindVariable(first.value, false);
+
+                        LibraryDeclaration libDecl;
+
+                        if (varDecl != null)
+                        {
+                            switch (varDecl.Kind)
+                            {
+                                case VarKind.Map:
+                                    {
+                                        var mapDecl = (MapDeclaration)varDecl;
+                                        libDecl = scope.Root.FindLibrary("Map");
+                                        libDecl.PatchMap(mapDecl);
+                                        break;
+                                    }
+
+                                default:
+                                    throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Kind} instead");
+                            }
+                        }
+                        else
+                        {
+                            libDecl = scope.Root.FindLibrary(first.value);
+                        }
+
+                        var leftSide = ParseMethodExpression(scope, libDecl, varDecl);
 
                         second = FetchToken();
                         if (second.kind == TokenKind.Operator)
@@ -664,12 +732,28 @@ namespace Phantasma.Tomb.Compiler
                             return leftSide;
                         }
                     }
+
+                default:
+                    if (first.kind == TokenKind.Separator)
+                    {
+                        Rewind();
+                        var leftSide = ExpectExpression(scope);
+                        ExpectToken(")");
+                        var op = FetchToken();
+                        if (op.kind != TokenKind.Operator)
+                        {
+                            throw new CompilerException($"expected operator, got {op.kind} instead");
+                        }
+                        var rightSide = ExpectExpression(scope);
+                        return ParseBinaryExpression(scope, op, leftSide, rightSide);
+                    }
+                    break;
             }
 
             return null;
         }
 
-        private MethodExpression ParseMethodExpression(Scope scope, LibraryDeclaration library)
+        private MethodExpression ParseMethodExpression(Scope scope, LibraryDeclaration library, VarDeclaration implicitArg = null)
         {
             var expr = new MethodExpression(scope);
 
@@ -678,15 +762,27 @@ namespace Phantasma.Tomb.Compiler
             expr.method = library.FindMethod(methodName);
             ExpectToken("(");
 
+            var firstIndex = implicitArg != null ? 1 : 0;
+
             var paramCount = expr.method.Parameters.Length;
             for (int i = 0; i < paramCount; i++)
             {
-                if (i > 0)
+                if (i > firstIndex)
                 {
                     ExpectToken(",");
                 }
 
-                var arg = ExpectExpression(scope);
+                Expression arg;
+                
+                if (i == 0 && implicitArg != null)
+                {
+                    arg = new LiteralExpression(scope, implicitArg.Name, VarKind.String);
+                }
+                else
+                {
+                    arg = ExpectExpression(scope);
+                }
+                
                 expr.arguments.Add(arg);
 
                 var expectedType = expr.method.Parameters[i].Kind;
@@ -756,9 +852,10 @@ namespace Phantasma.Tomb.Compiler
             {
                 var alias = registerAlias[index];
 
-                Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "dealloc r" + index);
+                Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "dealloc r" + index + " => "+alias);
 
                 registerAllocs[index] = null;
+                registerAlias[index] = null;
                 return;
             }
 

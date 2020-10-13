@@ -10,7 +10,8 @@
         Timestamp,
         Address,
         Bytes,
-        Method
+        Method,
+        Map
     }
 
     public enum VarStorage
@@ -34,6 +35,7 @@
         Subtraction,
         Multiplication,
         Division,
+        Modulus,
     }
 
     public enum MethodKind

@@ -20,6 +20,7 @@ namespace Phantasma.Tomb.Compiler
         Address,
         Bytes,
         Method,
+        Map,
     }
 
     public struct LexerToken
@@ -143,6 +144,7 @@ namespace Phantasma.Tomb.Compiler
                 case '-':
                 case '*':
                 case '/':
+                case '%':
                 case '<':
                 case '>':
                 case '!':

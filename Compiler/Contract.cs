@@ -167,9 +167,9 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case "Map":
-                    libDecl.AddMethod("get", VarKind.Number, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("from", VarKind.Address) });
-                    libDecl.AddMethod("insert", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("from", VarKind.Address), new MethodParameter("value", VarKind.Number) });
-                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("from", VarKind.Address)   });
+                    libDecl.AddMethod("get", VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
+                    libDecl.AddMethod("set", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown)   });
                     libDecl.AddMethod("count", VarKind.Number, new[] { new MethodParameter("map", VarKind.String) });
                     libDecl.AddMethod("clear", VarKind.None, new[] { new MethodParameter("map", VarKind.String) });
                     break;

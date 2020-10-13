@@ -1,5 +1,6 @@
 ﻿using Phantasma.Contracts;
 using Phantasma.Numerics;
+using System;
 using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
@@ -36,6 +37,18 @@ namespace Phantasma.Tomb.Compiler
         public override bool IsNodeUsed(Node node)
         {
             return node == this;
+        }
+    }
+
+    public class MapDeclaration: VarDeclaration
+    {
+        public VarKind KeyKind;
+        public VarKind ValueKind;
+
+        public MapDeclaration(Scope parentScope, string name, VarKind keyKind, VarKind valKind) : base(parentScope, name, VarKind.Map, VarStorage.Global)
+        {
+            this.KeyKind = keyKind;
+            this.ValueKind = valKind;
         }
     }
 
@@ -118,6 +131,21 @@ namespace Phantasma.Tomb.Compiler
         public override bool IsNodeUsed(Node node)
         {
             return node == this;
+        }
+
+        public void PatchParam(string name, VarKind kind)
+        {
+            foreach (var method in methods.Values)
+            {
+                method.PatchParam(name, kind);
+            }
+        }
+
+        public void PatchMap(MapDeclaration mapDecl)
+        {
+            PatchParam("key", mapDecl.KeyKind);
+            PatchParam("value", mapDecl.ValueKind);
+            FindMethod("get").ReturnType = mapDecl.ValueKind;
         }
     }
 
@@ -239,7 +267,9 @@ namespace Phantasma.Tomb.Compiler
 
                 if (variable.Register == null)
                 {
-                    if (isConstructor)
+                    var isGeneric = variable.Kind == VarKind.Map;
+
+                    if (isConstructor && !isGeneric)
                     {
                         throw new CompilerException("global variable not assigned in constructor: " + variable.Name);
                     }

@@ -77,6 +77,7 @@ namespace Phantasma.Tomb.Compiler
                 case OperatorKind.Subtraction: opcode = Opcode.SUB; break;
                 case OperatorKind.Multiplication: opcode = Opcode.MUL; break;
                 case OperatorKind.Division: opcode = Opcode.DIV; break;
+                case OperatorKind.Modulus: opcode = Opcode.MOD; break;
 
                 case OperatorKind.Equal: opcode = Opcode.EQUAL; break;
                 case OperatorKind.Less: opcode = Opcode.LT; break;
