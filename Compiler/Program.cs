@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Phantasma.Domain;
+using System;
 using System.IO;
 
 namespace Phantasma.Tomb.Compiler
@@ -16,8 +17,18 @@ namespace Phantasma.Tomb.Compiler
             var contract = parser.Parse(sourceCode);
 
             Console.WriteLine("Compiling " + sourceFile);
-            var asm = contract.Compile();
-            File.WriteAllText("asm.txt", asm);
+            string asm;
+            ContractInterface abi;
+            contract.Compile(out asm, out abi);
+
+
+            var contractName = Path.GetFileNameWithoutExtension(sourceFile);
+
+            File.WriteAllText(contractName + ".asm", asm);
+
+            File.WriteAllBytes(contractName + ".abi", abi.ToByteArray());
+            
+
 
             Console.WriteLine("Done, press any key");
             Console.ReadKey();

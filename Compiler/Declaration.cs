@@ -1,5 +1,6 @@
 ﻿using Phantasma.Domain;
 using Phantasma.Numerics;
+using Phantasma.VM;
 using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
@@ -343,6 +344,47 @@ namespace Phantasma.Tomb.Compiler
             else
             {
                 return "entry_" + this.Name;
+            }
+        }
+
+        internal ContractMethod GetABI()
+        {
+            var temp = new List<ContractParameter>();
+
+            foreach (var entry in this.@interface.Parameters)
+            {
+                temp.Add(new ContractParameter(entry.Name, ConvertType(entry.Kind)));
+            }
+
+            return new ContractMethod(this.Name, ConvertType(this.@interface.ReturnType), temp.ToArray());
+        }
+
+        private static VMType ConvertType(VarKind kind)
+        {
+            switch (kind)
+            {
+                case VarKind.Address:
+                case VarKind.Bytes:
+                    return VMType.Bytes;
+
+                case VarKind.Bool:
+                    return VMType.Bool;
+
+                case VarKind.Method:
+                case VarKind.Number:
+                    return VMType.Number;
+
+                case VarKind.String:
+                    return VMType.String;
+
+                case VarKind.Timestamp:
+                    return VMType.Timestamp;
+
+                case VarKind.None:
+                    return VMType.None;
+
+                default:
+                    throw new System.Exception("Not a valid ABI return type: " + kind);
             }
         }
     }

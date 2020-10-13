@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Phantasma.Domain;
+using Phantasma.VM;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -47,7 +50,7 @@ namespace Phantasma.Tomb.Compiler
             return false;
         }
 
-        public void GenerateCode(CodeGenerator output)
+        public ContractInterface GenerateCode(CodeGenerator output)
         {
             this.Scope.Enter(output);
 
@@ -70,6 +73,11 @@ namespace Phantasma.Tomb.Compiler
             }
 
             this.Scope.Leave(output);
+
+            var methods = Methods.Values.Select(x => x.GetABI());
+            var abi = new ContractInterface(methods);
+
+            return abi;
         }
 
         public void AddMethod(int line, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, Scope scope, StatementBlock body)
@@ -191,14 +199,14 @@ namespace Phantasma.Tomb.Compiler
             return libDecl;
         }   
 
-        public string Compile()
+        public void Compile(out string asm, out ContractInterface abi)
         {
             var sb = new CodeGenerator();
-            this.GenerateCode(sb);
+            abi = this.GenerateCode(sb);
 
             Parser.Instance.VerifyRegisters();
 
-            return sb.ToString();
+            asm = sb.ToString();
         }
     }
 }
