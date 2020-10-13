@@ -127,13 +127,14 @@ namespace Phantasma.Tomb.Compiler
             {
                 case "this":
                     libDecl.AddMethod("getAddress", VarKind.Address, new MethodParameter[] { });
+                    libDecl.AddMethod("getMethod", VarKind.Method, new MethodParameter[] { });
                     break;
 
                 case "Runtime":
                     libDecl.AddMethod("log", VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
                     libDecl.AddMethod("isWitness", VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
                     libDecl.AddMethod("getTime", VarKind.Timestamp, new MethodParameter[] { });
-                    libDecl.AddMethod("startTask", VarKind.None, new MethodParameter[] { new MethodParameter("from", VarKind.Address), new MethodParameter("taskName", VarKind.String) });
+                    libDecl.AddMethod("startTask", VarKind.None, new MethodParameter[] { new MethodParameter("from", VarKind.Address), new MethodParameter("task", VarKind.Method) });
                     libDecl.AddMethod("stopTask", VarKind.None, new MethodParameter[] { });
                     break;
 
@@ -152,6 +153,10 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("addMember", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("target", VarKind.Address)});
                     break;
 
+                case "Utils":
+                    libDecl.AddMethod("unixTime", VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) });
+                    break;
+
                 case "Leaderboard":
                     libDecl.AddMethod("create", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) });
                     libDecl.AddMethod("getAddress", VarKind.Address, new[] { new MethodParameter("index", VarKind.Number), new MethodParameter("boardName", VarKind.String) });
@@ -159,6 +164,14 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("insertScore", VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number)});
                     libDecl.AddMethod("reset", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String)});
                     libDecl.AddMethod("getSize", VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) });
+                    break;
+
+                case "Map":
+                    libDecl.AddMethod("get", VarKind.Number, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("from", VarKind.Address) });
+                    libDecl.AddMethod("insert", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("from", VarKind.Address), new MethodParameter("value", VarKind.Number) });
+                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("from", VarKind.Address)   });
+                    libDecl.AddMethod("count", VarKind.Number, new[] { new MethodParameter("map", VarKind.String) });
+                    libDecl.AddMethod("clear", VarKind.None, new[] { new MethodParameter("map", VarKind.String) });
                     break;
 
                 default:
