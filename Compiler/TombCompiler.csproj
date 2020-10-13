@@ -64,6 +64,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.CodeGen\Phantasma.CodeGen.csproj">
+      <Project>{F1D4D9D8-3AEA-4BC3-A8D8-33F15B8BAC7A}</Project>
+      <Name>Phantasma.CodeGen</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Cryptography\Phantasma.Cryptography.csproj">
       <Project>{EF00D2BF-BF5E-4DB6-8A81-C9C3A8467711}</Project>
       <Name>Phantasma.Cryptography</Name>

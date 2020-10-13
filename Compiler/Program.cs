@@ -1,4 +1,5 @@
-﻿using Phantasma.Domain;
+﻿using Phantasma.CodeGen.Assembler;
+using Phantasma.Domain;
 using System;
 using System.IO;
 
@@ -27,8 +28,12 @@ namespace Phantasma.Tomb.Compiler
             File.WriteAllText(contractName + ".asm", asm);
 
             File.WriteAllBytes(contractName + ".abi", abi.ToByteArray());
-            
 
+
+            Console.WriteLine("Assembling " + sourceFile);
+            var lines = asm.Split('\n');
+            var script = AssemblerUtils.BuildScript(lines);
+            File.WriteAllBytes(contractName + ".script", script);
 
             Console.WriteLine("Done, press any key");
             Console.ReadKey();
