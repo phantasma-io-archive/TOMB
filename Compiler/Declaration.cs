@@ -45,9 +45,29 @@ namespace Phantasma.Tomb.Compiler
         public VarKind KeyKind;
         public VarKind ValueKind;
 
-        public MapDeclaration(Scope parentScope, string name, VarKind keyKind, VarKind valKind) : base(parentScope, name, VarKind.Map, VarStorage.Global)
+        public MapDeclaration(Scope parentScope, string name, VarKind keyKind, VarKind valKind) : base(parentScope, name, VarKind.Storage_Map, VarStorage.Global)
         {
             this.KeyKind = keyKind;
+            this.ValueKind = valKind;
+        }
+    }
+
+    public class ListDeclaration : VarDeclaration
+    {
+        public VarKind ValueKind;
+
+        public ListDeclaration(Scope parentScope, string name, VarKind valKind) : base(parentScope, name, VarKind.Storage_List, VarStorage.Global)
+        {
+            this.ValueKind = valKind;
+        }
+    }
+
+    public class SetDeclaration : VarDeclaration
+    {
+        public VarKind ValueKind;
+
+        public SetDeclaration(Scope parentScope, string name, VarKind valKind) : base(parentScope, name, VarKind.Storage_Set, VarStorage.Global)
+        {
             this.ValueKind = valKind;
         }
     }
@@ -144,6 +164,18 @@ namespace Phantasma.Tomb.Compiler
         public void PatchMap(MapDeclaration mapDecl)
         {
             PatchParam("key", mapDecl.KeyKind);
+            PatchParam("value", mapDecl.ValueKind);
+            FindMethod("get").ReturnType = mapDecl.ValueKind;
+        }
+
+        public void PatchList(ListDeclaration mapDecl)
+        {
+            PatchParam("value", mapDecl.ValueKind);
+            FindMethod("get").ReturnType = mapDecl.ValueKind;
+        }
+
+        public void PatchSet(SetDeclaration mapDecl)
+        {
             PatchParam("value", mapDecl.ValueKind);
             FindMethod("get").ReturnType = mapDecl.ValueKind;
         }
@@ -267,7 +299,7 @@ namespace Phantasma.Tomb.Compiler
 
                 if (variable.Register == null)
                 {
-                    var isGeneric = variable.Kind == VarKind.Map;
+                    var isGeneric = variable.Kind == VarKind.Storage_Map || variable.Kind == VarKind.Storage_List || variable.Kind == VarKind.Storage_Set;
 
                     if (isConstructor && !isGeneric)
                     {

@@ -199,19 +199,45 @@ namespace Phantasma.Tomb.Compiler
 
                             VarDeclaration varDecl;
 
-                            if (kind == VarKind.Map)
+                            switch (kind)
                             {
-                                ExpectToken("<");
-                                var map_key = ExpectType();
-                                ExpectToken(",");
-                                var map_val = ExpectType();
-                                ExpectToken(">");
+                                case VarKind.Storage_Map:
+                                    {
+                                        ExpectToken("<");
+                                        var map_key = ExpectType();
+                                        ExpectToken(",");
+                                        var map_val = ExpectType();
+                                        ExpectToken(">");
 
-                                varDecl = new MapDeclaration(contract.Scope, varName, map_key, map_val);
-                            }
-                            else
-                            {
-                                varDecl = new VarDeclaration(contract.Scope, varName, kind, VarStorage.Global);
+                                        varDecl = new MapDeclaration(contract.Scope, varName, map_key, map_val);
+                                        break;
+                                    }
+
+                                case VarKind.Storage_List:
+                                    {
+                                        ExpectToken("<");
+                                        var list_val = ExpectType();
+                                        ExpectToken(">");
+
+                                        varDecl = new ListDeclaration(contract.Scope, varName, list_val);
+                                        break;
+                                    }
+
+                                case VarKind.Storage_Set:
+                                    {
+                                        ExpectToken("<");
+                                        var set_val = ExpectType();
+                                        ExpectToken(">");
+
+                                        varDecl = new SetDeclaration(contract.Scope, varName, set_val);
+                                        break;
+                                    }
+
+                                default:
+                                    {
+                                        varDecl = new VarDeclaration(contract.Scope, varName, kind, VarStorage.Global);
+                                        break;
+                                    }
                             }
 
                             ExpectToken(";");
@@ -492,11 +518,27 @@ namespace Phantasma.Tomb.Compiler
                                 {
                                     switch (varDecl.Kind)
                                     {
-                                        case VarKind.Map:
+                                        case VarKind.Storage_Map:
                                             {
                                                 var mapDecl = (MapDeclaration)varDecl;
                                                 libDecl = scope.Root.FindLibrary("Map");
                                                 libDecl.PatchMap(mapDecl);
+                                                break;
+                                            }
+
+                                        case VarKind.Storage_List:
+                                            {
+                                                var listDecl = (ListDeclaration)varDecl;
+                                                libDecl = scope.Root.FindLibrary("List");
+                                                libDecl.PatchList(listDecl);
+                                                break;
+                                            }
+
+                                        case VarKind.Storage_Set:
+                                            {
+                                                var setDecl = (SetDeclaration)varDecl;
+                                                libDecl = scope.Root.FindLibrary("Set");
+                                                libDecl.PatchSet(setDecl);
                                                 break;
                                             }
 
@@ -699,13 +741,30 @@ namespace Phantasma.Tomb.Compiler
 
                         if (varDecl != null)
                         {
+                            // TODO this code is duplicated, copypasted from other method above, refactor this later...
                             switch (varDecl.Kind)
                             {
-                                case VarKind.Map:
+                                case VarKind.Storage_Map:
                                     {
                                         var mapDecl = (MapDeclaration)varDecl;
                                         libDecl = scope.Root.FindLibrary("Map");
                                         libDecl.PatchMap(mapDecl);
+                                        break;
+                                    }
+
+                                case VarKind.Storage_List:
+                                    {
+                                        var listDecl = (ListDeclaration)varDecl;
+                                        libDecl = scope.Root.FindLibrary("List");
+                                        libDecl.PatchList(listDecl);
+                                        break;
+                                    }
+
+                                case VarKind.Storage_Set:
+                                    {
+                                        var setDecl = (SetDeclaration)varDecl;
+                                        libDecl = scope.Root.FindLibrary("Set");
+                                        libDecl.PatchSet(setDecl);
                                         break;
                                     }
 

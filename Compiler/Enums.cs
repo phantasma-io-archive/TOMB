@@ -11,7 +11,9 @@
         Address,
         Bytes,
         Method,
-        Map
+        Storage_Map,
+        Storage_List,
+        Storage_Set,
     }
 
     public enum VarStorage

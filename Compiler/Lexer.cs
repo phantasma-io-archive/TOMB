@@ -20,7 +20,6 @@ namespace Phantasma.Tomb.Compiler
         Address,
         Bytes,
         Method,
-        Map,
     }
 
     public struct LexerToken

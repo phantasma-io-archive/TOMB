@@ -169,9 +169,18 @@ namespace Phantasma.Tomb.Compiler
                 case "Map":
                     libDecl.AddMethod("get", VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
                     libDecl.AddMethod("set", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) });
-                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown)   });
+                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
                     libDecl.AddMethod("count", VarKind.Number, new[] { new MethodParameter("map", VarKind.String) });
                     libDecl.AddMethod("clear", VarKind.None, new[] { new MethodParameter("map", VarKind.String) });
+                    break;
+
+                case "List":
+                    libDecl.AddMethod("get", VarKind.Unknown, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
+                    libDecl.AddMethod("add", VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("replace", VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number)});
+                    libDecl.AddMethod("count", VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
+                    libDecl.AddMethod("clear", VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
                     break;
 
                 default:
@@ -180,7 +189,7 @@ namespace Phantasma.Tomb.Compiler
 
             Libraries[name] = libDecl;
             return libDecl;
-        }
+        }   
 
         public string Compile()
         {
