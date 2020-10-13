@@ -20,6 +20,7 @@ namespace Phantasma.Tomb.Compiler
         Address,
         Bytes,
         Method,
+        Macro,
     }
 
     public struct LexerToken
@@ -62,6 +63,12 @@ namespace Phantasma.Tomb.Compiler
             if (value.StartsWith("&"))
             {
                 this.kind = TokenKind.Method;
+                this.value = value.Substring(1);
+            }
+            else
+            if (value.StartsWith("$"))
+            {
+                this.kind = TokenKind.Macro;
                 this.value = value.Substring(1);
             }
             else

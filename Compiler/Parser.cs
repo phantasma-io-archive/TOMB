@@ -580,6 +580,13 @@ namespace Phantasma.Tomb.Compiler
             {
                 throw new CompilerException("expected expression");
             }
+
+            var macro = expr as MacroExpression;
+            if (macro != null)
+            {
+                return macro.Unfold(scope);
+            }
+
             return expr;
         }
 
@@ -635,6 +642,11 @@ namespace Phantasma.Tomb.Compiler
                 case TokenKind.Bytes:
                     {
                         return new LiteralExpression(scope, first.value, VarKind.Bytes);
+                    }
+
+                case TokenKind.Macro:
+                    {
+                        return new MacroExpression(scope, first.value);
                     }
 
                 default:

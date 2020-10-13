@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.VM;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace Phantasma.Tomb.Compiler
         {
             this.Name = name;
             this.Scope = new Scope(this);
-            this.library = AddLibrary("this");             
+            this.library = new LibraryDeclaration(Scope, name);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -133,11 +133,6 @@ namespace Phantasma.Tomb.Compiler
 
             switch (name)
             {
-                case "this":
-                    libDecl.AddMethod("getAddress", VarKind.Address, new MethodParameter[] { });
-                    libDecl.AddMethod("getMethod", VarKind.Method, new MethodParameter[] { });
-                    break;
-
                 case "Runtime":
                     libDecl.AddMethod("log", VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
                     libDecl.AddMethod("isWitness", VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });

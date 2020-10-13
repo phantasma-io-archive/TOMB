@@ -1,4 +1,6 @@
-﻿using Phantasma.VM;
+﻿using Phantasma.Domain;
+using Phantasma.Numerics;
+using Phantasma.VM;
 using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
@@ -180,6 +182,49 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public override VarKind ResultType => kind;
+    }
+
+    public class MacroExpression : Expression
+    {
+        public string value;
+
+        public MacroExpression(Scope parentScope, string value) : base(parentScope)
+        {
+            this.value = value;
+        }
+
+        public override string ToString()
+        {
+            return "macro: " + value;
+        }
+
+        public override Register GenerateCode(CodeGenerator output)
+        {
+            throw new System.Exception($"macro {value} was not unfolded!");
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this);
+        }
+
+        public LiteralExpression Unfold(Scope scope)
+        {
+            switch (value)
+            {
+                case "THIS_ADDRESS":
+                    {
+                        var addr = SmartContract.GetAddressForName(scope.Root.Name);
+                        var hex = Base16.Encode(addr.ToByteArray());
+                        return new LiteralExpression(scope, "0x"+hex, VarKind.Address);
+                    }
+
+                default:
+                    throw new CompilerException($"unknown compile time macro: {value}");
+            }
+        }
+
+        public override VarKind ResultType => VarKind.Unknown;
     }
 
     public class VarExpression : Expression
