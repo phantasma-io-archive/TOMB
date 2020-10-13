@@ -64,10 +64,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Contracts\Phantasma.Contracts.csproj">
-      <Project>{9943D188-193C-454D-A0A9-0EC1844DD504}</Project>
-      <Name>Phantasma.Contracts</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Cryptography\Phantasma.Cryptography.csproj">
       <Project>{EF00D2BF-BF5E-4DB6-8A81-C9C3A8467711}</Project>
       <Name>Phantasma.Cryptography</Name>

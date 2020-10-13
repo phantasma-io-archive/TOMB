@@ -257,7 +257,7 @@ namespace Phantasma.Tomb.Compiler
                     case "constructor":
                         {
                             var line = this.CurrentLine;
-                            var name = contract.Name + "()";
+                            var name = "Initialize";
                             var parameters = ParseParameters(contract.Scope);
                             var scope = new Scope(contract.Scope, name, parameters);
 

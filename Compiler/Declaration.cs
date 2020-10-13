@@ -1,6 +1,5 @@
-﻿using Phantasma.Contracts;
+﻿using Phantasma.Domain;
 using Phantasma.Numerics;
-using System;
 using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
