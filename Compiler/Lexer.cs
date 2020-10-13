@@ -90,8 +90,7 @@ namespace Phantasma.Tomb.Compiler
 
                 switch (first)
                 {
-                    case '\'':
-                        this.value = this.value.Replace('\'', '"');
+                    case '\"':
                         this.kind = TokenKind.String;
                         break;
 
@@ -246,7 +245,7 @@ namespace Phantasma.Tomb.Compiler
                             curType =0;
                         }
                         
-                        if (ch == '\'')
+                        if (ch == '\"')
                         {
                             insideString = !insideString;
                             curType = 0;

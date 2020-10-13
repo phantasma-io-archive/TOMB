@@ -835,7 +835,7 @@ namespace Phantasma.Tomb.Compiler
                 
                 if (i == 0 && implicitArg != null)
                 {
-                    arg = new LiteralExpression(scope, implicitArg.Name, VarKind.String);
+                    arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarKind.String);
                 }
                 else
                 {

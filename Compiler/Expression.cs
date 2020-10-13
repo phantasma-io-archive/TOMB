@@ -143,7 +143,7 @@ namespace Phantasma.Tomb.Compiler
             }
 
             var reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
-            output.AppendLine(this, $"LOAD {reg} '{this.method.Library.Name}.{this.method.Name}'");
+            output.AppendLine(this, $"LOAD {reg} \"{this.method.Library.Name}.{this.method.Name}\"");
             output.AppendLine(this, $"EXTCALL {reg}");
             output.AppendLine(this, $"POP {reg}");
             return reg;
@@ -169,6 +169,7 @@ namespace Phantasma.Tomb.Compiler
         public override Register GenerateCode(CodeGenerator output)
         {
             var reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
+
             output.AppendLine(this, $"LOAD {reg} {this.value}");
             return reg;
         }
