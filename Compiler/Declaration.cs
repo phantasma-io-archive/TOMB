@@ -378,6 +378,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 case VarKind.Address:
                 case VarKind.Bytes:
+                case VarKind.Hash:
                     return VMType.Bytes;
 
                 case VarKind.Bool:

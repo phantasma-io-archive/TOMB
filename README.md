@@ -4,13 +4,13 @@ TOMB smart contract compiler for Phantasma platform
 
 ## Supported features
 
-- Numbers, strings, bools, timestamps
+- Numbers, strings, bools, timestamps, addresses, hashes
 - Constants
 - Global and local variables
 - Contract constructors
 - Contract public methods
 - Return values
-- Generics (Hashmaps and lists)
+- Generics (Maps and lists)
 - If ... Else
 - Throw Exceptions
 - Uninitialized globals validation

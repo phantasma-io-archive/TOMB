@@ -18,6 +18,7 @@ namespace Phantasma.Tomb.Compiler
         Number,
         Bool,
         Address,
+        Hash,
         Bytes,
         Method,
         Macro,
@@ -58,6 +59,16 @@ namespace Phantasma.Tomb.Compiler
                 }
 
                 this.value = "0x" + Base16.Encode(addr.ToByteArray());
+            }
+            else
+            if (value.StartsWith("#"))
+            {
+                this.kind = TokenKind.Hash;
+                this.value = value.Substring(1);
+
+                Hash hash = Hash.Parse(this.value);
+
+                this.value = "0x" + hash.ToString();
             }
             else
             if (value.StartsWith("&"))

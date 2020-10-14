@@ -138,7 +138,9 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("log", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
                     libDecl.AddMethod("expect", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("condition", VarKind.Bool) , new MethodParameter("error", VarKind.String) });
                     libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
-                    libDecl.AddMethod("getTime", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
+                    libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
+                    libDecl.AddMethod("time", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
+                    libDecl.AddMethod("transactionHash", MethodImplementationType.ExtCall, VarKind.Hash, new MethodParameter[] { });
                     libDecl.AddMethod("startTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("from", VarKind.Address), new MethodParameter("task", VarKind.Method) });
                     libDecl.AddMethod("stopTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { });
                     break;

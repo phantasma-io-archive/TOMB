@@ -9,6 +9,7 @@
         String,
         Timestamp,
         Address,
+        Hash,
         Bytes,
         Method,
         Storage_Map,

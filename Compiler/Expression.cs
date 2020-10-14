@@ -1,4 +1,4 @@
-using Phantasma.Domain;
+﻿using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System.Collections.Generic;
@@ -13,6 +13,23 @@ namespace Phantasma.Tomb.Compiler
         public Expression(Scope parentScope) : base()
         {
             this.ParentScope = parentScope;
+        }
+
+        protected void CallNecessaryConstructors(CodeGenerator output, VarKind kind, Register reg)
+        {
+            switch (kind)
+            {
+                case VarKind.Hash:
+                case VarKind.Address:
+                case VarKind.Timestamp:
+                    {
+                        var constructorName = kind.ToString();
+                        output.AppendLine(this, $"push {reg}");
+                        output.AppendLine(this, $"extcall \"{constructorName}()\"");
+                        output.AppendLine(this, $"pop {reg}");
+                        break;
+                    }
+            }
         }
 
         public abstract Register GenerateCode(CodeGenerator output);
@@ -202,12 +219,7 @@ namespace Phantasma.Tomb.Compiler
 
             output.AppendLine(this, $"LOAD {reg} {this.value}");
 
-            if (this.kind == VarKind.Address)
-            {
-                output.AppendLine(this, $"push {reg}");
-                output.AppendLine(this, "extcall \"Address()\"");
-                output.AppendLine(this, $"pop {reg}");
-            }
+            CallNecessaryConstructors(output, kind, reg);
 
             return reg;
         }
@@ -315,6 +327,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var reg = Parser.Instance.AllocRegister(output, this, decl.Name);
             output.AppendLine(this, $"LOAD {reg} {decl.Value}");
+            CallNecessaryConstructors(output, decl.Kind, reg);
             return reg;
         }
 

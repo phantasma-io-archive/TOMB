@@ -667,6 +667,11 @@ namespace Phantasma.Tomb.Compiler
                         return new LiteralExpression(scope, first.value, VarKind.Address);
                     }
 
+                case TokenKind.Hash:
+                    {
+                        return new LiteralExpression(scope, first.value, VarKind.Hash);
+                    }
+
                 case TokenKind.Bytes:
                     {
                         return new LiteralExpression(scope, first.value, VarKind.Bytes);
