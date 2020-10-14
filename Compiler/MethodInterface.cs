@@ -70,7 +70,7 @@
 
         public MethodInterface SetContract(string contract)
         {
-            this.Contract = contract;
+            this.Contract = contract.ToLower();
             return this;
         }
 
