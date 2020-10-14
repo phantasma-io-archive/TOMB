@@ -198,6 +198,14 @@ namespace Phantasma.Tomb.Compiler
             var reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
 
             output.AppendLine(this, $"LOAD {reg} {this.value}");
+
+            if (this.kind == VarKind.Address)
+            {
+                output.AppendLine(this, $"push {reg}");
+                output.AppendLine(this, "extcall \"Address()\"");
+                output.AppendLine(this, $"pop {reg}");
+            }
+
             return reg;
         }
 
