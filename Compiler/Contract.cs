@@ -87,7 +87,7 @@ namespace Phantasma.Tomb.Compiler
                 this.LineNumber = line;
             }
 
-            var method = new MethodInterface(this.library, name, kind, returnType, parameters);
+            var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, kind, returnType, parameters);
             this.Scope.Methods.Add(method);
 
             var decl = new MethodDeclaration(scope, method, body);

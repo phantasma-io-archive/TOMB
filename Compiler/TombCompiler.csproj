@@ -1,89 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{713D24BB-7120-4556-914F-4A29CB540244}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Phantasma.Tomb.Compiler</RootNamespace>
-    <AssemblyName>TOMB</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Blockchain\Phantasma.Blockchain.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.CodeGen\Phantasma.CodeGen.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Core\Phantasma.Core.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Cryptography\Phantasma.Cryptography.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Domain\Phantasma.Domain.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Numerics\Phantasma.Numerics.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Storage\Phantasma.Storage.csproj" />
+    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.VM\Phantasma.VM.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CodeGenerator.cs" />
-    <Compile Include="Exceptions.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="Parser.cs" />
-    <Compile Include="Statement.cs" />
-    <Compile Include="Contract.cs" />
-    <Compile Include="Declaration.cs" />
-    <Compile Include="Enums.cs" />
-    <Compile Include="Expression.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Lexer.cs" />
-    <Compile Include="MethodInterface.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Register.cs" />
-    <Compile Include="Scope.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.CodeGen\Phantasma.CodeGen.csproj">
-      <Project>{F1D4D9D8-3AEA-4BC3-A8D8-33F15B8BAC7A}</Project>
-      <Name>Phantasma.CodeGen</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Cryptography\Phantasma.Cryptography.csproj">
-      <Project>{EF00D2BF-BF5E-4DB6-8A81-C9C3A8467711}</Project>
-      <Name>Phantasma.Cryptography</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Domain\Phantasma.Domain.csproj">
-      <Project>{EE279FA5-FAD8-4454-B55C-F783A7AAB768}</Project>
-      <Name>Phantasma.Domain</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.Numerics\Phantasma.Numerics.csproj">
-      <Project>{559A204E-33EE-4D70-A5CC-1D52CA6B6D0C}</Project>
-      <Name>Phantasma.Numerics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PhantasmaChain\Phantasma.VM\Phantasma.VM.csproj">
-      <Project>{A41800BA-E4FB-4666-8137-6221315DE9D4}</Project>
-      <Name>Phantasma.VM</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Core.Utils;
+using Phantasma.Domain;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
 using Phantasma.VM.Utils;
@@ -185,7 +186,9 @@ namespace Tests
             var parser = new Parser();
             var contract = parser.Parse(sourceCode);
 
-            var asm = contract.Compile();
+            string asm;
+            ContractInterface abi;
+            contract.Compile(out asm, out abi);
 
             var lines = asm.Split('\n');
 
