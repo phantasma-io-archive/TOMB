@@ -42,6 +42,12 @@ Different data types are recognized by the compiler.
 | Method pointer  | &myMethod |
 | Compiler macro   | $SOMETHING |
 
+### Available macros
+
+| Macro  | Description |
+| ------------- | ------------- |
+| $THIS_ADDRESS  | The address of the current contract  |
+
 # Examples
 
 Simple contract that sums two numbers and returns the result
