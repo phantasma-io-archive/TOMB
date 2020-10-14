@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System.Collections.Generic;
@@ -164,7 +164,10 @@ namespace Phantasma.Tomb.Compiler
                         output.AppendLine(this, $"CTX {reg} {reg}");
                         output.AppendLine(this, $"SWITCH {reg}");
 
-                        output.AppendLine(this, $"POP {reg}");
+                        if (this.method.ReturnType != VarKind.None)
+                        {
+                            output.AppendLine(this, $"POP {reg}");
+                        }
                         break;
                     }
 
