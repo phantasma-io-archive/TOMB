@@ -191,7 +191,6 @@ namespace Phantasma.Tomb.Compiler
                 case MethodImplementationType.ExtCall:
                     output.AppendLine(this, $"LOAD {reg} \"{this.method.Alias}\"");
                     output.AppendLine(this, $"EXTCALL {reg}");
-                    output.AppendLine(this, $"POP {reg}");
                     break;
 
                 case MethodImplementationType.Contract:
@@ -202,11 +201,6 @@ namespace Phantasma.Tomb.Compiler
                         output.AppendLine(this, $"LOAD {reg} \"{this.method.Contract}\"");
                         output.AppendLine(this, $"CTX {reg} {reg}");
                         output.AppendLine(this, $"SWITCH {reg}");
-
-                        if (this.method.ReturnType != VarKind.None)
-                        {
-                            output.AppendLine(this, $"POP {reg}");
-                        }
                         break;
                     }
 
@@ -218,6 +212,11 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                     break;
+            }
+
+            if (this.method.ReturnType != VarKind.None)
+            {
+                output.AppendLine(this, $"POP {reg}");
             }
 
             if (this.method.PostCallback != null)
