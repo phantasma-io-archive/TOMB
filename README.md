@@ -38,7 +38,7 @@ contract test {
 }
 ```
 
-Simple contract that implements a global counter (that can be incremented by anyone who calls the contract)
+Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).
 
 ```c#
 contract test {
@@ -59,7 +59,8 @@ contract test {
 }
 ```
 
-Another contract that implements a counter, this time unique per user address
+Another contract that implements a counter, this time unique per user address.
+
 Showcases how to validate that a transaction was done by user possessing private keys to 'from' address
 
 ```c#
@@ -81,6 +82,7 @@ contract test {
 ```
 
 A contract that takes a payment in tokens from a user.
+
 Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain address of the contract.
 
 ```c#
