@@ -26,6 +26,22 @@ TOMB smart contract compiler for Phantasma platform
 - More...
 - Warnings
 
+## Literals
+
+Different data types are recognized by the compiler.
+
+| Type  | Example |
+| ------------- | ------------- |
+| Number  | 123  |
+| Bool  | false  |
+| String  | "hello"  |
+| Timestamp  | no literal support, use either Runtime.time or Utils.unixTime  |
+| Byte array  | 0xFAFAFA2423424 |
+| Address | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA |
+| Hash  | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |
+| Method pointer  | &myMethod |
+| Compiler macro   | $SOMETHING |
+
 # Examples
 
 Simple contract that sums two numbers and returns the result
