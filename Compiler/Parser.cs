@@ -428,10 +428,33 @@ namespace Phantasma.Tomb.Compiler
                             var varName = ExpectIdentifier();
                             ExpectToken(":");
                             var kind = ExpectType();
+
+                            var next = FetchToken();
+
+                            Expression initExpr;
+                            if (next.value == ":=")
+                            {
+                                initExpr = ExpectExpression(scope);
+                            }
+                            else
+                            {
+                                initExpr = null;
+                                Rewind();
+                            }
+
                             ExpectToken(";");
 
                             var varDecl = new VarDeclaration(scope, varName, kind, VarStorage.Local);
                             scope.AddVariable(varDecl);
+
+                            if (initExpr != null)
+                            {
+                                var initCmd = new AssignStatement();
+                                initCmd.variable = varDecl;
+                                initCmd.expression = initExpr;
+                                block.Commands.Add(initCmd);
+                            }
+
                             break;
                         }
 
