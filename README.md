@@ -4,11 +4,12 @@ TOMB smart contract compiler for Phantasma platform
 
 ## Supported features
 
-- Contract constructors
-- Contract public methods
+- Numbers, strings, bools, timestamps
 - Constants
 - Global and local variables
-- Numbers, strings, bools, timestamps
+- Contract constructors
+- Contract public methods
+- Return values
 - Generics (Hashmaps and lists)
 - If ... Else
 - Throw Exceptions
@@ -25,6 +26,17 @@ TOMB smart contract compiler for Phantasma platform
 - Warnings
 
 # Examples
+
+Simple contract that sums two numbers and returns the result
+
+```c#
+contract test {	
+	method sum(a:number, b:number):number
+	{
+		return a + b;
+	}
+}
+```
 
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract)
 
