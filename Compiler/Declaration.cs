@@ -324,6 +324,7 @@ namespace Phantasma.Tomb.Compiler
                 output.AppendLine(this, $"PUSH r0");
                 output.AppendLine(this, $"EXTCALL {tempReg1}");
                 output.AppendLine(this, $"POP {reg}");
+                variable.CallNecessaryConstructors(output, variable.Kind, reg);
             }
             Parser.Instance.DeallocRegister(tempReg1);
             tempReg1 = null;
@@ -337,6 +338,7 @@ namespace Phantasma.Tomb.Compiler
 
                 variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
                 output.AppendLine(this, $"POP {variable.Register}");
+                variable.CallNecessaryConstructors(output, variable.Kind, variable.Register);
             }
 
             this.scope.Enter(output);

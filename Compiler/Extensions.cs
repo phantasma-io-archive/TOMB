@@ -16,5 +16,23 @@
         {
             return op != OperatorKind.Unknown && op < OperatorKind.Addition;
         }
+
+        public static void CallNecessaryConstructors(this Node node, CodeGenerator output, VarKind kind, Register reg)
+        {
+            switch (kind)
+            {
+                case VarKind.Hash:
+                case VarKind.Address:
+                case VarKind.Timestamp:
+                    {
+                        var constructorName = kind.ToString();
+                        output.AppendLine(node, $"PUSH {reg}");
+                        output.AppendLine(node, $"EXTCALL \"{constructorName}()\"");
+                        output.AppendLine(node, $"POP {reg}");
+                        break;
+                    }
+            }
+        }
+
     }
 }

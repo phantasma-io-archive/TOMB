@@ -16,23 +16,6 @@ namespace Phantasma.Tomb.Compiler
             this.ParentScope = parentScope;
         }
 
-        public void CallNecessaryConstructors(CodeGenerator output, VarKind kind, Register reg)
-        {
-            switch (kind)
-            {
-                case VarKind.Hash:
-                case VarKind.Address:
-                case VarKind.Timestamp:
-                    {
-                        var constructorName = kind.ToString();
-                        output.AppendLine(this, $"push {reg}");
-                        output.AppendLine(this, $"extcall \"{constructorName}()\"");
-                        output.AppendLine(this, $"pop {reg}");
-                        break;
-                    }
-            }
-        }
-
         public abstract Register GenerateCode(CodeGenerator output);
     }
 
@@ -250,7 +233,7 @@ namespace Phantasma.Tomb.Compiler
 
             output.AppendLine(this, $"LOAD {reg} {this.value}");
 
-            CallNecessaryConstructors(output, kind, reg);
+            this.CallNecessaryConstructors(output, kind, reg);
 
             return reg;
         }
@@ -358,7 +341,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var reg = Parser.Instance.AllocRegister(output, this, decl.Name);
             output.AppendLine(this, $"LOAD {reg} {decl.Value}");
-            CallNecessaryConstructors(output, decl.Kind, reg);
+            this.CallNecessaryConstructors(output, decl.Kind, reg);
             return reg;
         }
 
