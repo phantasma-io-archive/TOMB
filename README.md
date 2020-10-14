@@ -60,9 +60,13 @@ contract test {
 ```
 
 Another contract that implements a counter, this time unique per user address
+Showcases how to validate that a transaction was done by user possessing private keys to 'from' address
 
 ```c#
 contract test {
+	import Runtime;
+	import Map;
+	
 	global counters: storage_map<address, number>;
 		
 	method increment(from:address)
@@ -72,6 +76,29 @@ contract test {
 		temp := counters.get(from);
 		temp += 1;
 		counters.set(from, temp);
+	}
+}
+```
+
+A contract that takes a payment in tokens from a user.
+Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain address of the contract.
+
+```c#
+contract test {
+	import Runtime;
+	import Token;
+			
+	method paySomething(from:address, quantity:number)
+	{
+		Runtime.expect(Runtime.isWitness(from), "witness failed");
+		
+		local price: number := 10;
+		price *= quantity;
+		
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(from, thisAddr, "SOUL", price);
+
+		// TODO after payment give something to 'from' address 
 	}
 }
 ```
