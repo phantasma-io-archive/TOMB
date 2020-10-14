@@ -261,6 +261,11 @@ namespace Phantasma.Tomb.Compiler
                             var parameters = ParseParameters(contract.Scope);
                             var scope = new Scope(contract.Scope, name, parameters);
 
+                            if (parameters.Length != 1 || parameters[0].Kind != VarKind.Address)
+                            {
+                                throw new CompilerException("constructor must have only one parameter of type address");
+                            }
+
                             ExpectToken("{");
                             var body = ParseCommandBlock(scope);
                             ExpectToken("}");

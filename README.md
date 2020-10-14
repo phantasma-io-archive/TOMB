@@ -39,13 +39,14 @@ contract test {
 }
 ```
 
-Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).
+Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
+Note that any global variable that is not generic must be initialized in the contract constructor.<br/>
 
 ```c#
 contract test {
 	global counter: number;
 	
-	constructor() 
+	constructor(owner:address) 
 	{
 		counter:= 0;
 	}
