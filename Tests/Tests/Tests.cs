@@ -173,15 +173,15 @@ namespace Tests
         public void TestCounter()
         {
             var sourceCode =
-            "contract test{" +
-            "global counter: number;" +
-            "constructor()	{" +
-            "counter:= 0;}" +
-            "method increment(){" +
-            "if (counter < 0){" +
-            "throw 'invalid state';}" +
-            "counter += 1;" +
-            "}}";
+            "contract test{\n" +
+            "global counter: number;\n" +
+            "constructor()	{\n" +
+            "counter:= 0;}\n" +
+            "method increment(){\n" +
+            "if (counter < 0){\n" +
+            "throw \"invalid state\";}\n" +
+            "counter += 1;\n" +
+            "}}\n";
 
             var parser = new Parser();
             var contract = parser.Parse(sourceCode);
@@ -196,14 +196,16 @@ namespace Tests
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 
-            var vm = new TestVM(script, storage);
+            TestVM vm;
+            
+            /*vm = new TestVM(script, storage);
             vm.Stack.Push(VMObject.FromObject("test()"));
             var result = vm.Execute();
-            Assert.IsTrue(result == ExecutionState.Halt);
+            Assert.IsTrue(result == ExecutionState.Halt);*/
 
             vm = new TestVM(script, storage);
             vm.Stack.Push(VMObject.FromObject("increment"));
-            result = vm.Execute();
+            var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
         }
     }
