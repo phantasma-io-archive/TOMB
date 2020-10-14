@@ -16,6 +16,7 @@ TOMB smart contract compiler for Phantasma platform
 - Uninitialized globals validation
 - Interop and Contract calls
 - Import libraries (Runtime, Leaderboard, Token, etc)
+- Comments (single and multi line)
 
 ## Planned features
 

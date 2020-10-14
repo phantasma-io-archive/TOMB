@@ -190,6 +190,13 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
+        public enum CommentMode
+        {
+            None,
+            Single,
+            Multi
+        }
+
         public static List<LexerToken> Process(string sourceCode)
         {
             var tokens = new List<LexerToken>();
@@ -203,7 +210,7 @@ namespace Phantasma.Tomb.Compiler
             var sb = new StringBuilder();
 
             bool insideString = false;
-            bool insideComment = false;
+            var insideComment = CommentMode.None;
 
             int lastType = -1;
             char lastChar = '\0';
@@ -213,22 +220,42 @@ namespace Phantasma.Tomb.Compiler
                 i++;
                 col++;
 
-                if (insideComment)
+                if (insideComment == CommentMode.Single)
                 {
                     if (ch == '\n')
                     {
-                        insideComment = false;
+                        insideComment = CommentMode.None;
                     }
                     else
                     {
                         continue;
                     }
                 }
+                else
+                if (insideComment == CommentMode.Multi)
+                {
+                    if (ch == '/' && lastChar == '*')
+                    {
+                        insideComment = CommentMode.None;
+                    }
+                    else
+                    {
+                        lastChar = ch;
+                    }
+                    continue;
+                }
 
                 if (ch == '/' && lastChar == ch)
                 {
                     sb.Length--;
-                    insideComment = true;
+                    insideComment = CommentMode.Single;
+                    continue;
+                }
+
+                if (ch == '*' && lastChar == '/')
+                {
+                    sb.Length--;
+                    insideComment = CommentMode.Multi;
                     continue;
                 }
 
