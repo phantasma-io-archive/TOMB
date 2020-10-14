@@ -134,56 +134,56 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Runtime":
-                    libDecl.AddMethod("log", VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
-                    libDecl.AddMethod("isWitness", VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
-                    libDecl.AddMethod("getTime", VarKind.Timestamp, new MethodParameter[] { });
-                    libDecl.AddMethod("startTask", VarKind.None, new MethodParameter[] { new MethodParameter("from", VarKind.Address), new MethodParameter("task", VarKind.Method) });
-                    libDecl.AddMethod("stopTask", VarKind.None, new MethodParameter[] { });
+                    libDecl.AddMethod("log", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
+                    libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
+                    libDecl.AddMethod("getTime", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
+                    libDecl.AddMethod("startTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("from", VarKind.Address), new MethodParameter("task", VarKind.Method) });
+                    libDecl.AddMethod("stopTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { });
                     break;
 
                 case "Token":
-                    libDecl.AddMethod("create", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarKind.Number), new MethodParameter("script", VarKind.Bytes) });
-                    libDecl.AddMethod("transfer", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
-                    libDecl.AddMethod("transferAll", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String) });
-                    libDecl.AddMethod("mint", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
-                    libDecl.AddMethod("burn", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
-                    libDecl.AddMethod("swap", VarKind.None, new[] { new MethodParameter("targetChain", VarKind.String), new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
-                    libDecl.AddMethod("getBalance", VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String) });
+                    libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarKind.Number), new MethodParameter("script", VarKind.Bytes) });
+                    libDecl.AddMethod("transfer", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
+                    libDecl.AddMethod("transferAll", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String) });
+                    libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
+                    libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
+                    libDecl.AddMethod("swap", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("targetChain", VarKind.String), new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
+                    libDecl.AddMethod("getBalance", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String) });
                     break;
 
                 case "Organization":
-                    libDecl.AddMethod("create", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("id", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("script", VarKind.Bytes) });
-                    libDecl.AddMethod("addMember", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("target", VarKind.Address)});
+                    libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("id", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("script", VarKind.Bytes) });
+                    libDecl.AddMethod("addMember", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("target", VarKind.Address)});
                     break;
 
                 case "Utils":
-                    libDecl.AddMethod("unixTime", VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) });
+                    libDecl.AddMethod("unixTime", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) });
                     break;
 
                 case "Leaderboard":
-                    libDecl.AddMethod("create", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) });
-                    libDecl.AddMethod("getAddress", VarKind.Address, new[] { new MethodParameter("index", VarKind.Number), new MethodParameter("boardName", VarKind.String) });
-                    libDecl.AddMethod("getScore", VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) });
-                    libDecl.AddMethod("insertScore", VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number)});
-                    libDecl.AddMethod("reset", VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String)});
-                    libDecl.AddMethod("getSize", VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) });
+                    libDecl.AddMethod("create", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) });
+                    libDecl.AddMethod("getAddress", MethodImplementationType.Contract, VarKind.Address, new[] { new MethodParameter("index", VarKind.Number), new MethodParameter("boardName", VarKind.String) });
+                    libDecl.AddMethod("getScore", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) });
+                    libDecl.AddMethod("insert", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number)});
+                    libDecl.AddMethod("reset", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String)});
+                    libDecl.AddMethod("getSize", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) });
                     break;
 
                 case "Map":
-                    libDecl.AddMethod("get", VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
-                    libDecl.AddMethod("set", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) });
-                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
-                    libDecl.AddMethod("count", VarKind.Number, new[] { new MethodParameter("map", VarKind.String) });
-                    libDecl.AddMethod("clear", VarKind.None, new[] { new MethodParameter("map", VarKind.String) });
+                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
+                    libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
+                    libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) });
+                    libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("map", VarKind.String) });
                     break;
 
                 case "List":
-                    libDecl.AddMethod("get", VarKind.Unknown, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("add", VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Unknown) });
-                    libDecl.AddMethod("replace", VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Unknown) });
-                    libDecl.AddMethod("remove", VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number)});
-                    libDecl.AddMethod("count", VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
-                    libDecl.AddMethod("clear", VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
+                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Unknown, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
+                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number)});
+                    libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
+                    libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
                     break;
 
                 default:

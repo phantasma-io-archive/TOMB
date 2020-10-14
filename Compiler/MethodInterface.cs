@@ -20,6 +20,13 @@
         }
     }
 
+    public enum MethodImplementationType
+    {
+        ExtCall,
+        Contract,
+        Custom
+    }
+
     public class MethodInterface
     {
         public string Name;
@@ -27,14 +34,19 @@
         public MethodKind Kind;
         public VarKind ReturnType;
         public MethodParameter[] Parameters;
+        public string Alias;
+        public MethodImplementationType Implementation;
 
-        public MethodInterface(LibraryDeclaration library, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters) 
+        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
         {
             this.Name = name;
             this.Library = library;
+            this.Implementation = implementation;
             this.Kind = kind;
             this.ReturnType = returnType;
             this.Parameters = parameters;
+
+            this.Alias = alias != null? alias : $"{this.Library.Name}.{char.ToUpper(this.Name[0])}{this.Name.Substring(1)}";
         }
 
         public override string ToString()

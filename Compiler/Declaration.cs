@@ -112,14 +112,14 @@ namespace Phantasma.Tomb.Compiler
             // DO NOTHING
         }
 
-        public void AddMethod(string name, VarKind returnType, MethodParameter[] parameters)
+        public void AddMethod(string name, MethodImplementationType convention, VarKind returnType, MethodParameter[] parameters, string alias = null)
         {
             /*if (name != name.ToLower())
             {
                 throw new CompilerException(parser, "invalid method name: " + name);
             }*/
 
-            var method = new MethodInterface(this, name, MethodKind.Method, returnType, parameters);
+            var method = new MethodInterface(this, convention, name, MethodKind.Method, returnType, parameters, alias);
             methods[name] = method;
         }
 

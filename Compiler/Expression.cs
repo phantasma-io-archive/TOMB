@@ -145,9 +145,20 @@ namespace Phantasma.Tomb.Compiler
             }
 
             var reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
-            output.AppendLine(this, $"LOAD {reg} \"{this.method.Library.Name}.{this.method.Name}\"");
-            output.AppendLine(this, $"EXTCALL {reg}");
-            output.AppendLine(this, $"POP {reg}");
+
+            switch (this.method.Implementation)
+            {
+                case MethodImplementationType.ExtCall:
+                    output.AppendLine(this, $"LOAD {reg} \"{this.method.Alias}\"");
+                    output.AppendLine(this, $"EXTCALL {reg}");
+                    output.AppendLine(this, $"POP {reg}");
+                    break;
+
+                case MethodImplementationType.Custom:
+                    output.AppendLine(this, $"THROW \"{this.method.Alias} not implemented\"");
+                    break;
+            }
+
             return reg;
         }
     }
