@@ -46,3 +46,20 @@ contract test {
 	}
 }
 ```
+
+Another contract that implements a counter, this time unique per user address
+
+```c#
+contract test {
+	global counters: storage_map<address, number>;
+		
+	method increment(from:address)
+	{
+		Runtime.expect(Runtime.isWitness(from), "witness failed");
+		local temp: number;
+		temp := counters.get(from);
+		temp += 1;
+		counters.set(from, temp);
+	}
+}
+```
