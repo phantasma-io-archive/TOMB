@@ -35,6 +35,7 @@
         public VarKind ReturnType;
         public MethodParameter[] Parameters;
         public string Alias;
+        public string Contract;
         public MethodImplementationType Implementation;
 
         public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
@@ -46,12 +47,37 @@
             this.ReturnType = returnType;
             this.Parameters = parameters;
 
-            this.Alias = alias != null? alias : $"{this.Library.Name}.{char.ToUpper(this.Name[0])}{this.Name.Substring(1)}";
+            this.Contract = this.Library.Name;
+
+            if (alias != null)
+            {
+                this.Alias = alias;
+            }
+            else
+            {
+                this.Alias = $"{char.ToUpper(this.Name[0])}{this.Name.Substring(1)}";
+                if (implementation == MethodImplementationType.ExtCall)
+                {
+                    this.Alias = this.Library.Name + '.' + this.Alias;
+                }
+            }            
         }
 
         public override string ToString()
         {
             return $"method {Name}:{ReturnType}";
+        }
+
+        public MethodInterface SetContract(string contract)
+        {
+            this.Contract = contract;
+            return this;
+        }
+
+        public MethodInterface SetAlias(string alias)
+        {
+            this.Alias = alias;
+            return this;
         }
 
         public void PatchParam(string name, VarKind kind)

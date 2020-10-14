@@ -154,6 +154,19 @@ namespace Phantasma.Tomb.Compiler
                     output.AppendLine(this, $"POP {reg}");
                     break;
 
+                case MethodImplementationType.Contract:
+                    {
+                        output.AppendLine(this, $"LOAD {reg} \"{this.method.Alias}\"");
+                        output.AppendLine(this, $"PUSH {reg}");
+
+                        output.AppendLine(this, $"LOAD {reg} \"{this.method.Contract}\"");
+                        output.AppendLine(this, $"CTX {reg} {reg}");
+                        output.AppendLine(this, $"SWITCH {reg}");
+
+                        output.AppendLine(this, $"POP {reg}");
+                        break;
+                    }
+
                 case MethodImplementationType.Custom:
                     output.AppendLine(this, $"THROW \"{this.method.Alias} not implemented\"");
                     break;

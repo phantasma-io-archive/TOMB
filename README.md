@@ -14,10 +14,10 @@ TOMB smart contract compiler for Phantasma platform
 - If ... Else
 - Throw Exceptions
 - Uninitialized globals validation
+- Interop and Contract calls
 
 ## Planned features
 
-- Contract calls
 - Structs
 - Loops
 - Switch .. case
@@ -59,8 +59,7 @@ contract test {
 }
 ```
 
-Another contract that implements a counter, this time unique per user address.
-
+Another contract that implements a counter, this time unique per user address.<br/>
 Showcases how to validate that a transaction was done by user possessing private keys to 'from' address
 
 ```c#
@@ -81,8 +80,7 @@ contract test {
 }
 ```
 
-A contract that takes a payment in tokens from a user.
-
+A contract that takes a payment in tokens from a user.<br/>
 Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain address of the contract.
 
 ```c#

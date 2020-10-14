@@ -112,7 +112,7 @@ namespace Phantasma.Tomb.Compiler
             // DO NOTHING
         }
 
-        public void AddMethod(string name, MethodImplementationType convention, VarKind returnType, MethodParameter[] parameters, string alias = null)
+        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarKind returnType, MethodParameter[] parameters, string alias = null)
         {
             /*if (name != name.ToLower())
             {
@@ -121,6 +121,7 @@ namespace Phantasma.Tomb.Compiler
 
             var method = new MethodInterface(this, convention, name, MethodKind.Method, returnType, parameters, alias);
             methods[name] = method;
+            return method;
         }
 
         public MethodInterface FindMethod(string name, bool required = true)

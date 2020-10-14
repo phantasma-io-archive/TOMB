@@ -162,13 +162,16 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case "Leaderboard":
-                    libDecl.AddMethod("create", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) });
-                    libDecl.AddMethod("getAddress", MethodImplementationType.Contract, VarKind.Address, new[] { new MethodParameter("index", VarKind.Number), new MethodParameter("boardName", VarKind.String) });
-                    libDecl.AddMethod("getScore", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) });
-                    libDecl.AddMethod("insert", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number)});
-                    libDecl.AddMethod("reset", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String)});
-                    libDecl.AddMethod("getSize", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) });
-                    break;
+                    {
+                        var contract = NativeContractKind.Ranking.ToString();
+                        libDecl.AddMethod("create", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) }).SetContract(contract);
+                        libDecl.AddMethod("getAddress", MethodImplementationType.Contract, VarKind.Address, new[] { new MethodParameter("index", VarKind.Number), new MethodParameter("boardName", VarKind.String) }).SetContract(contract);
+                        libDecl.AddMethod("getScore", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) }).SetContract(contract);
+                        libDecl.AddMethod("insert", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number) }).SetContract(contract);
+                        libDecl.AddMethod("reset", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) }).SetContract(contract);
+                        libDecl.AddMethod("getSize", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) }).SetContract(contract);
+                        break;
+                    }
 
                 case "Map":
                     libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
