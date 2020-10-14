@@ -1,5 +1,6 @@
 using Phantasma.Blockchain.Contracts;
 using Phantasma.Domain;
+using Phantasma.Numerics;
 using Phantasma.VM;
 using System.Collections.Generic;
 using System.Linq;
@@ -188,11 +189,26 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Map":
-                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
-                    libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) });
-                    libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) });
-                    libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) });
-                    libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("map", VarKind.String) });
+                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) }).SetParameterCallback("map", ConvertFieldToKey)
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Parser.Instance.AllocRegister(output, this);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback((output, scope, expr, reg) =>
+                         {
+                             expr.CallNecessaryConstructors(output, expr.method.ReturnType, reg);
+                             return reg;
+                         });
+                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) }).SetParameterCallback("map", ConvertFieldToKey);
+                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) }).SetParameterCallback("map", ConvertFieldToKey);
+                    libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToKey);
+                    libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToKey);
                     break;
 
                 case "List":
@@ -211,6 +227,23 @@ namespace Phantasma.Tomb.Compiler
             Libraries[name] = libDecl;
             return libDecl;
         }   
+
+        private Register ConvertFieldToKey(CodeGenerator output, Scope scope, Expression expression)
+        {
+            var literal = expression as LiteralExpression;
+            if (literal == null)
+            {
+                throw new System.Exception("expected literal expression for field key");
+            }
+
+            var key = SmartContract.GetKeyForField(scope.Root.Name, literal.value, false);
+            var hex = Base16.Encode(key);
+
+            var reg = Parser.Instance.AllocRegister(output, this);
+            output.AppendLine(expression, $"LOAD {reg} 0x{hex} // field key");
+
+            return reg;
+        }
 
         public void Compile(out string asm, out ContractInterface abi)
         {

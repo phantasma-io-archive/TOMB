@@ -2,6 +2,7 @@ using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -154,6 +155,23 @@ namespace Phantasma.Tomb.Compiler
             return node == this;
         }
 
+        public LibraryDeclaration Clone(string name)
+        {
+            var result = new LibraryDeclaration(this.ParentScope, name);
+            foreach (var method in this.methods.Values)
+            {
+                var parameters = method.Parameters.ToList().ToArray();
+                var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.Kind, method.ReturnType, parameters, method.Alias);
+                newMethod.Contract = method.Contract;
+                newMethod.PreCallback = method.PreCallback;
+                newMethod.PostCallback = method.PostCallback;
+
+                result.methods[method.Name] = newMethod;
+            }
+
+            return result;
+        }
+
         public void PatchParam(string name, VarKind kind)
         {
             foreach (var method in methods.Values)
@@ -162,23 +180,57 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
-        public void PatchMap(MapDeclaration mapDecl)
+        private Dictionary<string, LibraryDeclaration> _genericCache = new Dictionary<string, LibraryDeclaration>();
+
+        public LibraryDeclaration PatchMap(MapDeclaration mapDecl)
         {
-            PatchParam("key", mapDecl.KeyKind);
-            PatchParam("value", mapDecl.ValueKind);
-            FindMethod("get").ReturnType = mapDecl.ValueKind;
+            var key = $"<{mapDecl.KeyKind},{mapDecl.ValueKind}>m";
+            if (_genericCache.ContainsKey(key))
+            {
+                return _genericCache[key];
+            }
+
+            var lib = this.Clone(this.Name+key);
+            lib.PatchParam("key", mapDecl.KeyKind);
+            lib.PatchParam("value", mapDecl.ValueKind);
+            lib.FindMethod("get").ReturnType = mapDecl.ValueKind;
+            
+            _genericCache[key] = lib;
+            return lib;
         }
 
-        public void PatchList(ListDeclaration mapDecl)
+        public LibraryDeclaration PatchList(ListDeclaration listDecl)
         {
-            PatchParam("value", mapDecl.ValueKind);
-            FindMethod("get").ReturnType = mapDecl.ValueKind;
+            var key = $"<{listDecl.ValueKind}>l";
+            if (_genericCache.ContainsKey(key))
+            {
+                return _genericCache[key];
+            }
+
+            var lib = this.Clone(this.Name + key);
+
+            lib.PatchParam("value", listDecl.ValueKind);
+            lib.FindMethod("get").ReturnType = listDecl.ValueKind;
+            
+            _genericCache[key] = lib;
+            return lib;
         }
 
-        public void PatchSet(SetDeclaration mapDecl)
+        public LibraryDeclaration PatchSet(SetDeclaration setDecl)
         {
-            PatchParam("value", mapDecl.ValueKind);
-            FindMethod("get").ReturnType = mapDecl.ValueKind;
+            var key = $"<{setDecl.ValueKind}>s";
+            if (_genericCache.ContainsKey(key))
+            {
+                return _genericCache[key];
+            }
+
+            var lib = this.Clone(this.Name + key);
+
+            lib.PatchParam("value", setDecl.ValueKind);
+            lib.FindMethod("get").ReturnType = setDecl.ValueKind;
+
+            _genericCache[key] = lib;
+            return lib;
         }
     }
 
@@ -366,40 +418,10 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var entry in this.@interface.Parameters)
             {
-                temp.Add(new ContractParameter(entry.Name, ConvertType(entry.Kind)));
+                temp.Add(new ContractParameter(entry.Name, MethodInterface.ConvertType(entry.Kind)));
             }
 
-            return new ContractMethod(this.Name, ConvertType(this.@interface.ReturnType), temp.ToArray());
-        }
-
-        private static VMType ConvertType(VarKind kind)
-        {
-            switch (kind)
-            {
-                case VarKind.Address:
-                case VarKind.Bytes:
-                case VarKind.Hash:
-                    return VMType.Bytes;
-
-                case VarKind.Bool:
-                    return VMType.Bool;
-
-                case VarKind.Method:
-                case VarKind.Number:
-                    return VMType.Number;
-
-                case VarKind.String:
-                    return VMType.String;
-
-                case VarKind.Timestamp:
-                    return VMType.Timestamp;
-
-                case VarKind.None:
-                    return VMType.None;
-
-                default:
-                    throw new System.Exception("Not a valid ABI return type: " + kind);
-            }
+            return new ContractMethod(this.Name, MethodInterface.ConvertType(this.@interface.ReturnType), temp.ToArray());
         }
     }
 }

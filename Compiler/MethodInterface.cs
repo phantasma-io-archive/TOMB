@@ -1,4 +1,7 @@
-﻿namespace Phantasma.Tomb.Compiler
+﻿using Phantasma.VM;
+using System;
+
+namespace Phantasma.Tomb.Compiler
 {
     public class MethodParameter: Node
     {
@@ -6,6 +9,7 @@
         public VarKind Kind;
 
         public readonly bool Patchable;
+        public Func<CodeGenerator, Scope, Expression, Register> Callback;
 
         public MethodParameter(string name, VarKind kind)
         {
@@ -22,6 +26,11 @@
         public override bool IsNodeUsed(Node node)
         {
             return true; // is this ok???
+        }
+
+        public void SetParameterCallback(Func<CodeGenerator, Scope, Expression, Register> callback)
+        {
+            this.Callback = callback;
         }
     }
 
@@ -42,6 +51,8 @@
         public string Alias;
         public string Contract;
         public MethodImplementationType Implementation;
+        public Func<CodeGenerator, Scope, MethodExpression, Register> PreCallback;
+        public Func<CodeGenerator, Scope, MethodExpression, Register, Register> PostCallback;
 
         public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
         {
@@ -51,6 +62,8 @@
             this.Kind = kind;
             this.ReturnType = returnType;
             this.Parameters = parameters;
+            this.PreCallback = null;
+            this.PostCallback = null;
 
             this.Contract = this.Library.Name;
 
@@ -85,6 +98,32 @@
             return this;
         }
 
+        public MethodInterface SetPreCallback(Func<CodeGenerator, Scope, MethodExpression, Register> callback)
+        {
+            this.PreCallback = callback;
+            return this;
+        }
+
+        public MethodInterface SetPostCallback(Func<CodeGenerator, Scope, MethodExpression, Register, Register> callback)
+        {
+            this.PostCallback = callback;
+            return this;
+        }
+
+        public MethodInterface SetParameterCallback(string name, Func<CodeGenerator, Scope, Expression, Register> callback)
+        {
+            foreach (var parameter in Parameters)
+            {
+                if (parameter.Name == name)
+                {
+                    parameter.SetParameterCallback(callback);
+                    return this;
+                }
+            }
+
+            throw new Exception($"method {this.Library.Name}.{this.Name} contains no parameter called {name}");
+        }
+
         public void PatchParam(string name, VarKind kind)
         {
             foreach (var arg in Parameters)
@@ -96,5 +135,36 @@
                 }
             }
         }
+
+        public static VMType ConvertType(VarKind kind)
+        {
+            switch (kind)
+            {
+                case VarKind.Address:
+                case VarKind.Bytes:
+                case VarKind.Hash:
+                    return VMType.Bytes;
+
+                case VarKind.Bool:
+                    return VMType.Bool;
+
+                case VarKind.Method:
+                case VarKind.Number:
+                    return VMType.Number;
+
+                case VarKind.String:
+                    return VMType.String;
+
+                case VarKind.Timestamp:
+                    return VMType.Timestamp;
+
+                case VarKind.None:
+                    return VMType.None;
+
+                default:
+                    throw new System.Exception("Not a valid ABI return type: " + kind);
+            }
+        }
+
     }
 }

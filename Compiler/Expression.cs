@@ -2,6 +2,7 @@
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -15,7 +16,7 @@ namespace Phantasma.Tomb.Compiler
             this.ParentScope = parentScope;
         }
 
-        protected void CallNecessaryConstructors(CodeGenerator output, VarKind kind, Register reg)
+        public void CallNecessaryConstructors(CodeGenerator output, VarKind kind, Register reg)
         {
             switch (kind)
             {
@@ -154,15 +155,36 @@ namespace Phantasma.Tomb.Compiler
 
         public override Register GenerateCode(CodeGenerator output)
         {
+            Register reg;
+
+            if (this.method.PreCallback != null)
+            {
+                reg = this.method.PreCallback(output, ParentScope, this);
+            }
+            else
+            {
+                reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
+            }
+
             for (int i = arguments.Count - 1; i >= 0; i--)
             {
                 var arg = arguments[i];
-                var argReg = arg.GenerateCode(output);
+
+                Register argReg;
+
+                var parameter = this.method.Parameters[i];
+                if (parameter.Callback != null)
+                {
+                    argReg = parameter.Callback(output, ParentScope, arg);
+                }
+                else
+                {
+                    argReg = arg.GenerateCode(output);
+                }
+
                 output.AppendLine(arg, $"PUSH {argReg}");
                 Parser.Instance.DeallocRegister(argReg);
             }
-
-            var reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
 
             switch (this.method.Implementation)
             {
@@ -189,8 +211,18 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case MethodImplementationType.Custom:
-                    output.AppendLine(this, $"THROW \"{this.method.Alias} not implemented\"");
+
+                    if (this.method.PreCallback == null && this.method.PostCallback == null)
+                    {
+                        output.AppendLine(this, $"THROW \"{this.method.Library.Name}.{this.method.Name} not implemented\"");
+                    }
+
                     break;
+            }
+
+            if (this.method.PostCallback != null)
+            {
+                reg = this.method.PostCallback(output, ParentScope, this, reg);
             }
 
             return reg;

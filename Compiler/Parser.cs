@@ -550,7 +550,7 @@ namespace Phantasma.Tomb.Compiler
                                             {
                                                 var mapDecl = (MapDeclaration)varDecl;
                                                 libDecl = scope.Root.FindLibrary("Map");
-                                                libDecl.PatchMap(mapDecl);
+                                                libDecl = libDecl.PatchMap(mapDecl);
                                                 break;
                                             }
 
@@ -558,7 +558,7 @@ namespace Phantasma.Tomb.Compiler
                                             {
                                                 var listDecl = (ListDeclaration)varDecl;
                                                 libDecl = scope.Root.FindLibrary("List");
-                                                libDecl.PatchList(listDecl);
+                                                libDecl = libDecl.PatchList(listDecl);
                                                 break;
                                             }
 
@@ -566,7 +566,7 @@ namespace Phantasma.Tomb.Compiler
                                             {
                                                 var setDecl = (SetDeclaration)varDecl;
                                                 libDecl = scope.Root.FindLibrary("Set");
-                                                libDecl.PatchSet(setDecl);
+                                                libDecl = libDecl.PatchSet(setDecl);
                                                 break;
                                             }
 
@@ -793,7 +793,7 @@ namespace Phantasma.Tomb.Compiler
                                     {
                                         var mapDecl = (MapDeclaration)varDecl;
                                         libDecl = scope.Root.FindLibrary("Map");
-                                        libDecl.PatchMap(mapDecl);
+                                        libDecl = libDecl.PatchMap(mapDecl);
                                         break;
                                     }
 
@@ -801,7 +801,7 @@ namespace Phantasma.Tomb.Compiler
                                     {
                                         var listDecl = (ListDeclaration)varDecl;
                                         libDecl = scope.Root.FindLibrary("List");
-                                        libDecl.PatchList(listDecl);
+                                        libDecl = libDecl.PatchList(listDecl);
                                         break;
                                     }
 
@@ -809,7 +809,7 @@ namespace Phantasma.Tomb.Compiler
                                     {
                                         var setDecl = (SetDeclaration)varDecl;
                                         libDecl = scope.Root.FindLibrary("Set");
-                                        libDecl.PatchSet(setDecl);
+                                        libDecl = libDecl.PatchSet(setDecl);
                                         break;
                                     }
 
