@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System.Collections.Generic;
@@ -284,11 +284,23 @@ namespace Phantasma.Tomb.Compiler
                 }
 
                 variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
+                output.AppendLine(this, $"POP {variable.Register}");
             }
 
             this.scope.Enter(output);
             body.GenerateCode(output);
             this.scope.Leave(output);
+
+            foreach (var variable in this.scope.Variables.Values)
+            {
+                if (variable.Storage != VarStorage.Argument)
+                {
+                    continue;
+                }
+
+                Parser.Instance.DeallocRegister(variable.Register);
+                variable.Register = null;
+            }
 
             // NOTE we don't need to dealloc anything here besides the global vars
             foreach (var variable in this.scope.Parent.Variables.Values)

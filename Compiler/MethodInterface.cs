@@ -1,6 +1,6 @@
 ﻿namespace Phantasma.Tomb.Compiler
 {
-    public class MethodParameter
+    public class MethodParameter: Node
     {
         public string Name;
         public VarKind Kind;
@@ -17,6 +17,11 @@
         public override string ToString()
         {
             return $"{Name}:{Kind}";
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return true; // is this ok???
         }
     }
 

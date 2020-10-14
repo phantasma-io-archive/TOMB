@@ -137,8 +137,9 @@ namespace Phantasma.Tomb.Compiler
 
         public override Register GenerateCode(CodeGenerator output)
         {
-            foreach (var arg in arguments)
+            for (int i = arguments.Count - 1; i >= 0; i--)
             {
+                var arg = arguments[i];
                 var argReg = arg.GenerateCode(output);
                 output.AppendLine(arg, $"PUSH {argReg}");
                 Parser.Instance.DeallocRegister(argReg);
