@@ -5,17 +5,15 @@ namespace Phantasma.Tomb.Compiler
 {
     public class MethodParameter: Node
     {
-        public string Name;
-        public VarKind Kind;
+        public string Name { get; private set; }
+        public VarKind Kind { get; internal set; }
 
-        public readonly bool Patchable;
         public Func<CodeGenerator, Scope, Expression, Register> Callback;
 
         public MethodParameter(string name, VarKind kind)
         {
             Name = name;
             Kind = kind;
-            this.Patchable = kind == VarKind.Unknown;
         }
 
         public override string ToString()
@@ -128,8 +126,13 @@ namespace Phantasma.Tomb.Compiler
         {
             foreach (var arg in Parameters)
             {
-                if (arg.Name == name && arg.Patchable)
+                if (arg.Name == name)
                 {
+                    if (arg.Kind != VarKind.Unknown)
+                    {
+                        throw new Exception($"Expected parameter {arg.Name} to be patchable as generic");
+                    }
+
                     arg.Kind = kind;
                     break;
                 }

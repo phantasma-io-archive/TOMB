@@ -600,7 +600,7 @@ namespace Phantasma.Tomb.Compiler
                 }
             } while (true);
         }
-
+        
         private Expression ExpectExpression(Scope scope)
         {
             var expr = ParseExpression(scope);

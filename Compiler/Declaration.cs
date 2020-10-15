@@ -160,8 +160,14 @@ namespace Phantasma.Tomb.Compiler
             var result = new LibraryDeclaration(this.ParentScope, name);
             foreach (var method in this.methods.Values)
             {
-                var parameters = method.Parameters.ToList().ToArray();
-                var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.Kind, method.ReturnType, parameters, method.Alias);
+                var parameters = new List<MethodParameter>();
+                
+                foreach (var parameter in method.Parameters)
+                {
+                    parameters.Add(new MethodParameter(parameter.Name, parameter.Kind));
+                }
+
+                var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
                 newMethod.Contract = method.Contract;
                 newMethod.PreCallback = method.PreCallback;
                 newMethod.PostCallback = method.PostCallback;
