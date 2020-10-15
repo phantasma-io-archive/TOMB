@@ -88,7 +88,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override bool IsNodeUsed(Node node)
         {
-            return (node == this);
+            return (node == this) || (expression != null && expression.IsNodeUsed(node));
         }
 
         public override void GenerateCode(CodeGenerator output)
