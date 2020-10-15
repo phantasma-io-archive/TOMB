@@ -405,19 +405,33 @@ namespace Phantasma.Tomb.Compiler
                     continue; // if we hit this, means it went unused 
                 }
 
-                if (tempReg1 == null)
+                bool isAssigned = false;
+                this.body.Visit((node) =>
                 {
-                    tempReg1 = Parser.Instance.AllocRegister(output, this);
-                    output.AppendLine(this, $"LOAD {tempReg1} \"Data.Set\"");
+                    var assignement = node as AssignStatement;
+                    if (assignement != null && assignement.variable == variable)
+                    {
+                        isAssigned = true;
+                    }
+                });
+
+                // if the global variable is not assigned within the current method, no need to save it value back to the storage
+                if (isAssigned)
+                {
+                    if (tempReg1 == null)
+                    {
+                        tempReg1 = Parser.Instance.AllocRegister(output, this);
+                        output.AppendLine(this, $"LOAD {tempReg1} \"Data.Set\"");
+                    }
+
+                    var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
+
+                    // NOTE we could keep this key loaded in a register if we had enough spare registers..
+                    output.AppendLine(this, $"PUSH {variable.Register}");
+                    output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
+                    output.AppendLine(this, $"PUSH r0");
+                    output.AppendLine(this, $"EXTCALL {tempReg1}");
                 }
-
-                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
-
-                // NOTE we could keep this key loaded in a register if we had enough spare registers..
-                output.AppendLine(this, $"PUSH {variable.Register}");
-                output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
-                output.AppendLine(this, $"PUSH r0");
-                output.AppendLine(this, $"EXTCALL {tempReg1}");
 
                 if (variable.Register != null)
                 {
