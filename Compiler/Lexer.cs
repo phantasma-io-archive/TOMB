@@ -20,7 +20,6 @@ namespace Phantasma.Tomb.Compiler
         Address,
         Hash,
         Bytes,
-        Method,
         Macro,
     }
 
@@ -69,12 +68,6 @@ namespace Phantasma.Tomb.Compiler
                 Hash hash = Hash.Parse(this.value);
 
                 this.value = "0x" + hash.ToString();
-            }
-            else
-            if (value.StartsWith("&"))
-            {
-                this.kind = TokenKind.Method;
-                this.value = value.Substring(1);
             }
             else
             if (value.StartsWith("$"))
@@ -165,6 +158,9 @@ namespace Phantasma.Tomb.Compiler
                 case '>':
                 case '!':
                 case ':':
+                case '|':
+                case '&':
+                case '^':
                     return true;
 
                 default:

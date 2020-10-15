@@ -724,6 +724,21 @@ namespace Phantasma.Tomb.Compiler
                 case "-":
                     return OperatorKind.Subtraction;
 
+                case "<<":
+                    return OperatorKind.ShiftLeft;
+
+                case ">>":
+                    return OperatorKind.ShiftRight;
+
+                case "|":
+                    return OperatorKind.Or;
+
+                case "&":
+                    return OperatorKind.And;
+
+                case "^":
+                    return OperatorKind.Xor;
+
                 default:
                     return OperatorKind.Unknown;
             }

@@ -7,6 +7,7 @@ TOMB smart contract compiler for Phantasma platform
 - Numbers, strings, bools, timestamps, addresses, hashes
 - Constants
 - Global and local variables
+- Bitshifting and logical operators
 - Contract constructors
 - Contract public methods
 - Return values
@@ -40,7 +41,6 @@ Different data types are recognized by the compiler.
 | Byte array  | 0xFAFAFA2423424 |
 | Address | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA |
 | Hash  | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |
-| Method pointer  | &myMethod |
 | Compiler macro   | $SOMETHING |
 
 ### Available macros

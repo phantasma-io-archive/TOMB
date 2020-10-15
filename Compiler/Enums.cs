@@ -39,6 +39,11 @@
         Multiplication,
         Division,
         Modulus,
+        ShiftRight,
+        ShiftLeft,
+        Or,
+        And,
+        Xor,
     }
 
     public enum MethodKind

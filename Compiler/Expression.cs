@@ -88,6 +88,13 @@ namespace Phantasma.Tomb.Compiler
                 case OperatorKind.Greater: opcode = Opcode.GT; break;
                 case OperatorKind.GreaterOrEqual: opcode = Opcode.GTE; break;
 
+                case OperatorKind.ShiftRight: opcode = Opcode.SHR; break;
+                case OperatorKind.ShiftLeft: opcode = Opcode.SHL; break;
+
+                case OperatorKind.Or: opcode = Opcode.OR; break;
+                case OperatorKind.And: opcode = Opcode.AND; break;
+                case OperatorKind.Xor: opcode = Opcode.XOR; break;
+
                 default:
                     throw new CompilerException("not implemented vmopcode for " + op);
             }
