@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers;
+using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
 {
     public abstract class Statement: Node
     {
         public abstract void GenerateCode(CodeGenerator output);
+
     }
 
     public class StatementBlock : Node
@@ -74,8 +76,14 @@ namespace Phantasma.Tomb.Compiler
 
     public class ReturnStatement : Statement
     {
-        public ReturnStatement() : base()
+        public Expression expression;
+
+        public MethodInterface method;
+
+        public ReturnStatement(MethodInterface method, Expression expression) : base()
         {
+            this.expression = expression;
+            this.method = method;
         }
 
         public override bool IsNodeUsed(Node node)
@@ -85,6 +93,23 @@ namespace Phantasma.Tomb.Compiler
 
         public override void GenerateCode(CodeGenerator output)
         {
+            if (expression != null)
+            {
+                if (this.method.ReturnType == VarKind.None)
+                {
+                    throw new System.Exception("unexpect return expression for void method: " + method.Name);
+                }
+
+                var reg = expression.GenerateCode(output);
+                output.AppendLine(this, $"PUSH {reg}");
+                Parser.Instance.DeallocRegister(reg);
+            }
+            else
+            if (this.method.ReturnType != VarKind.None)
+            {
+                throw new System.Exception("expected return expression for non-void method: " + method.Name);
+            }
+
             output.AppendLine(this, "RET");
         }
     }
@@ -116,12 +141,12 @@ namespace Phantasma.Tomb.Compiler
         public StatementBlock @else;
         public Scope Scope { get; }
 
-        private int label;
+        //private int label;
 
-        public IfStatement(Scope parentScope)
+        public IfStatement(Scope parentScope) : base()
         {
             this.Scope = new Scope(parentScope, this.NodeID);
-            this.label = Parser.Instance.AllocateLabel();
+            //this.label = Parser.Instance.AllocateLabel();
         }
 
         public override bool IsNodeUsed(Node node)

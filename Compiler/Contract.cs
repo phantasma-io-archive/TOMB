@@ -82,7 +82,7 @@ namespace Phantasma.Tomb.Compiler
             return abi;
         }
 
-        public void AddMethod(int line, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, Scope scope, StatementBlock body)
+        public MethodInterface AddMethod(int line, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, Scope scope)
         {
             if (Methods.Count == 0)
             {
@@ -92,9 +92,24 @@ namespace Phantasma.Tomb.Compiler
             var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, kind, returnType, parameters);
             this.Scope.Methods.Add(method);
 
-            var decl = new MethodDeclaration(scope, method, body);
+            var decl = new MethodDeclaration(scope, method);
             decl.LineNumber = line;
             this.Methods[name] = decl;
+
+            return method;
+        }
+
+        public void SetMethodBody(string name, StatementBlock body)
+        {
+            if (this.Methods.ContainsKey(name))
+            {
+                this.Methods[name].body = body;
+            }
+            else
+            {
+                throw new System.Exception("Cannot set body for unknown method: " + name);
+            }
+
         }
 
         public LibraryDeclaration FindLibrary(string name, bool required = true)

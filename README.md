@@ -4,11 +4,12 @@ TOMB smart contract compiler for Phantasma platform
 
 ## Supported features
 
+- Smart contracts
 - Numbers, strings, bools, timestamps, addresses, hashes
 - Constants
 - Global and local variables
 - Bitshifting and logical operators
-- Contract constructors
+- Contract constructors, methods and triggers
 - Contract public methods
 - Return values
 - Generics (Maps and lists)
@@ -21,6 +22,8 @@ TOMB smart contract compiler for Phantasma platform
 
 ## Planned features
 
+- Non-contract Scripts
+- Contract tasks
 - Structs
 - Loops
 - Switch .. case

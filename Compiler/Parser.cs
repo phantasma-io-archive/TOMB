@@ -266,11 +266,15 @@ namespace Phantasma.Tomb.Compiler
                                 throw new CompilerException("constructor must have only one parameter of type address");
                             }
 
+                            var method = contract.AddMethod(line, name, MethodKind.Constructor, VarKind.None, parameters, scope);
+
                             ExpectToken("{");
-                            var body = ParseCommandBlock(scope);
+
+                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
                             ExpectToken("}");
+
                             
-                            contract.AddMethod(line, name, MethodKind.Constructor, VarKind.None, parameters, scope, body);
+                            
                             break;
                         }
 
@@ -294,11 +298,12 @@ namespace Phantasma.Tomb.Compiler
                                 Rewind();
                             }
 
-                            ExpectToken("{");
-                            var body = ParseCommandBlock(scope);
-                            ExpectToken("}");
+                            var method = contract.AddMethod(line, name, MethodKind.Method, returnType, parameters, scope);
 
-                            contract.AddMethod(line, name, MethodKind.Method, returnType, parameters, scope, body);
+                            ExpectToken("{");
+                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                            ExpectToken("}");
+                            
                             break;
                         }
 
@@ -310,11 +315,12 @@ namespace Phantasma.Tomb.Compiler
                             var parameters = ParseParameters(contract.Scope);
                             var scope = new Scope(contract.Scope, name, parameters);
 
+                            var method = contract.AddMethod(line, name, MethodKind.Task, VarKind.None, parameters, scope);
+
                             ExpectToken("{");
-                            var body = ParseCommandBlock(scope);
+                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
                             ExpectToken("}");
 
-                            contract.AddMethod(line, name, MethodKind.Task, VarKind.None, parameters, scope, body);
                             break;
                         }
 
@@ -347,11 +353,11 @@ namespace Phantasma.Tomb.Compiler
                             var parameters = ParseParameters(contract.Scope);
                             var scope = new Scope(contract.Scope, name, parameters);
 
-                            ExpectToken("{");
-                            var body = ParseCommandBlock(scope);
-                            ExpectToken("}");
+                            var method = contract.AddMethod(line, name, MethodKind.Trigger, VarKind.None, parameters, scope);
 
-                            contract.AddMethod(line, name, MethodKind.Trigger, VarKind.None, parameters, scope, body);
+                            ExpectToken("{");
+                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                            ExpectToken("}");
 
                             break;
                         }
@@ -399,7 +405,7 @@ namespace Phantasma.Tomb.Compiler
             return list.ToArray();
         }
 
-        private StatementBlock ParseCommandBlock(Scope scope)
+        private StatementBlock ParseCommandBlock(Scope scope, MethodInterface method)
         {
             var block = new StatementBlock(scope);
 
@@ -415,7 +421,20 @@ namespace Phantasma.Tomb.Compiler
 
                     case "return":
                         {
-                            block.Commands.Add(new ReturnStatement());
+                            var temp = FetchToken();
+                            Rewind();
+
+                            Expression expr;
+                            if (token.value != ";")
+                            {
+                                expr = ExpectExpression(scope);
+                            }
+                            else
+                            {
+                                expr = null;
+                            }
+                            
+                            block.Commands.Add(new ReturnStatement(method, expr));
                             ExpectToken(";");
                             break;
                         }
@@ -479,7 +498,7 @@ namespace Phantasma.Tomb.Compiler
 
                             ExpectToken("{");
 
-                            ifCommand.body = ParseCommandBlock(ifCommand.Scope);
+                            ifCommand.body = ParseCommandBlock(ifCommand.Scope, method);
 
                             ExpectToken("}");
 
@@ -489,7 +508,7 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 ExpectToken("{");
 
-                                ifCommand.@else = ParseCommandBlock(ifCommand.Scope);
+                                ifCommand.@else = ParseCommandBlock(ifCommand.Scope, method);
 
                                 ExpectToken("}");
                             }

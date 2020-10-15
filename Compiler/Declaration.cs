@@ -243,12 +243,13 @@ namespace Phantasma.Tomb.Compiler
     public class MethodDeclaration : Declaration
     {
         public readonly MethodInterface @interface;
-        public readonly StatementBlock body;
         public readonly Scope scope;
 
-        public MethodDeclaration(Scope scope, MethodInterface @interface, StatementBlock body) : base(scope.Parent, @interface.Name)
+        public StatementBlock body { get; internal set; }
+
+        public MethodDeclaration(Scope scope, MethodInterface @interface) : base(scope.Parent, @interface.Name)
         {
-            this.body = body;
+            this.body = null;
             this.scope = scope;
             this.@interface = @interface;
         }
