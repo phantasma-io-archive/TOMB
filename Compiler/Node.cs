@@ -1,4 +1,6 @@
-﻿namespace Phantasma.Tomb.Compiler
+﻿using System;
+
+namespace Phantasma.Tomb.Compiler
 {
     public abstract class Node
     {
@@ -14,5 +16,7 @@
         }
 
         public abstract bool IsNodeUsed(Node node);
+
+        public abstract void Visit(Action<Node> callback);
     }
 }

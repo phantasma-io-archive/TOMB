@@ -2,6 +2,7 @@ using Phantasma.Blockchain.Contracts;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -24,6 +25,21 @@ namespace Phantasma.Tomb.Compiler
             this.Name = name;
             this.Scope = new Scope(this);
             this.library = new LibraryDeclaration(Scope, name);
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+
+            foreach (var method in Methods.Values)
+            {
+                method.Visit(callback);
+            }
+
+            foreach (var lib in Libraries.Values)
+            {
+                lib.Visit(callback);
+            }
         }
 
         public override bool IsNodeUsed(Node node)

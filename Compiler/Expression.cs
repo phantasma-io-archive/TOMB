@@ -1,6 +1,7 @@
 ﻿using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
+using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 
@@ -36,6 +37,13 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            expr.Visit(callback);
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             return (node == this) || expr.IsNodeUsed(node);
@@ -65,6 +73,13 @@ namespace Phantasma.Tomb.Compiler
         public override bool IsNodeUsed(Node node)
         {
             return (node == this) || left.IsNodeUsed(node) || right.IsNodeUsed(node);
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            left.Visit(callback);
+            right.Visit(callback);
         }
 
         public override Register GenerateCode(CodeGenerator output)
@@ -123,6 +138,16 @@ namespace Phantasma.Tomb.Compiler
         public MethodExpression(Scope parentScope) : base(parentScope)
         {
 
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+
+            foreach (var arg in arguments)
+            {
+                arg.Visit(callback);
+            }
         }
 
         public override bool IsNodeUsed(Node node)
@@ -245,6 +270,11 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             return (node == this);
@@ -270,6 +300,11 @@ namespace Phantasma.Tomb.Compiler
         public override Register GenerateCode(CodeGenerator output)
         {
             throw new System.Exception($"macro {value} was not unfolded!");
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -322,6 +357,12 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            decl.Visit(callback);
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             return (node == this) || node == decl;
@@ -350,6 +391,12 @@ namespace Phantasma.Tomb.Compiler
             output.AppendLine(this, $"LOAD {reg} {decl.Value}");
             this.CallNecessaryConstructors(output, decl.Kind, reg);
             return reg;
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            decl.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)

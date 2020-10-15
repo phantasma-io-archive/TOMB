@@ -1,6 +1,7 @@
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,6 +34,11 @@ namespace Phantasma.Tomb.Compiler
         public override string ToString()
         {
             return $"var {Name}:{Kind}";
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -94,6 +100,11 @@ namespace Phantasma.Tomb.Compiler
             return $"const {Name}:{Kind}";
         }
 
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+ 
         public override bool IsNodeUsed(Node node)
         {
             return node == this;
@@ -148,6 +159,11 @@ namespace Phantasma.Tomb.Compiler
         public override string ToString()
         {
             return $"library {Name}";
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -252,6 +268,12 @@ namespace Phantasma.Tomb.Compiler
             this.body = null;
             this.scope = scope;
             this.@interface = @interface;
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            body.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)

@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
@@ -27,6 +28,16 @@ namespace Phantasma.Tomb.Compiler
                 cmd.GenerateCode(output);
             }
         }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            foreach (var cmd in Commands)
+            {
+                cmd.Visit(callback);
+            }
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             if (node == this)
@@ -54,6 +65,13 @@ namespace Phantasma.Tomb.Compiler
         public AssignStatement() : base()
         {
 
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            variable.Visit(callback);
+            expression.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -84,6 +102,12 @@ namespace Phantasma.Tomb.Compiler
         {
             this.expression = expression;
             this.method = method;
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            expression?.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -123,6 +147,11 @@ namespace Phantasma.Tomb.Compiler
             this.message = msg;
         }
 
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             return (node == this);
@@ -147,6 +176,15 @@ namespace Phantasma.Tomb.Compiler
         {
             this.Scope = new Scope(parentScope, this.NodeID);
             //this.label = Parser.Instance.AllocateLabel();
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+
+            condition.Visit(callback);
+            body.Visit(callback);
+            @else?.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
@@ -193,6 +231,13 @@ namespace Phantasma.Tomb.Compiler
         {
 
         }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            expression.Visit(callback);
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             return (node == this) || expression.IsNodeUsed(node);

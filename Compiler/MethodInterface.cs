@@ -21,9 +21,14 @@ namespace Phantasma.Tomb.Compiler
             return $"{Name}:{Kind}";
         }
 
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+
         public override bool IsNodeUsed(Node node)
         {
-            return true; // is this ok???
+            return node == this;
         }
 
         public void SetParameterCallback(Func<CodeGenerator, Scope, Expression, Register> callback)
