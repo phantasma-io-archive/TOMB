@@ -104,6 +104,27 @@ The following libraries can be imported into a contract.
 | Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | TODO|
 | Leaderboard.reset(from:Address, boardName:String) | TODO|
 
+## Available generic types
+
+### Map
+| Method | Description|
+| ------------- | ------------- |
+| Map.get(key:Generic) | TODO|
+| Map.set(key:Generic, value:Generic) | TODO|
+| Map.remove(key:Generic) | TODO|
+| Map.count() | TODO|
+| Map.clear() | TODO|
+
+### List
+| Method | Description|
+| ------------- | ------------- |
+| List.get(index:Number) | TODO|
+| List.add(value:Generic) | TODO|
+| List.replace(index:Number, value:Generic) | TODO|
+| List.remove(index:Number) | TODO|
+| List.count() | TODO|
+| List.clear() | TODO|
+
 
 ### Available macros
 

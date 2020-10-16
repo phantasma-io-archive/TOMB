@@ -156,7 +156,7 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Runtime", "Token", "Organization", "Oracle", "Utils", "Leaderboard" };
+        public static string[] AvailableLibraries = new[] { "Runtime", "Token", "Organization", "Oracle", "Utils", "Leaderboard", "Map", "List" };
 
         public static LibraryDeclaration LoadLibrary(string name, Scope scope)
         {
@@ -253,7 +253,7 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Map":
-                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Unknown, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) }).SetParameterCallback("map", ConvertFieldToKey)
+                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Generic, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToKey)
                         .SetPreCallback((output, scope, expr) =>
                         {
                             var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
@@ -269,16 +269,16 @@ namespace Phantasma.Tomb.Compiler
                              expr.CallNecessaryConstructors(output, expr.method.ReturnType, reg);
                              return reg;
                          });
-                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown), new MethodParameter("value", VarKind.Unknown) }).SetParameterCallback("map", ConvertFieldToKey);
-                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Unknown) }).SetParameterCallback("map", ConvertFieldToKey);
+                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic), new MethodParameter("value", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToKey);
+                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToKey);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToKey);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToKey);
                     break;
 
                 case "List":
-                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Unknown, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Unknown) });
-                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Unknown) });
+                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Generic, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
+                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Generic) });
+                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Generic) });
                     libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number)});
                     libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
                     libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });

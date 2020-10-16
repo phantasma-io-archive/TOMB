@@ -113,8 +113,11 @@ namespace Phantasma.Tomb.Compiler
     {
         public Dictionary<string, MethodInterface> methods = new Dictionary<string, MethodInterface>();
 
+        public bool IsGeneric { get; private set; }
+
         public LibraryDeclaration(Scope parentScope, string name) : base(parentScope, name)
         {
+            IsGeneric = false;
         }
 
         public void GenerateCode(CodeGenerator output)
@@ -128,6 +131,14 @@ namespace Phantasma.Tomb.Compiler
             {
                 throw new CompilerException(parser, "invalid method name: " + name);
             }*/
+
+            foreach (var entry in parameters)
+            {
+                if (entry.Kind == VarKind.Generic)
+                {
+                    IsGeneric = true;
+                }
+            }
 
             var method = new MethodInterface(this, convention, name, MethodKind.Method, returnType, parameters, alias);
             methods[name] = method;

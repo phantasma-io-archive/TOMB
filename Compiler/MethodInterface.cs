@@ -136,7 +136,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 if (arg.Name == name)
                 {
-                    if (arg.Kind != VarKind.Unknown)
+                    if (arg.Kind != VarKind.Generic)
                     {
                         throw new Exception($"Expected parameter {arg.Name} to be patchable as generic");
                     }

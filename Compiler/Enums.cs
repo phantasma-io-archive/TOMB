@@ -2,8 +2,9 @@
 {
     public enum VarKind
     {
-        Unknown,
         None,
+        Unknown,
+        Generic,
         Number,
         Bool,
         String,

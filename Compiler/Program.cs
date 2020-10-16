@@ -20,12 +20,21 @@ namespace Phantasma.Tomb.Compiler
                 foreach (var method in library.methods.Values)
                 {
                     var parameters = new StringBuilder();
+                    int index = -1;
                     foreach (var entry in method.Parameters)
                     {
+                        index++;
+
+                        if (library.IsGeneric && index == 0)
+                        {
+                            continue;
+                        }
+
                         if (parameters.Length > 0)
                         {
                             parameters.Append(", ");
                         }
+
                         parameters.Append(entry.Name + ":" + entry.Kind + "");
                     }
 
