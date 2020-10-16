@@ -156,14 +156,16 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        internal LibraryDeclaration AddLibrary(string name)
+        public static string[] AvailableLibraries = new[] { "Runtime", "Token", "Organization", "Oracle", "Utils", "Leaderboard" };
+
+        public static LibraryDeclaration LoadLibrary(string name, Scope scope)
         {
             if (name != name.UppercaseFirst() && name != "this")
             {
                 throw new CompilerException("invalid library name: " + name);
             }
 
-            var libDecl = new LibraryDeclaration(this.Scope, name);
+            var libDecl = new LibraryDeclaration(scope, name);
 
             switch (name)
             {
@@ -211,7 +213,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var timestamp = uint.Parse(nameExpr.value);
                             output.AppendLine(method, $"LOAD {reg} {timestamp}");
-                            this.CallNecessaryConstructors(output, VarKind.Timestamp, reg);
+                            method.CallNecessaryConstructors(output, VarKind.Timestamp, reg);
                             return reg;
                         }
                         else
@@ -255,7 +257,7 @@ namespace Phantasma.Tomb.Compiler
                         .SetPreCallback((output, scope, expr) =>
                         {
                             var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
-                            var reg = Parser.Instance.AllocRegister(output, this);
+                            var reg = Parser.Instance.AllocRegister(output, expr);
 
                             output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
                             output.AppendLine(expr, $"PUSH {reg}");
@@ -286,11 +288,10 @@ namespace Phantasma.Tomb.Compiler
                     throw new CompilerException("unknown library: " + name);
             }
 
-            Libraries[name] = libDecl;
             return libDecl;
         }   
 
-        private Register ConvertFieldToKey(CodeGenerator output, Scope scope, Expression expression)
+        private static Register ConvertFieldToKey(CodeGenerator output, Scope scope, Expression expression)
         {
             var literal = expression as LiteralExpression;
             if (literal == null)
@@ -301,7 +302,7 @@ namespace Phantasma.Tomb.Compiler
             var key = SmartContract.GetKeyForField(scope.Root.Name, literal.value, false);
             var hex = Base16.Encode(key);
 
-            var reg = Parser.Instance.AllocRegister(output, this);
+            var reg = Parser.Instance.AllocRegister(output, expression);
             output.AppendLine(expression, $"LOAD {reg} 0x{hex} // field key");
 
             return reg;

@@ -250,7 +250,9 @@ namespace Phantasma.Tomb.Compiler
                             var libName = ExpectIdentifier();
                             ExpectToken(";");
 
-                            contract.AddLibrary(libName);
+                            var libDecl = Contract.LoadLibrary(libName, contract.Scope);
+                            contract.Libraries[libName] = libDecl;
+
                             break;
                         }
 

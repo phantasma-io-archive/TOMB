@@ -1,18 +1,51 @@
-﻿using Phantasma.CodeGen.Assembler;
-using Phantasma.Cryptography;
-using Phantasma.Domain;
+﻿using Phantasma.Domain;
 using Phantasma.VM;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Text;
 
 namespace Phantasma.Tomb.Compiler
 {
     class Program
     {
+        static void ExportLibraryInfo()
+        {
+            var sb = new StringBuilder();
+            foreach (var libraryName in Contract.AvailableLibraries)
+            {
+                var library = Contract.LoadLibrary(libraryName, null);
+                sb.AppendLine("### "+libraryName);
+                sb.AppendLine("| Method | Args| Description|");
+                sb.AppendLine("| ------------- | ------------- |------------- |");
+                foreach (var method in library.methods.Values)
+                {
+                    var parameters = new StringBuilder();
+                    foreach (var entry in method.Parameters)
+                    {
+                        if (parameters.Length > 0)
+                        {
+                            parameters.Append(", ");
+                        }
+                        parameters.Append(entry.Name + ":" + entry.Kind + "");
+                    }
+
+                    if (parameters.Length == 0)
+                    {
+                        parameters.Append("None");
+                    }
+
+                    sb.AppendLine($"| {method.Name} | {parameters}| TODO|");
+                }
+                sb.AppendLine("");
+            }
+
+            File.WriteAllText("libs.txt", sb.ToString());
+        }
+
         static void Main(string[] args)
         {
+            ExportLibraryInfo();
+
             var sourceFile = "katacomb.txt";
             Console.WriteLine("Opening " + sourceFile);
             var sourceCode = File.ReadAllText(sourceFile);
