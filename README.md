@@ -48,6 +48,64 @@ Different data types are recognized by the compiler.
 | Hash  | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |
 | Compiler macro   | $SOMETHING |
 
+## Available libraries
+
+The following libraries can be imported into a contract.
+
+### Runtime
+| Method | Args| Description|
+| ------------- | ------------- |------------- |
+| log | message:String| TODO|
+| expect | condition:Bool, error:String| TODO|
+| isWitness | address:Address| TODO|
+| isTrigger | None| TODO|
+| time | None| TODO|
+| transactionHash | None| TODO|
+| startTask | from:Address, task:Method| TODO|
+| stopTask | None| TODO|
+
+### Token
+| Method | Args| Description|
+| ------------- | ------------- |------------- |
+| create | from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes| TODO|
+| transfer | from:Address, to:Address, symbol:String, amount:Number| TODO|
+| transferAll | from:Address, to:Address, symbol:String| TODO|
+| mint | from:Address, to:Address, symbol:String, amount:Number| TODO|
+| burn | from:Address, symbol:String, amount:Number| TODO|
+| getBalance | from:Address, symbol:String| TODO|
+
+### Organization
+| Method | Args| Description|
+| ------------- | ------------- |------------- |
+| create | from:Address, id:String, name:String, script:Bytes| TODO|
+| addMember | from:Address, name:String, target:Address| TODO|
+
+### Oracle
+| Method | Args| Description|
+| ------------- | ------------- |------------- |
+| read | url:String| TODO|
+| price | symbol:String| TODO|
+| quote | baseSymbol:String, quoteSymbol:String, amount:Number| TODO|
+
+### Utils
+| Method | Args| Description|
+| ------------- | ------------- |------------- |
+| unixTime | value:Number| TODO|
+| contractAddress | name:String| TODO|
+
+### Leaderboard
+| Method | Args| Description|
+| ------------- | ------------- |------------- |
+| create | from:Address, boardName:String, capacity:Number| TODO|
+| getAddress | boardName:String, index:Number| TODO|
+| getScoreByIndex | boardName:String, index:Number| TODO|
+| getScoreByAddress | boardName:String, target:Address| TODO|
+| getSize | boardName:String| TODO|
+| insert | from:Address, target:Address, boardName:String, score:Number| TODO|
+| reset | from:Address, boardName:String| TODO|
+
+
+
 ### Available macros
 
 | Macro  | Description |
