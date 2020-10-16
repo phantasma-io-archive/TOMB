@@ -7,7 +7,9 @@ namespace Phantasma.Tomb.Compiler
         private StringBuilder _sb = new StringBuilder();
 
         public static Scope currentScope = null;
-        public static int currentLine = 0;
+        public static int currentSourceLine = 0;
+
+        public int LineCount;
 
         public static string Tabs(int n)
         {
@@ -21,18 +23,20 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("line number failed for " + node.GetType().Name);
             }
 
-            while (currentLine <= node.LineNumber)
+            while (currentSourceLine <= node.LineNumber)
             {
-                if (currentLine > 0)
+                if (currentSourceLine > 0)
                 {
-                    var lineContent = Parser.Instance.GetLine(currentLine);
-                    _sb.AppendLine($"// Line {currentLine}:" + lineContent);
+                    var lineContent = Parser.Instance.GetLine(currentSourceLine);
+                    _sb.AppendLine($"// Line {currentSourceLine}:" + lineContent);
+                    LineCount++;
                 }
-                currentLine++;
+                currentSourceLine++;
             }
 
             line = Tabs(currentScope.Level) + line;
             _sb.AppendLine(line);
+            LineCount++;
         }
 
         public override string ToString()

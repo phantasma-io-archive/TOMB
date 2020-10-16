@@ -1,4 +1,5 @@
 ﻿using Phantasma.CodeGen.Assembler;
+using Phantasma.Cryptography;
 using Phantasma.Domain;
 using Phantasma.VM;
 using System;

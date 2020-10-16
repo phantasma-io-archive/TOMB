@@ -73,7 +73,7 @@ namespace Phantasma.Tomb.Compiler
         {
             this.Scope.Enter(output);
 
-            {
+            /*{
                 var reg = Parser.Instance.AllocRegister(output, this, "methodName");
                 output.AppendLine(this, $"POP {reg}");
                 foreach (var entry in Methods.Values)
@@ -84,7 +84,7 @@ namespace Phantasma.Tomb.Compiler
                 }
                 Parser.Instance.DeallocRegister(reg);
                 output.AppendLine(this, "THROW \"unknown method was called\"");
-            }
+            }*/
 
             foreach (var entry in Methods.Values)
             {
@@ -290,6 +290,18 @@ namespace Phantasma.Tomb.Compiler
             script = AssemblerUtils.BuildScript(lines, fileName, out debugInfo);
 
             lines = AssemblerUtils.CommentOffsets(lines, debugInfo).ToArray();
+
+            // here we lookup the script start offset for each method based on debug info obtained from the assembler
+            foreach (var abiMethod in abi.Methods)
+            {
+                var method = this.Methods[abiMethod.name];
+                abiMethod.offset = debugInfo.FindOffset(method.@interface.StartAsmLine);                
+
+                if (abiMethod.offset < 0)
+                {
+                    throw new Exception("Could not calculate script offset for method: " + abiMethod.name);
+                }
+            }
 
             asm = string.Join('\n', lines);
         }

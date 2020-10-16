@@ -1,9 +1,7 @@
 using Phantasma.Domain;
 using Phantasma.Numerics;
-using Phantasma.VM;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -287,6 +285,8 @@ namespace Phantasma.Tomb.Compiler
             output.AppendLine(this, $"// ********* {this.Name} {this.@interface.Kind} ***********");
             output.AppendLine(this, $"@{GetEntryLabel()}:");
 
+            this.@interface.StartAsmLine = output.LineCount;
+
             Register tempReg1 = null;
 
             bool isConstructor = this.@interface.Kind == MethodKind.Constructor;
@@ -443,6 +443,7 @@ namespace Phantasma.Tomb.Compiler
             tempReg1 = null;
 
             output.AppendLine(this, "RET");
+            this.@interface.EndAsmLine = output.LineCount;
         }
 
         internal string GetEntryLabel()

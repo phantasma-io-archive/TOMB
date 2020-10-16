@@ -57,6 +57,9 @@ namespace Phantasma.Tomb.Compiler
         public Func<CodeGenerator, Scope, MethodExpression, Register> PreCallback;
         public Func<CodeGenerator, Scope, MethodExpression, Register, Register> PostCallback;
 
+        public int StartAsmLine;
+        public int EndAsmLine;
+
         public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
         {
             this.Name = name;
