@@ -1,7 +1,10 @@
 ﻿using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
+using Phantasma.VM;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -20,20 +23,16 @@ namespace Phantasma.Tomb.Compiler
             Console.WriteLine("Compiling " + sourceFile);
             string asm;
             ContractInterface abi;
-            contract.Compile(out asm, out abi);
-
+            byte[] script;
+            DebugInfo debugInfo;
+            contract.Compile(sourceFile, out script, out asm, out abi, out debugInfo);
 
             var contractName = Path.GetFileNameWithoutExtension(sourceFile);
 
             File.WriteAllText(contractName + ".asm", asm);
-
             File.WriteAllBytes(contractName + ".abi", abi.ToByteArray());
-
-
-            Console.WriteLine("Assembling " + sourceFile);
-            var lines = asm.Split('\n');
-            var script = AssemblerUtils.BuildScript(lines);
             File.WriteAllBytes(contractName + ".script", script);
+            File.WriteAllText(contractName + ".debug", debugInfo.ToJSON());
 
             Console.WriteLine("Done, press any key");
             Console.ReadKey();

@@ -188,11 +188,9 @@ namespace Tests
 
             string asm;
             ContractInterface abi;
-            contract.Compile(out asm, out abi);
-
-            var lines = asm.Split('\n');
-
-            var script = AssemblerUtils.BuildScript(lines);
+            byte[] script;
+            DebugInfo debugInfo;
+            contract.Compile("test", out script, out asm, out abi, out debugInfo);
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 

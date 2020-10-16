@@ -1,4 +1,5 @@
 using Phantasma.Blockchain.Contracts;
+using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
@@ -276,7 +277,7 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
-        public void Compile(out string asm, out ContractInterface abi)
+        public void Compile(string fileName, out byte[] script, out string asm, out ContractInterface abi, out DebugInfo debugInfo)
         {
             var sb = new CodeGenerator();
             abi = this.GenerateCode(sb);
@@ -284,6 +285,13 @@ namespace Phantasma.Tomb.Compiler
             Parser.Instance.VerifyRegisters();
 
             asm = sb.ToString();
+
+            var lines = asm.Split('\n');
+            script = AssemblerUtils.BuildScript(lines, fileName, out debugInfo);
+
+            lines = AssemblerUtils.CommentOffsets(lines, debugInfo).ToArray();
+
+            asm = string.Join('\n', lines);
         }
     }
 }

@@ -466,7 +466,7 @@ namespace Phantasma.Tomb.Compiler
                 temp.Add(new ContractParameter(entry.Name, MethodInterface.ConvertType(entry.Kind)));
             }
 
-            return new ContractMethod(this.Name, MethodInterface.ConvertType(this.@interface.ReturnType), temp.ToArray());
+            return new ContractMethod(this.Name, MethodInterface.ConvertType(this.@interface.ReturnType), -1, temp.ToArray());
         }
     }
 }
