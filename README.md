@@ -53,77 +53,78 @@ Different data types are recognized by the compiler.
 The following libraries can be imported into a contract.
 
 ### Runtime
-| Method | Description|
-| ------------- | ------------- |
-| Runtime.log(message:String) | TODO|
-| Runtime.expect(condition:Bool, error:String) | TODO|
-| Runtime.isWitness(address:Address) | TODO|
-| Runtime.isTrigger() | TODO|
-| Runtime.time() | TODO|
-| Runtime.transactionHash() | TODO|
-| Runtime.startTask(from:Address, task:Method) | TODO|
-| Runtime.stopTask() | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Runtime.log(message:String) | None | TODO|
+| Runtime.expect(condition:Bool, error:String) | None | TODO|
+| Runtime.isWitness(address:Address) | Bool | TODO|
+| Runtime.isTrigger() | Bool | TODO|
+| Runtime.time() | Timestamp | TODO|
+| Runtime.transactionHash() | Hash | TODO|
+| Runtime.startTask(from:Address, task:Method) | None | TODO|
+| Runtime.stopTask() | None | TODO|
 
 ### Token
-| Method | Description|
-| ------------- | ------------- |
-| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | TODO|
-| Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | TODO|
-| Token.transferAll(from:Address, to:Address, symbol:String) | TODO|
-| Token.mint(from:Address, to:Address, symbol:String, amount:Number) | TODO|
-| Token.burn(from:Address, symbol:String, amount:Number) | TODO|
-| Token.getBalance(from:Address, symbol:String) | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | None | TODO|
+| Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
+| Token.transferAll(from:Address, to:Address, symbol:String) | None | TODO|
+| Token.mint(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
+| Token.burn(from:Address, symbol:String, amount:Number) | None | TODO|
+| Token.getBalance(from:Address, symbol:String) | Number | TODO|
 
 ### Organization
-| Method | Description|
-| ------------- | ------------- |
-| Organization.create(from:Address, id:String, name:String, script:Bytes) | TODO|
-| Organization.addMember(from:Address, name:String, target:Address) | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Organization.create(from:Address, id:String, name:String, script:Bytes) | None | TODO|
+| Organization.addMember(from:Address, name:String, target:Address) | None | TODO|
 
 ### Oracle
-| Method | Description|
-| ------------- | ------------- |
-| Oracle.read(url:String) | TODO|
-| Oracle.price(symbol:String) | TODO|
-| Oracle.quote(baseSymbol:String, quoteSymbol:String, amount:Number) | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Oracle.read(url:String) | None | TODO|
+| Oracle.price(symbol:String) | None | TODO|
+| Oracle.quote(baseSymbol:String, quoteSymbol:String, amount:Number) | None | TODO|
 
 ### Utils
-| Method | Description|
-| ------------- | ------------- |
-| Utils.unixTime(value:Number) | TODO|
-| Utils.contractAddress(name:String) | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Utils.unixTime(value:Number) | Timestamp | TODO|
+| Utils.contractAddress(name:String) | Address | TODO|
 
 ### Leaderboard
-| Method | Description|
-| ------------- | ------------- |
-| Leaderboard.create(from:Address, boardName:String, capacity:Number) | TODO|
-| Leaderboard.getAddress(boardName:String, index:Number) | TODO|
-| Leaderboard.getScoreByIndex(boardName:String, index:Number) | TODO|
-| Leaderboard.getScoreByAddress(boardName:String, target:Address) | TODO|
-| Leaderboard.getSize(boardName:String) | TODO|
-| Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | TODO|
-| Leaderboard.reset(from:Address, boardName:String) | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Leaderboard.create(from:Address, boardName:String, capacity:Number) | None | TODO|
+| Leaderboard.getAddress(boardName:String, index:Number) | Address | TODO|
+| Leaderboard.getScoreByIndex(boardName:String, index:Number) | Number | TODO|
+| Leaderboard.getScoreByAddress(boardName:String, target:Address) | Number | TODO|
+| Leaderboard.getSize(boardName:String) | Number | TODO|
+| Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | None | TODO|
+| Leaderboard.reset(from:Address, boardName:String) | None | TODO|
 
 ## Available generic types
 
 ### Map
-| Method | Description|
-| ------------- | ------------- |
-| Map.get(key:Generic) | TODO|
-| Map.set(key:Generic, value:Generic) | TODO|
-| Map.remove(key:Generic) | TODO|
-| Map.count() | TODO|
-| Map.clear() | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Map.get(key:Generic) | Generic | TODO|
+| Map.set(key:Generic, value:Generic) | None | TODO|
+| Map.remove(key:Generic) | None | TODO|
+| Map.count() | Number | TODO|
+| Map.clear() | None | TODO|
 
 ### List
-| Method | Description|
-| ------------- | ------------- |
-| List.get(index:Number) | TODO|
-| List.add(value:Generic) | TODO|
-| List.replace(index:Number, value:Generic) | TODO|
-| List.remove(index:Number) | TODO|
-| List.count() | TODO|
-| List.clear() | TODO|
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| List.get(index:Number) | Generic | TODO|
+| List.add(value:Generic) | None | TODO|
+| List.replace(index:Number, value:Generic) | None | TODO|
+| List.remove(index:Number) | None | TODO|
+| List.count() | Number | TODO|
+| List.clear() | None | TODO|
+
 
 
 ### Available macros
