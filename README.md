@@ -133,6 +133,20 @@ The following libraries can be imported into a contract.
 | ------------- | ------------- |
 | $THIS_ADDRESS  | The address of the current contract  |
 
+## Exception support
+
+Currently it is possible to throw exceptions with a string message.
+Runtime.expect() can also be used as an alternative way of throwing exceptions based on a condition.
+More work will include support for other data types and support for try..catch.
+
+```c#
+...
+throw "something happened";
+...
+}
+```
+
+
 # Examples
 
 Simple contract that sums two numbers and returns the result
