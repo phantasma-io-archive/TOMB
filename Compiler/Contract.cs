@@ -169,7 +169,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 case "Runtime":
                     libDecl.AddMethod("log", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
-                    libDecl.AddMethod("expect", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("condition", VarKind.Bool) , new MethodParameter("error", VarKind.String) });
+                    libDecl.AddMethod("expect", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("condition", VarKind.Bool), new MethodParameter("error", VarKind.String) });
                     libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
                     libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
                     libDecl.AddMethod("time", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
@@ -204,7 +204,37 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Utils":
-                    libDecl.AddMethod("unixTime", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) });
+                    libDecl.AddMethod("unixTime", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) }).SetPostCallback((output, scope, method, reg) =>
+                    {
+                        var nameExpr = method.arguments[0] as LiteralExpression;
+                        if (nameExpr != null && nameExpr.kind == VarKind.Number)
+                        {
+                            var timestamp = uint.Parse(nameExpr.value);
+                            output.AppendLine(method, $"LOAD {reg} {timestamp}");
+                            this.CallNecessaryConstructors(output, VarKind.Timestamp, reg);
+                            return reg;
+                        }
+                        else
+                        {
+                            throw new Exception("Expected literal number expression");
+                        }
+                    });
+
+                    libDecl.AddMethod("contractAddress", MethodImplementationType.Custom, VarKind.Address, new[] { new MethodParameter("name", VarKind.String) }).SetPostCallback((output, scope, method, reg) =>
+                    {
+                        var nameExpr = method.arguments[0] as LiteralExpression;
+                        if (nameExpr != null && nameExpr.kind == VarKind.String)
+                        {
+                            var address = SmartContract.GetAddressForName(nameExpr.value);
+                            var hex = Base16.Encode(address.ToByteArray());
+                            output.AppendLine(method, $"LOAD {reg} 0x{hex}");
+                            return reg;
+                        }
+                        else
+                        {
+                            throw new Exception("Expected literal string expression");
+                        }
+                    });
                     break;
 
                 case "Leaderboard":

@@ -181,24 +181,27 @@ namespace Phantasma.Tomb.Compiler
                 reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
             }
 
-            for (int i = arguments.Count - 1; i >= 0; i--)
+            if (method.Implementation != MethodImplementationType.Custom)
             {
-                var arg = arguments[i];
-
-                Register argReg;
-
-                var parameter = this.method.Parameters[i];
-                if (parameter.Callback != null)
+                for (int i = arguments.Count - 1; i >= 0; i--)
                 {
-                    argReg = parameter.Callback(output, ParentScope, arg);
-                }
-                else
-                {
-                    argReg = arg.GenerateCode(output);
-                }
+                    var arg = arguments[i];
 
-                output.AppendLine(arg, $"PUSH {argReg}");
-                Parser.Instance.DeallocRegister(argReg);
+                    Register argReg;
+
+                    var parameter = this.method.Parameters[i];
+                    if (parameter.Callback != null)
+                    {
+                        argReg = parameter.Callback(output, ParentScope, arg);
+                    }
+                    else
+                    {
+                        argReg = arg.GenerateCode(output);
+                    }
+
+                    output.AppendLine(arg, $"PUSH {argReg}");
+                    Parser.Instance.DeallocRegister(argReg);
+                }
             }
 
             switch (this.method.Implementation)
@@ -229,7 +232,7 @@ namespace Phantasma.Tomb.Compiler
                     break;
             }
 
-            if (this.method.ReturnType != VarKind.None)
+            if (this.method.ReturnType != VarKind.None && this.method.Implementation != MethodImplementationType.Custom) 
             {
                 output.AppendLine(this, $"POP {reg}");
             }
