@@ -135,9 +135,9 @@ The following libraries can be imported into a contract.
 
 ## Exception support
 
-Currently it is possible to throw exceptions with a string message.
-Runtime.expect() can also be used as an alternative way of throwing exceptions based on a condition.
-More work will include support for other data types and support for try..catch.
+Currently it is possible to throw exceptions with a string message.<br/>
+Runtime.expect() can also be used as an alternative way of throwing exceptions based on a condition.<br/>
+More work will include support for other data types and support for try..catch.<br/>
 
 ```c#
 ...
