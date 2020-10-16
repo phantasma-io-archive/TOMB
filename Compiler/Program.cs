@@ -15,8 +15,8 @@ namespace Phantasma.Tomb.Compiler
             {
                 var library = Contract.LoadLibrary(libraryName, null);
                 sb.AppendLine("### "+libraryName);
-                sb.AppendLine("| Method | Args| Description|");
-                sb.AppendLine("| ------------- | ------------- |------------- |");
+                sb.AppendLine("| Method | Description|");
+                sb.AppendLine("| ------------- | ------------- |");
                 foreach (var method in library.methods.Values)
                 {
                     var parameters = new StringBuilder();
@@ -29,12 +29,7 @@ namespace Phantasma.Tomb.Compiler
                         parameters.Append(entry.Name + ":" + entry.Kind + "");
                     }
 
-                    if (parameters.Length == 0)
-                    {
-                        parameters.Append("None");
-                    }
-
-                    sb.AppendLine($"| {method.Name} | {parameters}| TODO|");
+                    sb.AppendLine($"| {libraryName}.{method.Name}({parameters}) | TODO|");
                 }
                 sb.AppendLine("");
             }

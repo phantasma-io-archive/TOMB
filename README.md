@@ -53,57 +53,56 @@ Different data types are recognized by the compiler.
 The following libraries can be imported into a contract.
 
 ### Runtime
-| Method | Args| Description|
-| ------------- | ------------- |------------- |
-| log | message:String| TODO|
-| expect | condition:Bool, error:String| TODO|
-| isWitness | address:Address| TODO|
-| isTrigger | None| TODO|
-| time | None| TODO|
-| transactionHash | None| TODO|
-| startTask | from:Address, task:Method| TODO|
-| stopTask | None| TODO|
+| Method | Description|
+| ------------- | ------------- |
+| Runtime.log(message:String) | TODO|
+| Runtime.expect(condition:Bool, error:String) | TODO|
+| Runtime.isWitness(address:Address) | TODO|
+| Runtime.isTrigger() | TODO|
+| Runtime.time() | TODO|
+| Runtime.transactionHash() | TODO|
+| Runtime.startTask(from:Address, task:Method) | TODO|
+| Runtime.stopTask() | TODO|
 
 ### Token
-| Method | Args| Description|
-| ------------- | ------------- |------------- |
-| create | from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes| TODO|
-| transfer | from:Address, to:Address, symbol:String, amount:Number| TODO|
-| transferAll | from:Address, to:Address, symbol:String| TODO|
-| mint | from:Address, to:Address, symbol:String, amount:Number| TODO|
-| burn | from:Address, symbol:String, amount:Number| TODO|
-| getBalance | from:Address, symbol:String| TODO|
+| Method | Description|
+| ------------- | ------------- |
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | TODO|
+| Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | TODO|
+| Token.transferAll(from:Address, to:Address, symbol:String) | TODO|
+| Token.mint(from:Address, to:Address, symbol:String, amount:Number) | TODO|
+| Token.burn(from:Address, symbol:String, amount:Number) | TODO|
+| Token.getBalance(from:Address, symbol:String) | TODO|
 
 ### Organization
-| Method | Args| Description|
-| ------------- | ------------- |------------- |
-| create | from:Address, id:String, name:String, script:Bytes| TODO|
-| addMember | from:Address, name:String, target:Address| TODO|
+| Method | Description|
+| ------------- | ------------- |
+| Organization.create(from:Address, id:String, name:String, script:Bytes) | TODO|
+| Organization.addMember(from:Address, name:String, target:Address) | TODO|
 
 ### Oracle
-| Method | Args| Description|
-| ------------- | ------------- |------------- |
-| read | url:String| TODO|
-| price | symbol:String| TODO|
-| quote | baseSymbol:String, quoteSymbol:String, amount:Number| TODO|
+| Method | Description|
+| ------------- | ------------- |
+| Oracle.read(url:String) | TODO|
+| Oracle.price(symbol:String) | TODO|
+| Oracle.quote(baseSymbol:String, quoteSymbol:String, amount:Number) | TODO|
 
 ### Utils
-| Method | Args| Description|
-| ------------- | ------------- |------------- |
-| unixTime | value:Number| TODO|
-| contractAddress | name:String| TODO|
+| Method | Description|
+| ------------- | ------------- |
+| Utils.unixTime(value:Number) | TODO|
+| Utils.contractAddress(name:String) | TODO|
 
 ### Leaderboard
-| Method | Args| Description|
-| ------------- | ------------- |------------- |
-| create | from:Address, boardName:String, capacity:Number| TODO|
-| getAddress | boardName:String, index:Number| TODO|
-| getScoreByIndex | boardName:String, index:Number| TODO|
-| getScoreByAddress | boardName:String, target:Address| TODO|
-| getSize | boardName:String| TODO|
-| insert | from:Address, target:Address, boardName:String, score:Number| TODO|
-| reset | from:Address, boardName:String| TODO|
-
+| Method | Description|
+| ------------- | ------------- |
+| Leaderboard.create(from:Address, boardName:String, capacity:Number) | TODO|
+| Leaderboard.getAddress(boardName:String, index:Number) | TODO|
+| Leaderboard.getScoreByIndex(boardName:String, index:Number) | TODO|
+| Leaderboard.getScoreByAddress(boardName:String, target:Address) | TODO|
+| Leaderboard.getSize(boardName:String) | TODO|
+| Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | TODO|
+| Leaderboard.reset(from:Address, boardName:String) | TODO|
 
 
 ### Available macros
