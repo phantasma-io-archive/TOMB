@@ -116,8 +116,8 @@ namespace Phantasma.Tomb.Compiler
 
             output.AppendLine(this, $"{opcode} {regLeft} {regRight} {regResult}");
 
-            Parser.Instance.DeallocRegister(regRight);
-            Parser.Instance.DeallocRegister(regLeft);
+            Parser.Instance.DeallocRegister(ref regRight);
+            Parser.Instance.DeallocRegister(ref regLeft);
 
             return regResult;
         }
@@ -200,7 +200,7 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                     output.AppendLine(arg, $"PUSH {argReg}");
-                    Parser.Instance.DeallocRegister(argReg);
+                    Parser.Instance.DeallocRegister(ref argReg);
                 }
             }
 

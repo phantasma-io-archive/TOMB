@@ -979,7 +979,7 @@ namespace Phantasma.Tomb.Compiler
             throw new CompilerException("no more available registers");
         }
 
-        public void DeallocRegister(Register register)
+        public void DeallocRegister(ref Register register)
         {
             if (register == null)
             {
@@ -996,6 +996,8 @@ namespace Phantasma.Tomb.Compiler
 
                 registerAllocs[index] = null;
                 registerAlias[index] = null;
+
+                register = null;
                 return;
             }
 

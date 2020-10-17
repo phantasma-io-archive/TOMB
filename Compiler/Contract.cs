@@ -156,7 +156,7 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Runtime", "Token", "Organization", "Oracle", "Utils", "Leaderboard", "Map", "List" };
+        public static string[] AvailableLibraries = new[] { "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List" };
 
         public static LibraryDeclaration LoadLibrary(string name, Scope scope)
         {
@@ -202,6 +202,14 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("url", VarKind.String) });
                         libDecl.AddMethod("price", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("symbol", VarKind.String) });
                         libDecl.AddMethod("quote", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("baseSymbol", VarKind.String), new MethodParameter("quoteSymbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
+                        break;
+                    }
+
+                case "Storage":
+                    {
+                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String), new MethodParameter("type", VarKind.Number) }).SetAlias("Data.Get");
+                        libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String), new MethodParameter("value", VarKind.Bytes) }).SetAlias("Data.Set");
+                        libDecl.AddMethod("delete", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String) }).SetAlias("Data.Delete");
                         break;
                     }
 
@@ -253,7 +261,7 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Map":
-                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Generic, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToKey)
+                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Generic, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
                         .SetPreCallback((output, scope, expr) =>
                         {
                             var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
@@ -269,10 +277,10 @@ namespace Phantasma.Tomb.Compiler
                              expr.CallNecessaryConstructors(output, expr.method.ReturnType, reg);
                              return reg;
                          });
-                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic), new MethodParameter("value", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToKey);
-                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToKey);
-                    libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToKey);
-                    libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToKey);
+                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic), new MethodParameter("value", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead);
                     break;
 
                 case "List":
@@ -289,9 +297,19 @@ namespace Phantasma.Tomb.Compiler
             }
 
             return libDecl;
-        }   
+        }
 
-        private static Register ConvertFieldToKey(CodeGenerator output, Scope scope, Expression expression)
+        private static Register ConvertFieldToStorageAccessRead(CodeGenerator output, Scope scope, Expression expression)
+        {
+            return ConvertFieldToStorageAccess(output, scope, expression, true);
+        }
+
+        private static Register ConvertFieldToStorageAccessWrite(CodeGenerator output, Scope scope, Expression expression)
+        {
+            return ConvertFieldToStorageAccess(output, scope, expression, false);
+        }
+
+        private static Register ConvertFieldToStorageAccess(CodeGenerator output, Scope scope, Expression expression, bool insertContract)
         {
             var literal = expression as LiteralExpression;
             if (literal == null)
@@ -299,11 +317,15 @@ namespace Phantasma.Tomb.Compiler
                 throw new System.Exception("expected literal expression for field key");
             }
 
-            var key = SmartContract.GetKeyForField(scope.Root.Name, literal.value, false);
-            var hex = Base16.Encode(key);
-
             var reg = Parser.Instance.AllocRegister(output, expression);
-            output.AppendLine(expression, $"LOAD {reg} 0x{hex} // field key");
+
+            output.AppendLine(expression, $"LOAD {reg} {literal.value} // field name");
+
+            if (insertContract)
+            {
+                output.AppendLine(expression, $"PUSH {reg}");
+                output.AppendLine(expression, $"LOAD {reg} \"{scope.Root.Name}\" // contract name");
+            }
 
             return reg;
         }

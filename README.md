@@ -87,6 +87,13 @@ The following libraries can be imported into a contract.
 | Oracle.price(symbol:String) | None | TODO|
 | Oracle.quote(baseSymbol:String, quoteSymbol:String, amount:Number) | None | TODO|
 
+### Storage
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Storage.read(contract:String, field:String, type:Number) | Bytes | TODO|
+| Storage.write(field:String, value:Bytes) | None | TODO|
+| Storage.delete(field:String) | None | TODO|
+
 ### Utils
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |

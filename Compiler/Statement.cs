@@ -88,7 +88,7 @@ namespace Phantasma.Tomb.Compiler
 
             var srcReg = expression.GenerateCode(output);
             output.AppendLine(this, $"COPY {srcReg} {variable.Register}");
-            Parser.Instance.DeallocRegister(srcReg);
+            Parser.Instance.DeallocRegister(ref srcReg);
         }
     }
 
@@ -126,7 +126,7 @@ namespace Phantasma.Tomb.Compiler
 
                 var reg = expression.GenerateCode(output);
                 output.AppendLine(this, $"PUSH {reg}");
-                Parser.Instance.DeallocRegister(reg);
+                Parser.Instance.DeallocRegister(ref reg);
             }
             else
             if (this.method.ReturnType != VarKind.None)
@@ -218,7 +218,7 @@ namespace Phantasma.Tomb.Compiler
             output.AppendLine(this, $"@then_{this.NodeID}: NOP");
             this.Scope.Leave(output);
 
-            Parser.Instance.DeallocRegister(reg);
+            Parser.Instance.DeallocRegister(ref reg);
 
         }
     }
@@ -246,7 +246,7 @@ namespace Phantasma.Tomb.Compiler
         public override void GenerateCode(CodeGenerator output)
         {
             var reg = expression.GenerateCode(output);
-            Parser.Instance.DeallocRegister(reg);
+            Parser.Instance.DeallocRegister(ref reg);
         }
     }
 

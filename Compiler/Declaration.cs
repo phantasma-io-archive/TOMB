@@ -189,7 +189,9 @@ namespace Phantasma.Tomb.Compiler
                 
                 foreach (var parameter in method.Parameters)
                 {
-                    parameters.Add(new MethodParameter(parameter.Name, parameter.Kind));
+                    var entry = new MethodParameter(parameter.Name, parameter.Kind);
+                    entry.Callback = parameter.Callback;
+                    parameters.Add(entry);
                 }
 
                 var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
@@ -299,6 +301,7 @@ namespace Phantasma.Tomb.Compiler
             this.@interface.StartAsmLine = output.LineCount;
 
             Register tempReg1 = null;
+            Register tempReg2 = null;
 
             bool isConstructor = this.@interface.Kind == MethodKind.Constructor;
 
@@ -319,8 +322,11 @@ namespace Phantasma.Tomb.Compiler
 
                 if (tempReg1 == null && !isConstructor)
                 {
-                    tempReg1 = Parser.Instance.AllocRegister(output, this);
+                    tempReg1 = Parser.Instance.AllocRegister(output, this, "dataSet");
                     output.AppendLine(this, $"LOAD {tempReg1} \"Data.Get\"");
+
+                    tempReg2 = Parser.Instance.AllocRegister(output, this, "contractName");
+                    output.AppendLine(this, $"LOAD {tempReg2} \"{this.scope.Root.Name}\"");
                 }
 
                 var reg = Parser.Instance.AllocRegister(output, variable, variable.Name);
@@ -331,7 +337,7 @@ namespace Phantasma.Tomb.Compiler
                     continue; // in a constructor we don't need to read the vars from storage as they dont exist yet
                 }
 
-                var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
+                //var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
                 VM.VMType vmType;
 
@@ -358,16 +364,19 @@ namespace Phantasma.Tomb.Compiler
                         break;
                 }
 
+                output.AppendLine(this, $"// reading global: {variable.Name}");
                 output.AppendLine(this, $"LOAD r0 {(int)vmType}");
                 output.AppendLine(this, $"PUSH r0");
-                output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
+                output.AppendLine(this, $"LOAD r0 \"{variable.Name}\"");
                 output.AppendLine(this, $"PUSH r0");
+                output.AppendLine(this, $"PUSH {tempReg2}");
                 output.AppendLine(this, $"EXTCALL {tempReg1}");
                 output.AppendLine(this, $"POP {reg}");
                 variable.CallNecessaryConstructors(output, variable.Kind, reg);
             }
-            Parser.Instance.DeallocRegister(tempReg1);
-            tempReg1 = null;
+
+            Parser.Instance.DeallocRegister(ref tempReg1);
+            Parser.Instance.DeallocRegister(ref tempReg2);
 
             foreach (var variable in this.scope.Variables.Values)
             {
@@ -392,8 +401,7 @@ namespace Phantasma.Tomb.Compiler
                     continue;
                 }
 
-                Parser.Instance.DeallocRegister(variable.Register);
-                variable.Register = null;
+                Parser.Instance.DeallocRegister(ref variable.Register);
             }
 
             // NOTE we don't need to dealloc anything here besides the global vars
@@ -435,23 +443,20 @@ namespace Phantasma.Tomb.Compiler
                         output.AppendLine(this, $"LOAD {tempReg1} \"Data.Set\"");
                     }
 
-                    var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
-
                     // NOTE we could keep this key loaded in a register if we had enough spare registers..
+                    output.AppendLine(this, $"// writing global: {variable.Name}");
                     output.AppendLine(this, $"PUSH {variable.Register}");
-                    output.AppendLine(this, $"LOAD r0 0x{Base16.Encode(fieldKey)}");
+                    output.AppendLine(this, $"LOAD r0 \"{variable.Name}\"");
                     output.AppendLine(this, $"PUSH r0");
                     output.AppendLine(this, $"EXTCALL {tempReg1}");
                 }
 
                 if (variable.Register != null)
                 {
-                    Parser.Instance.DeallocRegister(variable.Register);
-                    variable.Register = null;
+                    Parser.Instance.DeallocRegister(ref variable.Register);
                 }
             }
-            Parser.Instance.DeallocRegister(tempReg1);
-            tempReg1 = null;
+            Parser.Instance.DeallocRegister(ref tempReg1);
 
             output.AppendLine(this, "RET");
             this.@interface.EndAsmLine = output.LineCount;
