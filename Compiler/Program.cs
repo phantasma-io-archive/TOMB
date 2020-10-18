@@ -50,7 +50,7 @@ namespace Phantasma.Tomb.Compiler
         {
             //ExportLibraryInfo();
 
-            var sourceFile = args.Length > 0 ? args[0] : "katacomb.txt";
+            var sourceFile = args.Length > 0 ? args[0] : "startup.txt"; // "katacomb.txt";
 
             if (!File.Exists(sourceFile))
             {
@@ -62,21 +62,29 @@ namespace Phantasma.Tomb.Compiler
 
             Console.WriteLine("Parsing " + sourceFile);
             var parser = new Parser();
-            var contract = parser.Parse(sourceCode);
+            var module = parser.Parse(sourceCode);
 
             Console.WriteLine("Compiling " + sourceFile);
             string asm;
             ContractInterface abi;
             byte[] script;
             DebugInfo debugInfo;
-            contract.Compile(sourceFile, out script, out asm, out abi, out debugInfo);
+            module.Compile(sourceFile, out script, out asm, out abi, out debugInfo);
 
             var contractName = Path.GetFileNameWithoutExtension(sourceFile);
 
             File.WriteAllText(contractName + ".asm", asm);
-            File.WriteAllBytes(contractName + ".abi", abi.ToByteArray());
             File.WriteAllBytes(contractName + ".script", script);
-            File.WriteAllText(contractName + ".debug", debugInfo.ToJSON());
+
+            if (debugInfo != null)
+            {
+                File.WriteAllText(contractName + ".debug", debugInfo.ToJSON());
+            }
+
+            if (abi != null)
+            {
+                File.WriteAllBytes(contractName + ".abi", abi.ToByteArray());
+            }
 
             Console.WriteLine("Sucess!");
         }

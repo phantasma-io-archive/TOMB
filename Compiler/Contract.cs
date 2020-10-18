@@ -1,5 +1,4 @@
 using Phantasma.Blockchain.Contracts;
-using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
@@ -9,22 +8,16 @@ using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
-    public class Contract : Node
+    public class Contract : Module
     {
-        public readonly string Name;
-
         public readonly Dictionary<string, LibraryDeclaration> Libraries = new Dictionary<string, LibraryDeclaration>();
 
         public readonly Dictionary<string, MethodDeclaration> Methods = new Dictionary<string, MethodDeclaration>();
 
         public readonly LibraryDeclaration library;
 
-        public Scope Scope { get; }
-
-        public Contract(string name) : base()
+        public Contract(string name) : base(name)
         {
-            this.Name = name;
-            this.Scope = new Scope(this);
             this.library = new LibraryDeclaration(Scope, name);
         }
 
@@ -69,7 +62,7 @@ namespace Phantasma.Tomb.Compiler
             return false;
         }
 
-        public ContractInterface GenerateCode(CodeGenerator output)
+        public override ContractInterface GenerateCode(CodeGenerator output)
         {
             this.Scope.Enter(output);
 
@@ -330,33 +323,21 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
-        public void Compile(string fileName, out byte[] script, out string asm, out ContractInterface abi, out DebugInfo debugInfo)
+        protected override void ProcessABI(ContractInterface abi, DebugInfo debugInfo)
         {
-            var sb = new CodeGenerator();
-            abi = this.GenerateCode(sb);
-
-            Parser.Instance.VerifyRegisters();
-
-            asm = sb.ToString();
-
-            var lines = asm.Split('\n');
-            script = AssemblerUtils.BuildScript(lines, fileName, out debugInfo);
-
-            lines = AssemblerUtils.CommentOffsets(lines, debugInfo).ToArray();
+            base.ProcessABI(abi, debugInfo);
 
             // here we lookup the script start offset for each method based on debug info obtained from the assembler
             foreach (var abiMethod in abi.Methods)
             {
                 var method = this.Methods[abiMethod.name];
-                abiMethod.offset = debugInfo.FindOffset(method.@interface.StartAsmLine);                
+                abiMethod.offset = debugInfo.FindOffset(method.@interface.StartAsmLine);
 
                 if (abiMethod.offset < 0)
                 {
                     throw new Exception("Could not calculate script offset for method: " + abiMethod.name);
                 }
             }
-
-            asm = string.Join('\n', lines);
         }
     }
 }

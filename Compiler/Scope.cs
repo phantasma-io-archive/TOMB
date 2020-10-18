@@ -6,7 +6,7 @@ namespace Phantasma.Tomb.Compiler
     public sealed class Scope
     {
         public readonly Scope Parent;
-        public readonly Contract Root;
+        public readonly Module Root;
         public readonly string Name;
 
         public int Level
@@ -39,11 +39,11 @@ namespace Phantasma.Tomb.Compiler
         {
         }
 
-        public Scope(Contract contract)
+        public Scope(Module module)
         {
             this.Parent = null;
-            this.Root = contract;
-            this.Name = contract.Name;
+            this.Root = module;
+            this.Name = module.Name;
         }
 
         public override string ToString()

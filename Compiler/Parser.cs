@@ -123,7 +123,7 @@ namespace Phantasma.Tomb.Compiler
             return lines[index-1];
         }
 
-        public Contract Parse(string sourceCode)
+        public Module Parse(string sourceCode)
         {
             this.tokens = Lexer.Process(sourceCode);
 
@@ -132,16 +132,40 @@ namespace Phantasma.Tomb.Compiler
                 Console.WriteLine(token);
             }*/
 
-            ExpectToken("contract");
-            var contractName = ExpectIdentifier();
+            var firstToken = FetchToken();
 
             this.lines = sourceCode.Replace("\r", "").Split('\n');
 
-            var contractBlock = new Contract(contractName);
-            ExpectToken("{");
-            ParseContractBlock(contractBlock);
-            ExpectToken("}");
-            return contractBlock;
+            switch (firstToken.value)
+            {
+                case "contract":
+                    {
+                        var contractName = ExpectIdentifier();
+
+                        var contractBlock = new Contract(contractName);
+                        ExpectToken("{");
+                        ParseContractBlock(contractBlock);
+                        ExpectToken("}");
+                        return contractBlock;
+                    }
+
+                case "script":
+                    {
+                        var scriptName = ExpectIdentifier();
+
+                        var scriptBlock = new Script(scriptName);
+
+                        ExpectToken("{");
+                        scriptBlock.body = ParseCommandBlock(scriptBlock.Scope, null);
+                        ExpectToken("}");
+
+                        return scriptBlock;
+
+                    }
+
+                default:
+                    throw new CompilerException("Unexpected token: " + firstToken.value);
+            }
         }
 
         private void ParseContractBlock(Contract contract)
@@ -562,7 +586,14 @@ namespace Phantasma.Tomb.Compiler
                                 var varDecl = scope.FindVariable(token.value, false);
 
                                 LibraryDeclaration libDecl;
-                                
+
+                                var contract = scope.Root as Contract;
+
+                                if (contract == null)
+                                {
+                                    throw new Exception("Expected contract");
+                                }
+
                                 if (varDecl != null)
                                 {
                                     switch (varDecl.Kind)
@@ -570,7 +601,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_Map:
                                             {
                                                 var mapDecl = (MapDeclaration)varDecl;
-                                                libDecl = scope.Root.FindLibrary("Map");
+                                                libDecl = contract.FindLibrary("Map");
                                                 libDecl = libDecl.PatchMap(mapDecl);
                                                 break;
                                             }
@@ -578,7 +609,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_List:
                                             {
                                                 var listDecl = (ListDeclaration)varDecl;
-                                                libDecl = scope.Root.FindLibrary("List");
+                                                libDecl = contract.FindLibrary("List");
                                                 libDecl = libDecl.PatchList(listDecl);
                                                 break;
                                             }
@@ -586,7 +617,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_Set:
                                             {
                                                 var setDecl = (SetDeclaration)varDecl;
-                                                libDecl = scope.Root.FindLibrary("Set");
+                                                libDecl = contract.FindLibrary("Set");
                                                 libDecl = libDecl.PatchSet(setDecl);
                                                 break;
                                             }
@@ -597,7 +628,7 @@ namespace Phantasma.Tomb.Compiler
                                 }
                                 else
                                 {
-                                    libDecl = scope.Root.FindLibrary(token.value);
+                                    libDecl = contract.FindLibrary(token.value);
                                 }
 
                                 var methodCall = new MethodCallStatement();
@@ -658,10 +689,15 @@ namespace Phantasma.Tomb.Compiler
                                 return new VarExpression(scope, varDecl);
                             }
 
-                            var libDecl = scope.Root.FindLibrary(first.value, false);
-                            if (libDecl != null)
+                            var contract = scope.Root as Contract;
+
+                            if (contract != null)
                             {
-                                throw new NotImplementedException();
+                                var libDecl = contract.FindLibrary(first.value, false);
+                                if (libDecl != null)
+                                {
+                                    throw new NotImplementedException();
+                                }
                             }
 
                             throw new CompilerException("unknown identifier: " + first.value);
@@ -820,6 +856,13 @@ namespace Phantasma.Tomb.Compiler
 
                         LibraryDeclaration libDecl;
 
+                        var contract = scope.Root as Contract;
+
+                        if (contract == null)
+                        {
+                            throw new Exception("Expected contract");
+                        }
+
                         if (varDecl != null)
                         {
                             // TODO this code is duplicated, copypasted from other method above, refactor this later...
@@ -828,7 +871,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_Map:
                                     {
                                         var mapDecl = (MapDeclaration)varDecl;
-                                        libDecl = scope.Root.FindLibrary("Map");
+                                        libDecl = contract.FindLibrary("Map");
                                         libDecl = libDecl.PatchMap(mapDecl);
                                         break;
                                     }
@@ -836,7 +879,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_List:
                                     {
                                         var listDecl = (ListDeclaration)varDecl;
-                                        libDecl = scope.Root.FindLibrary("List");
+                                        libDecl = contract.FindLibrary("List");
                                         libDecl = libDecl.PatchList(listDecl);
                                         break;
                                     }
@@ -844,7 +887,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_Set:
                                     {
                                         var setDecl = (SetDeclaration)varDecl;
-                                        libDecl = scope.Root.FindLibrary("Set");
+                                        libDecl = contract.FindLibrary("Set");
                                         libDecl = libDecl.PatchSet(setDecl);
                                         break;
                                     }
@@ -855,7 +898,7 @@ namespace Phantasma.Tomb.Compiler
                         }
                         else
                         {
-                            libDecl = scope.Root.FindLibrary(first.value);
+                            libDecl = contract.FindLibrary(first.value);
                         }
 
                         var leftSide = ParseMethodExpression(scope, libDecl, varDecl);
