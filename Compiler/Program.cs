@@ -48,10 +48,16 @@ namespace Phantasma.Tomb.Compiler
 
         static void Main(string[] args)
         {
-            ExportLibraryInfo();
+            //ExportLibraryInfo();
 
-            var sourceFile = "katacomb.txt";
-            Console.WriteLine("Opening " + sourceFile);
+            var sourceFile = args.Length > 0 ? args[0] : "katacomb.txt";
+
+            if (!File.Exists(sourceFile))
+            {
+                Console.WriteLine("File not found:" + sourceFile);
+                return;
+            }
+
             var sourceCode = File.ReadAllText(sourceFile);
 
             Console.WriteLine("Parsing " + sourceFile);
@@ -72,8 +78,7 @@ namespace Phantasma.Tomb.Compiler
             File.WriteAllBytes(contractName + ".script", script);
             File.WriteAllText(contractName + ".debug", debugInfo.ToJSON());
 
-            Console.WriteLine("Done, press any key");
-            Console.ReadKey();
+            Console.WriteLine("Sucess!");
         }
     }
 }
