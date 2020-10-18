@@ -144,7 +144,7 @@ namespace Phantasma.Tomb.Compiler
 
                         var contractBlock = new Contract(contractName);
                         ExpectToken("{");
-                        ParseContractBlock(contractBlock);
+                        ParseModule(contractBlock);
                         ExpectToken("}");
                         return contractBlock;
                     }
@@ -156,7 +156,7 @@ namespace Phantasma.Tomb.Compiler
                         var scriptBlock = new Script(scriptName);
 
                         ExpectToken("{");
-                        scriptBlock.body = ParseCommandBlock(scriptBlock.Scope, null);
+                        ParseModule(scriptBlock);
                         ExpectToken("}");
 
                         return scriptBlock;
@@ -168,7 +168,7 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
-        private void ParseContractBlock(Contract contract)
+        private void ParseModule(Module module)
         {
             do
             {
@@ -210,8 +210,8 @@ namespace Phantasma.Tomb.Compiler
 
                             ExpectToken(";");
 
-                            var constDecl = new ConstDeclaration(contract.Scope, constName, kind, constVal);
-                            contract.Scope.AddConstant(constDecl);
+                            var constDecl = new ConstDeclaration(module.Scope, constName, kind, constVal);
+                            module.Scope.AddConstant(constDecl);
                             break;
                         }
 
@@ -233,7 +233,7 @@ namespace Phantasma.Tomb.Compiler
                                         var map_val = ExpectType();
                                         ExpectToken(">");
 
-                                        varDecl = new MapDeclaration(contract.Scope, varName, map_key, map_val);
+                                        varDecl = new MapDeclaration(module.Scope, varName, map_key, map_val);
                                         break;
                                     }
 
@@ -243,7 +243,7 @@ namespace Phantasma.Tomb.Compiler
                                         var list_val = ExpectType();
                                         ExpectToken(">");
 
-                                        varDecl = new ListDeclaration(contract.Scope, varName, list_val);
+                                        varDecl = new ListDeclaration(module.Scope, varName, list_val);
                                         break;
                                     }
 
@@ -253,19 +253,19 @@ namespace Phantasma.Tomb.Compiler
                                         var set_val = ExpectType();
                                         ExpectToken(">");
 
-                                        varDecl = new SetDeclaration(contract.Scope, varName, set_val);
+                                        varDecl = new SetDeclaration(module.Scope, varName, set_val);
                                         break;
                                     }
 
                                 default:
                                     {
-                                        varDecl = new VarDeclaration(contract.Scope, varName, kind, VarStorage.Global);
+                                        varDecl = new VarDeclaration(module.Scope, varName, kind, VarStorage.Global);
                                         break;
                                     }
                             }
 
                             ExpectToken(";");
-                            contract.Scope.AddVariable(varDecl);
+                            module.Scope.AddVariable(varDecl);
                             break;
                         }
 
@@ -274,119 +274,172 @@ namespace Phantasma.Tomb.Compiler
                             var libName = ExpectIdentifier();
                             ExpectToken(";");
 
-                            var libDecl = Contract.LoadLibrary(libName, contract.Scope);
-                            contract.Libraries[libName] = libDecl;
+                            var libDecl = Contract.LoadLibrary(libName, module.Scope);
+                            module.Libraries[libName] = libDecl;
 
                             break;
                         }
 
                     case "constructor":
                         {
-                            var line = this.CurrentLine;
-                            var name = "Initialize";
-                            var parameters = ParseParameters(contract.Scope);
-                            var scope = new Scope(contract.Scope, name, parameters);
-
-                            if (parameters.Length != 1 || parameters[0].Kind != VarKind.Address)
+                            var contract = module as Contract;
+                            if (contract != null)
                             {
-                                throw new CompilerException("constructor must have only one parameter of type address");
+                                var line = this.CurrentLine;
+                                var name = "Initialize";
+                                var parameters = ParseParameters(module.Scope);
+                                var scope = new Scope(module.Scope, name, parameters);
+
+                                if (parameters.Length != 1 || parameters[0].Kind != VarKind.Address)
+                                {
+                                    throw new CompilerException("constructor must have only one parameter of type address");
+                                }
+
+                                var method = contract.AddMethod(line, name, MethodKind.Constructor, VarKind.None, parameters, scope);
+
+                                ExpectToken("{");
+
+                                contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                ExpectToken("}");
+                                break;
+                            }
+                            else
+                            {
+                                throw new CompilerException("unexpected token: " + token.value);                                    
                             }
 
-                            var method = contract.AddMethod(line, name, MethodKind.Constructor, VarKind.None, parameters, scope);
-
-                            ExpectToken("{");
-
-                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
-                            ExpectToken("}");
-
-                            
-                            
-                            break;
                         }
 
                     case "method":
                         {
-                            var line = this.CurrentLine;
-                            var name = ExpectIdentifier();
-
-                            var parameters = ParseParameters(contract.Scope);
-                            var scope = new Scope(contract.Scope, name, parameters);
-
-                            var returnType = VarKind.None;
-
-                            var next = FetchToken();
-                            if (next.value == ":")
+                            var contract = module as Contract;
+                            if (contract != null)
                             {
-                                returnType = ExpectType();
+                                var line = this.CurrentLine;
+                                var name = ExpectIdentifier();
+
+                                var parameters = ParseParameters(module.Scope);
+                                var scope = new Scope(module.Scope, name, parameters);
+
+                                var returnType = VarKind.None;
+
+                                var next = FetchToken();
+                                if (next.value == ":")
+                                {
+                                    returnType = ExpectType();
+                                }
+                                else
+                                {
+                                    Rewind();
+                                }
+
+                                var method = contract.AddMethod(line, name, MethodKind.Method, returnType, parameters, scope);
+
+                                ExpectToken("{");
+                                contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                ExpectToken("}");
+
+                                break;
                             }
                             else
                             {
-                                Rewind();
+                                throw new CompilerException("unexpected token: " + token.value);
                             }
 
-                            var method = contract.AddMethod(line, name, MethodKind.Method, returnType, parameters, scope);
-
-                            ExpectToken("{");
-                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
-                            ExpectToken("}");
-                            
-                            break;
                         }
 
                     case "task":
                         {
-                            var line = this.CurrentLine;
-                            var name = ExpectIdentifier();
+                            var contract = module as Contract;
+                            if (contract != null)
+                            {
+                                var line = this.CurrentLine;
+                                var name = ExpectIdentifier();
 
-                            var parameters = ParseParameters(contract.Scope);
-                            var scope = new Scope(contract.Scope, name, parameters);
+                                var parameters = ParseParameters(module.Scope);
+                                var scope = new Scope(module.Scope, name, parameters);
 
-                            var method = contract.AddMethod(line, name, MethodKind.Task, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, MethodKind.Task, VarKind.None, parameters, scope);
 
-                            ExpectToken("{");
-                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
-                            ExpectToken("}");
+                                ExpectToken("{");
+                                contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                ExpectToken("}");
 
-                            break;
+                                break;
+                            }
+                            else
+                            {
+                                throw new CompilerException("unexpected token: " + token.value);
+                            }
                         }
 
                     case "trigger":
                         {
-                            var line = this.CurrentLine;
-                            var name = ExpectIdentifier();
-
-                            if (!name.StartsWith("on"))
+                            var contract = module as Contract;
+                            if (contract != null)
                             {
-                                name = "on" + name;
-                            }
+                                var line = this.CurrentLine;
+                                var name = ExpectIdentifier();
 
-                            var isValid = false;
-                            foreach (var allowedName in Parser.ValidTriggerNames)
-                            {
-                                if (allowedName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                                if (!name.StartsWith("on"))
                                 {
-                                    name = allowedName;
-                                    isValid = true;
-                                    break;
+                                    name = "on" + name;
                                 }
-                            }
 
-                            if (!isValid)
+                                var isValid = false;
+                                foreach (var allowedName in Parser.ValidTriggerNames)
+                                {
+                                    if (allowedName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        name = allowedName;
+                                        isValid = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!isValid)
+                                {
+                                    throw new CompilerException("invalid trigger name:" + name);
+                                }
+
+                                var parameters = ParseParameters(module.Scope);
+                                var scope = new Scope(module.Scope, name, parameters);
+
+                                var method = contract.AddMethod(line, name, MethodKind.Trigger, VarKind.None, parameters, scope);
+
+                                ExpectToken("{");
+                                contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                ExpectToken("}");
+
+                                break;
+                            }
+                            else
                             {
-                                throw new CompilerException("invalid trigger name:" + name);
+                                throw new CompilerException("unexpected token: " + token.value);
                             }
-                            
-                            var parameters = ParseParameters(contract.Scope);
-                            var scope = new Scope(contract.Scope, name, parameters);
-
-                            var method = contract.AddMethod(line, name, MethodKind.Trigger, VarKind.None, parameters, scope);
-
-                            ExpectToken("{");
-                            contract.SetMethodBody(name, ParseCommandBlock(scope, method));
-                            ExpectToken("}");
-
-                            break;
                         }
+
+                    case "code":
+                        {
+                            var script = module as Script;
+                            if (script != null)
+                            {
+                                script.Parameters = ParseParameters(module.Scope);
+
+                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, "main", MethodKind.Method, VarKind.None, new MethodParameter[0]);
+
+                                ExpectToken("{");
+                                script.main = ParseCommandBlock(script.Scope, method);
+                                ExpectToken("}");
+
+                                break;
+                            }
+                            else
+                            {
+                                throw new CompilerException("unexpected token: " + token.value);
+                            }
+                        }
+
 
                     default:
                         throw new CompilerException("unexpected token: " + token.value);
@@ -587,13 +640,6 @@ namespace Phantasma.Tomb.Compiler
 
                                 LibraryDeclaration libDecl;
 
-                                var contract = scope.Root as Contract;
-
-                                if (contract == null)
-                                {
-                                    throw new Exception("Expected contract");
-                                }
-
                                 if (varDecl != null)
                                 {
                                     switch (varDecl.Kind)
@@ -601,7 +647,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_Map:
                                             {
                                                 var mapDecl = (MapDeclaration)varDecl;
-                                                libDecl = contract.FindLibrary("Map");
+                                                libDecl = scope.Root.FindLibrary("Map");
                                                 libDecl = libDecl.PatchMap(mapDecl);
                                                 break;
                                             }
@@ -609,7 +655,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_List:
                                             {
                                                 var listDecl = (ListDeclaration)varDecl;
-                                                libDecl = contract.FindLibrary("List");
+                                                libDecl = scope.Root.FindLibrary("List");
                                                 libDecl = libDecl.PatchList(listDecl);
                                                 break;
                                             }
@@ -617,7 +663,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_Set:
                                             {
                                                 var setDecl = (SetDeclaration)varDecl;
-                                                libDecl = contract.FindLibrary("Set");
+                                                libDecl = scope.Root.FindLibrary("Set");
                                                 libDecl = libDecl.PatchSet(setDecl);
                                                 break;
                                             }
@@ -628,7 +674,7 @@ namespace Phantasma.Tomb.Compiler
                                 }
                                 else
                                 {
-                                    libDecl = contract.FindLibrary(token.value);
+                                    libDecl = scope.Root.FindLibrary(token.value);
                                 }
 
                                 var methodCall = new MethodCallStatement();
@@ -689,15 +735,10 @@ namespace Phantasma.Tomb.Compiler
                                 return new VarExpression(scope, varDecl);
                             }
 
-                            var contract = scope.Root as Contract;
-
-                            if (contract != null)
+                            var libDecl = scope.Root.FindLibrary(first.value, false);
+                            if (libDecl != null)
                             {
-                                var libDecl = contract.FindLibrary(first.value, false);
-                                if (libDecl != null)
-                                {
-                                    throw new NotImplementedException();
-                                }
+                                throw new NotImplementedException();
                             }
 
                             throw new CompilerException("unknown identifier: " + first.value);
@@ -856,13 +897,6 @@ namespace Phantasma.Tomb.Compiler
 
                         LibraryDeclaration libDecl;
 
-                        var contract = scope.Root as Contract;
-
-                        if (contract == null)
-                        {
-                            throw new Exception("Expected contract");
-                        }
-
                         if (varDecl != null)
                         {
                             // TODO this code is duplicated, copypasted from other method above, refactor this later...
@@ -871,7 +905,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_Map:
                                     {
                                         var mapDecl = (MapDeclaration)varDecl;
-                                        libDecl = contract.FindLibrary("Map");
+                                        libDecl = scope.Root.FindLibrary("Map");
                                         libDecl = libDecl.PatchMap(mapDecl);
                                         break;
                                     }
@@ -879,7 +913,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_List:
                                     {
                                         var listDecl = (ListDeclaration)varDecl;
-                                        libDecl = contract.FindLibrary("List");
+                                        libDecl = scope.Root.FindLibrary("List");
                                         libDecl = libDecl.PatchList(listDecl);
                                         break;
                                     }
@@ -887,7 +921,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_Set:
                                     {
                                         var setDecl = (SetDeclaration)varDecl;
-                                        libDecl = contract.FindLibrary("Set");
+                                        libDecl = scope.Root.FindLibrary("Set");
                                         libDecl = libDecl.PatchSet(setDecl);
                                         break;
                                     }
@@ -898,7 +932,7 @@ namespace Phantasma.Tomb.Compiler
                         }
                         else
                         {
-                            libDecl = contract.FindLibrary(first.value);
+                            libDecl = scope.Root.FindLibrary(first.value);
                         }
 
                         var leftSide = ParseMethodExpression(scope, libDecl, varDecl);

@@ -1,5 +1,6 @@
 ﻿using Phantasma.Blockchain.Contracts;
 using Phantasma.CodeGen.Assembler;
+using Phantasma.CodeGen.Core.Nodes;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
@@ -12,7 +13,9 @@ namespace Phantasma.Tomb.Compiler
 {
     public class Script: Module
     {
-        public StatementBlock body;
+        public StatementBlock main;
+
+        public MethodParameter[] Parameters { get; internal set; }
 
         public Script(string name) : base(name)
         {
@@ -26,22 +29,52 @@ namespace Phantasma.Tomb.Compiler
                 return true;
             }
 
-            return body.IsNodeUsed(node);
+            foreach (var lib in Libraries.Values)
+            {
+                if (lib.IsNodeUsed(node))
+                {
+                    return true;
+                }
+            }
+
+
+            return main.IsNodeUsed(node);
         }
 
         public override void Visit(Action<Node> callback)
         {
+            foreach (var lib in Libraries.Values)
+            {
+                lib.Visit(callback);
+            }
+
             callback(this);
-            body.Visit(callback);
+            main.Visit(callback);
         }
 
 
         public override ContractInterface GenerateCode(CodeGenerator output)
         {
             this.Scope.Enter(output);
-            this.body.GenerateCode(output);
+
+            var paramRegs = new Dictionary<MethodParameter, Register>();
+
+            foreach (var parameter in this.Parameters)
+            {
+                var reg = Parser.Instance.AllocRegister(output, this, parameter.Name);
+                output.AppendLine(this, $"POP {reg}");
+            }
+
+            this.main.GenerateCode(output);
+
+            foreach (var reg in paramRegs.Values)
+            {
+                var temp = reg;
+                Parser.Instance.DeallocRegister(ref temp);
+            }
 
             output.AppendLine(this, "RET");
+
             this.Scope.Leave(output);
 
             return new ContractInterface(Enumerable.Empty<ContractMethod>());
