@@ -223,6 +223,99 @@ namespace Phantasma.Tomb.Compiler
         }
     }
 
+    public class WhileStatement : Statement
+    {
+        public Expression condition;
+        public StatementBlock body;
+        public Scope Scope { get; }
+
+        //private int label;
+
+        public WhileStatement(Scope parentScope) : base()
+        {
+            this.Scope = new Scope(parentScope, this.NodeID);
+            //this.label = Parser.Instance.AllocateLabel();
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+
+            condition.Visit(callback);
+            body.Visit(callback);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this) || condition.IsNodeUsed(node) || body.IsNodeUsed(node);
+        }
+
+        public override void GenerateCode(CodeGenerator output)
+        {
+            output.AppendLine(this, $"@loop_{this.NodeID}: NOP");
+
+            var reg = condition.GenerateCode(output);
+
+            this.Scope.Enter(output);
+
+            output.AppendLine(this, $"JMPNOT {reg} @break_{this.NodeID}");
+            body.GenerateCode(output);
+
+            output.AppendLine(this, $"JMP @loop_{this.NodeID}");
+            output.AppendLine(this, $"@break_{this.NodeID}: NOP");
+
+            this.Scope.Leave(output);
+
+            Parser.Instance.DeallocRegister(ref reg);
+
+        }
+    }
+
+    public class DoWhileStatement : Statement
+    {
+        public Expression condition;
+        public StatementBlock body;
+        public Scope Scope { get; }
+
+        //private int label;
+
+        public DoWhileStatement(Scope parentScope) : base()
+        {
+            this.Scope = new Scope(parentScope, this.NodeID);
+            //this.label = Parser.Instance.AllocateLabel();
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+
+            condition.Visit(callback);
+            body.Visit(callback);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this) || condition.IsNodeUsed(node) || body.IsNodeUsed(node);
+        }
+
+        public override void GenerateCode(CodeGenerator output)
+        {
+            output.AppendLine(this, $"@loop_{this.NodeID}: NOP");
+
+            this.Scope.Enter(output);
+
+            body.GenerateCode(output);
+
+            var reg = condition.GenerateCode(output);
+            output.AppendLine(this, $"JMPIF {reg} @loop_{this.NodeID}");
+
+            this.Scope.Leave(output);
+
+            Parser.Instance.DeallocRegister(ref reg);
+
+        }
+    }
+
     public class MethodCallStatement : Statement
     {
         public MethodExpression expression;

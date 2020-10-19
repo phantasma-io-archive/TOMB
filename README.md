@@ -14,6 +14,7 @@ TOMB smart contract compiler for Phantasma platform
 - Return values
 - Generics (Maps and lists)
 - If ... Else
+- While ... and Do ... While loops
 - Throw Exceptions
 - Uninitialized globals validation
 - Interop and Contract calls
@@ -26,7 +27,7 @@ TOMB smart contract compiler for Phantasma platform
 
 - Contract tasks
 - Structs
-- Loops
+- For.. Loops
 - Switch .. case
 - Try .. Catch
 - More...

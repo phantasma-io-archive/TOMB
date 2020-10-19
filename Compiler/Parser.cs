@@ -616,6 +616,56 @@ namespace Phantasma.Tomb.Compiler
                             break;
                         }
 
+                    case "while":
+                        {
+                            var whileCommand = new WhileStatement(scope);
+
+                            ExpectToken("(");
+                            whileCommand.condition = ExpectExpression(scope);
+
+                            if (whileCommand.condition.ResultType != VarKind.Bool)
+                            {
+                                throw new CompilerException($"condition must be boolean expression");
+                            }
+
+                            ExpectToken(")");
+
+                            ExpectToken("{");
+
+                            whileCommand.body = ParseCommandBlock(whileCommand.Scope, method);
+
+                            ExpectToken("}");
+
+                            block.Commands.Add(whileCommand);
+                            break;
+                        }
+
+                    case "do":
+                        {
+                            var whileCommand = new DoWhileStatement(scope);
+
+                            ExpectToken("{");
+
+                            whileCommand.body = ParseCommandBlock(whileCommand.Scope, method);
+
+                            ExpectToken("}");
+
+                            ExpectToken("while");
+
+                            ExpectToken("(");
+                            whileCommand.condition = ExpectExpression(scope);
+
+                            if (whileCommand.condition.ResultType != VarKind.Bool)
+                            {
+                                throw new CompilerException($"condition must be boolean expression");
+                            }
+
+                            ExpectToken(")");
+                            ExpectToken(";");
+
+                            block.Commands.Add(whileCommand);
+                            break;
+                        }
                     default:
                         if (token.kind == TokenKind.Identifier)
                         {
