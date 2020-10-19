@@ -237,3 +237,19 @@ contract test {
 	}
 }
 ```
+
+A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
+This example showcases a simple script with one argument, that calls a contract.<br/>
+Note that for scripts with arguments, for them to run properly you will have to push them into the stack before.
+
+```c#
+script startup {
+
+	import Call;
+	
+	code(target:address) {
+		local temp:number := 123;
+		Call.contract("Stake", "unstake", temp);
+	}
+}```
+

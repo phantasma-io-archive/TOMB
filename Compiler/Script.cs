@@ -63,6 +63,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 var reg = Parser.Instance.AllocRegister(output, this, parameter.Name);
                 output.AppendLine(this, $"POP {reg}");
+                paramRegs[parameter] = reg;
             }
 
             this.main.GenerateCode(output);
