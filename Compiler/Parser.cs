@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -936,7 +936,14 @@ namespace Phantasma.Tomb.Compiler
 
             if (rightSide.ResultType != leftSide.ResultType)
             {
-                throw new CompilerException($"type mistmatch, {leftSide.ResultType} on left, {rightSide.ResultType} on right");
+                if (leftSide.ResultType == VarKind.String && op == OperatorKind.Addition)
+                {
+                    rightSide = new CastExpression(scope, VarKind.String, rightSide);
+                }
+                else
+                {
+                    throw new CompilerException($"type mistmatch, {leftSide.ResultType} on left, {rightSide.ResultType} on right");
+                }
             }
 
             if (op == OperatorKind.Different)

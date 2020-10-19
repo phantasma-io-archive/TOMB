@@ -142,6 +142,7 @@ namespace Phantasma.Tomb.Compiler
 
             var method = new MethodInterface(this, convention, name, MethodKind.Method, returnType, parameters, alias);
             methods[name] = method;
+
             return method;
         }
 
@@ -339,30 +340,7 @@ namespace Phantasma.Tomb.Compiler
 
                 //var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
-                VM.VMType vmType;
-
-                switch (variable.Kind)
-                {
-                    case VarKind.Number:
-                        vmType = VM.VMType.Number;
-                        break;
-
-                    case VarKind.String:
-                        vmType = VM.VMType.String;
-                        break;
-
-                    case VarKind.Timestamp:
-                        vmType = VM.VMType.Timestamp;
-                        break;
-
-                    case VarKind.Bool:
-                        vmType = VM.VMType.Bool;
-                        break;
-
-                    default:
-                        vmType = VM.VMType.Bytes;
-                        break;
-                }
+                VM.VMType vmType = MethodInterface.ConvertType(variable.Kind);
 
                 output.AppendLine(this, $"// reading global: {variable.Name}");
                 output.AppendLine(this, $"LOAD r0 {(int)vmType}");

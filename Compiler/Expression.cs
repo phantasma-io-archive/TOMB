@@ -55,6 +55,39 @@ namespace Phantasma.Tomb.Compiler
         }
     }
 
+    public class CastExpression : Expression
+    {
+        public Expression expr;
+
+        public override VarKind ResultType { get; }
+
+        public CastExpression(Scope parentScope, VarKind resultType, Expression expr) : base(parentScope)
+        {
+            this.expr = expr;
+            this.ResultType = resultType;
+        }
+
+        public override Register GenerateCode(CodeGenerator output)
+        {
+            var reg = expr.GenerateCode(output);
+            var vmType = MethodInterface.ConvertType(ResultType);
+            output.AppendLine(this, $"CAST {reg} {reg} #{vmType}");
+            return reg;
+        }
+
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            expr.Visit(callback);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this) || expr.IsNodeUsed(node);
+        }
+    }
+
     public class BinaryExpression : Expression
     {
         private OperatorKind op;
@@ -243,6 +276,12 @@ namespace Phantasma.Tomb.Compiler
 
             switch (this.method.Implementation)
             {
+                case MethodImplementationType.LocalCall:
+                    {
+                        output.AppendLine(this, $"CALL @entry_{this.method.Name}");
+                        break;
+                    }
+
                 case MethodImplementationType.ExtCall:
                     {
                         var extCall = customAlias != null ? customAlias : $"\"{this.method.Alias}\"";
@@ -251,7 +290,7 @@ namespace Phantasma.Tomb.Compiler
                         break;
                     }
 
-                case MethodImplementationType.Contract:
+                case MethodImplementationType.ContractCall:
                     {
                         if (customAlias == null)
                         {
