@@ -27,6 +27,8 @@ namespace Phantasma.Tomb.Compiler
 
     public struct LexerToken
     {
+        public static readonly string AsmTag = ":ASM:";
+
         public readonly int column;
         public readonly int line;
         public readonly string value;
@@ -43,9 +45,9 @@ namespace Phantasma.Tomb.Compiler
                 this.kind = TokenKind.Bytes;
             }
             else
-            if (value.StartsWith("|"))
+            if (value.StartsWith(AsmTag))
             {
-                this.value = value.Substring(1);
+                this.value = value.Substring(AsmTag.Length);
                 this.kind = TokenKind.Asm;
             }
             else
@@ -348,7 +350,7 @@ namespace Phantasma.Tomb.Compiler
                             if (val == "{" && prevToken.value == "asm")
                             {
                                 insideAsm = true;
-                                sb.Append('|'); // hack for lexer Token to detect this later as "asm"
+                                sb.Append(LexerToken.AsmTag); // hack for lexer Token to detect this later as "asm"
                             }
                         }
 

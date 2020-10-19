@@ -322,7 +322,7 @@ namespace Phantasma.Tomb.Compiler
 
                 if (tempReg1 == null && !isConstructor)
                 {
-                    tempReg1 = Parser.Instance.AllocRegister(output, this, "dataSet");
+                    tempReg1 = Parser.Instance.AllocRegister(output, this, "dataGet");
                     output.AppendLine(this, $"LOAD {tempReg1} \"Data.Get\"");
 
                     tempReg2 = Parser.Instance.AllocRegister(output, this, "contractName");
