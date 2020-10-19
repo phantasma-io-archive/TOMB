@@ -1,4 +1,5 @@
-﻿using Phantasma.Cryptography;
+﻿using Phantasma.CodeGen.Core;
+using Phantasma.Cryptography;
 using Phantasma.Numerics;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace Phantasma.Tomb.Compiler
         Address,
         Hash,
         Bytes,
+        Asm,
         Macro,
     }
 
@@ -39,6 +41,12 @@ namespace Phantasma.Tomb.Compiler
             if (value.StartsWith("0x"))
             {
                 this.kind = TokenKind.Bytes;
+            }
+            else
+            if (value.StartsWith("|"))
+            {
+                this.value = value.Substring(1);
+                this.kind = TokenKind.Asm;
             }
             else
             if (value.StartsWith("@"))
@@ -97,7 +105,7 @@ namespace Phantasma.Tomb.Compiler
             }
             else
             {
-                var first = value[0];
+                var first = value.Length > 0 ? value[0]: '\0';
 
                 switch (first)
                 {
@@ -206,7 +214,11 @@ namespace Phantasma.Tomb.Compiler
             var sb = new StringBuilder();
 
             bool insideString = false;
+            bool insideAsm = false;
             var insideComment = CommentMode.None;
+
+            LexerToken prevToken = new LexerToken(0, 0, "");
+            LexerToken curToken = prevToken;
 
             int lastType = -1;
             char lastChar = '\0';
@@ -216,6 +228,19 @@ namespace Phantasma.Tomb.Compiler
                 i++;
                 col++;
 
+                if (insideAsm)
+                {
+                    if (ch == '}')
+                    {
+                        insideAsm = false;
+                    }
+                    else
+                    {
+                        sb.Append(ch);
+                        continue;
+                    }
+                }
+                else
                 if (insideComment == CommentMode.Single)
                 {
                     if (ch == '\n')
@@ -285,7 +310,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             curType =0;
                         }
-                        
+
                         if (ch == '\"')
                         {
                             insideString = !insideString;
@@ -314,8 +339,17 @@ namespace Phantasma.Tomb.Compiler
                         if (sb.Length > 0 && curType != lastType)
                         {
                             var val = sb.ToString();
-                            tokens.Add(new LexerToken(tokenX, tokenY, val));
+
+                            prevToken = curToken;
+                            curToken = new LexerToken(tokenX, tokenY, val);
+                            tokens.Add(curToken);
                             sb.Clear();
+
+                            if (val == "{" && prevToken.value == "asm")
+                            {
+                                insideAsm = true;
+                                sb.Append('|'); // hack for lexer Token to detect this later as "asm"
+                            }
                         }
 
                         if (sb.Length == 0)

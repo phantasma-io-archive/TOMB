@@ -17,6 +17,7 @@ TOMB smart contract compiler for Phantasma platform
 - Throw Exceptions
 - Uninitialized globals validation
 - Interop and Contract calls
+- Inline asm
 - Import libraries (Runtime, Leaderboard, Token, etc)
 - Comments (single and multi line)
 - ABI generation
@@ -248,8 +249,24 @@ script startup {
 	import Call;
 	
 	code(target:address) {
-		local temp:number := 123;
-		Call.contract("Stake", "unstake", temp);
+		local temp:number := 50000;
+		Call.contract("Stake", "unstake", target, temp);
+	}
+}```
+
+Inline asm allows to write assembly code that is then inserted and merged into the rest of the code.<br/>
+This feature is useful as an workaround for missing features in the compiler.
+
+```c#
+script startup {
+
+	import Call;
+	
+	code() {
+		local temp:string;
+		asm {
+			LOAD $temp "hello"
+		}
 	}
 }```
 

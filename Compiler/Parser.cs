@@ -4,6 +4,7 @@ using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Xml.Schema;
 
 namespace Phantasma.Tomb.Compiler
@@ -84,6 +85,11 @@ namespace Phantasma.Tomb.Compiler
         private string ExpectIdentifier()
         {
             return ExpectKind(TokenKind.Identifier);
+        }
+
+        private string[] ExpectAsm()
+        {
+            return ExpectKind(TokenKind.Asm).Split('\n').Select(x => x.TrimStart()).ToArray();
         }
 
         private string ExpectString()
@@ -523,6 +529,16 @@ namespace Phantasma.Tomb.Compiler
                             var msg = ExpectString();
                             block.Commands.Add(new ThrowStatement(msg));
                             ExpectToken(";");
+                            break;
+                        }
+
+                    case "asm":
+                        {
+                            ExpectToken("{");
+                            var lines = ExpectAsm();
+                            ExpectToken("}");
+
+                            block.Commands.Add(new AsmBlockStatement(lines));
                             break;
                         }
 
