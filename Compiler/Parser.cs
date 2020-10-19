@@ -626,7 +626,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 setCommand.expression = expr;
 
-                                if (setCommand.expression.ResultType != setCommand.variable.Kind)
+                                if (setCommand.expression.ResultType != setCommand.variable.Kind && setCommand.expression.ResultType != VarKind.Any)
                                 {
                                     throw new CompilerException($"expected {setCommand.variable.Kind} expression");
                                 }
@@ -1043,7 +1043,7 @@ namespace Phantasma.Tomb.Compiler
                     expr.arguments.Add(arg);
 
                     var expectedType = expr.method.Parameters[i].Kind;
-                    if (arg.ResultType != expectedType)
+                    if (arg.ResultType != expectedType && expectedType != VarKind.Any)
                     {
                         throw new CompilerException($"expected argument of type {expectedType}, got {arg.ResultType} instead");
                     }                   

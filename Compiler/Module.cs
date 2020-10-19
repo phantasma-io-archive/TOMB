@@ -65,8 +65,8 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Call":
-                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("...", VarKind.Generic) });
-                    libDecl.AddMethod("contract", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("contract", MethodImplementationType.Contract, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
                     break;
 
                 case "Runtime":
@@ -107,8 +107,8 @@ namespace Phantasma.Tomb.Compiler
 
                 case "Storage":
                     {
-                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String), new MethodParameter("type", VarKind.Number) }).SetAlias("Data.Get");
-                        libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String), new MethodParameter("value", VarKind.Bytes) }).SetAlias("Data.Set");
+                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String), new MethodParameter("type", VarKind.Number) }).SetAlias("Data.Get");
+                        libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String), new MethodParameter("value", VarKind.Any) }).SetAlias("Data.Set");
                         libDecl.AddMethod("delete", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String) }).SetAlias("Data.Delete");
                         break;
                     }
