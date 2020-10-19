@@ -259,7 +259,7 @@ namespace Phantasma.Tomb.Compiler
                             output.AppendLine(this, $"PUSH {reg}");
                         }
 
-                        var contractCall = customAlias != null ? customAlias : $"\"{this.method.Alias}\"";
+                        var contractCall = customAlias != null ? customAlias : $"\"{this.method.Contract}\"";
                         output.AppendLine(this, $"LOAD {reg} {contractCall}");
                         output.AppendLine(this, $"CTX {reg} {reg}");
                         output.AppendLine(this, $"SWITCH {reg}");
