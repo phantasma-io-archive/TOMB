@@ -1,4 +1,4 @@
-using Phantasma.Domain;
+﻿using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -345,6 +345,7 @@ namespace Phantasma.Tomb.Compiler
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
                                 ExpectToken("}");
 
+                                contract.library.AddMethod(name, MethodImplementationType.LocalCall, returnType, parameters);
                                 break;
                             }
                             else

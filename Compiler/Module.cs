@@ -22,7 +22,8 @@ namespace Phantasma.Tomb.Compiler
         {
             this.Name = name;
             this.Scope = new Scope(this);
-            this.library = new LibraryDeclaration(Scope, name);
+            this.library = new LibraryDeclaration(Scope, "this");
+            this.Libraries[library.Name] = library;
         }
         public LibraryDeclaration FindLibrary(string name, bool required = true)
         {
@@ -66,7 +67,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 case "Call":
                     libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
-                    libDecl.AddMethod("contract", MethodImplementationType.Contract, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
                     break;
 
                 case "Runtime":
@@ -150,13 +151,13 @@ namespace Phantasma.Tomb.Compiler
                 case "Leaderboard":
                     {
                         var contract = NativeContractKind.Ranking.ToString();
-                        libDecl.AddMethod("create", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.CreateLeaderboard));
-                        libDecl.AddMethod("getAddress", MethodImplementationType.Contract, VarKind.Address, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.GetAddressByIndex));
-                        libDecl.AddMethod("getScoreByIndex", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.GetScoreByIndex));
-                        libDecl.AddMethod("getScoreByAddress", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(RankingContract.GetScoreByAddress));
-                        libDecl.AddMethod("getSize", MethodImplementationType.Contract, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) }).SetContract(contract).SetAlias(nameof(RankingContract.GetSize));
-                        libDecl.AddMethod("insert", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.InsertScore));
-                        libDecl.AddMethod("reset", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) }).SetContract(contract).SetAlias(nameof(RankingContract.ResetLeaderboard));
+                        libDecl.AddMethod("create", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.CreateLeaderboard));
+                        libDecl.AddMethod("getAddress", MethodImplementationType.ContractCall, VarKind.Address, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.GetAddressByIndex));
+                        libDecl.AddMethod("getScoreByIndex", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.GetScoreByIndex));
+                        libDecl.AddMethod("getScoreByAddress", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(RankingContract.GetScoreByAddress));
+                        libDecl.AddMethod("getSize", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) }).SetContract(contract).SetAlias(nameof(RankingContract.GetSize));
+                        libDecl.AddMethod("insert", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.InsertScore));
+                        libDecl.AddMethod("reset", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) }).SetContract(contract).SetAlias(nameof(RankingContract.ResetLeaderboard));
                         break;
                     }
 

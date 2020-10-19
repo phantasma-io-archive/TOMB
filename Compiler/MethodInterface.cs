@@ -40,7 +40,8 @@ namespace Phantasma.Tomb.Compiler
     public enum MethodImplementationType
     {
         ExtCall,
-        Contract,
+        ContractCall,
+        LocalCall,
         Custom
     }
 

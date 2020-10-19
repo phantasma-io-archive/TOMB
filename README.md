@@ -240,6 +240,24 @@ contract test {
 }
 ```
 
+Showcases how a contract method can call other methods.
+
+```c#
+contract test {
+	method sum(a:number, b:number) {
+		return a + b;
+	}
+			
+	method calculatePrice(x:number): number
+	{		
+		local price: number := 10;
+		price := this.sum(price, x); // here we use 'this' for calling another method
+		
+		return price;
+	}
+}
+```
+
 A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
 This example showcases a simple script with one argument, that calls a contract.<br/>
 Note that for scripts with arguments, for them to run properly you will have to push them into the stack before.
