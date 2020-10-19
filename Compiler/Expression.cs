@@ -17,6 +17,11 @@ namespace Phantasma.Tomb.Compiler
             this.ParentScope = parentScope;
         }
 
+        public virtual string AsStringLiteral()
+        {
+            throw new Exception("Expression can't be converted to string");
+        }
+
         public abstract Register GenerateCode(CodeGenerator output);
     }
 
@@ -68,6 +73,16 @@ namespace Phantasma.Tomb.Compiler
             this.op = op;
             this.left = leftSide;
             this.right = rightSide;
+        }
+
+        public override string AsStringLiteral()
+        {
+            if (ResultType == VarKind.String && op == OperatorKind.Addition)
+            {
+                return left.AsStringLiteral() + right.AsStringLiteral();
+            }
+
+            return base.AsStringLiteral();
         }
 
         public override bool IsNodeUsed(Node node)
@@ -197,15 +212,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         if (i == 0)
                         {
-                            var literal = arg as LiteralExpression;
-                            if (literal != null && literal.kind == VarKind.String)
-                            {
-                                customAlias = literal.value;
-                            }
-                            else
-                            {
-                                throw new Exception("Expected string literal as first argument");
-                            }
+                            customAlias = arg.AsStringLiteral();
                             argReg = null;
                         }
                         else
@@ -297,6 +304,16 @@ namespace Phantasma.Tomb.Compiler
         public override string ToString()
         {
             return "literal: " + value;
+        }
+
+        public override string AsStringLiteral()
+        {
+            if (this.kind == VarKind.String)
+            {
+                return this.value;
+            }
+
+            return base.AsStringLiteral();
         }
 
         public override Register GenerateCode(CodeGenerator output)
@@ -423,6 +440,16 @@ namespace Phantasma.Tomb.Compiler
         public override string ToString()
         {
             return decl.ToString();
+        }
+
+        public override string AsStringLiteral()
+        {
+            if (decl.Kind == VarKind.String)
+            {
+                return decl.Value;
+            }
+
+            return base.AsStringLiteral();
         }
 
         public override Register GenerateCode(CodeGenerator output)
