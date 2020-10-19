@@ -124,6 +124,11 @@ namespace Phantasma.Tomb.Compiler
                     throw new System.Exception("unexpect return expression for void method: " + method.Name);
                 }
 
+                if (this.method.ReturnType != this.expression.ResultType && this.method.ReturnType != VarKind.Any)
+                {
+                    throw new System.Exception($"expected return expression of type {this.method.ReturnType} for {method.Name}, got {this.expression.ResultType} instead");
+                }
+
                 var reg = expression.GenerateCode(output);
                 output.AppendLine(this, $"PUSH {reg}");
                 Parser.Instance.DeallocRegister(ref reg);
