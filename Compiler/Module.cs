@@ -51,7 +51,7 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List" };
+        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List" };
 
         public static LibraryDeclaration LoadLibrary(string name, Scope scope)
         {
@@ -65,8 +65,8 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Call":
-                    libDecl.AddMethod("interop", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("...", VarKind.Generic) });
-                    libDecl.AddMethod("contract", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("contract", MethodImplementationType.Contract, VarKind.None, new[] { new MethodParameter("...", VarKind.Generic) });
                     break;
 
                 case "Runtime":

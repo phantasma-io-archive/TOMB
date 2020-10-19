@@ -981,35 +981,76 @@ namespace Phantasma.Tomb.Compiler
 
             var firstIndex = implicitArg != null ? 1 : 0;
 
-            var paramCount = expr.method.Parameters.Length;
-            for (int i = 0; i < paramCount; i++)
+            bool isCallLibrary = expr.method.Library.Name == "Call";
+
+            if (isCallLibrary)
             {
-                if (i > firstIndex)
+                int i = 0;
+                do
                 {
-                    ExpectToken(",");
-                }
+                    var next = FetchToken();
+                    if (next.value == ")")
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Rewind();
+                    }
 
-                Expression arg;
-                
-                if (i == 0 && implicitArg != null)
-                {
-                    arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarKind.String);
-                }
-                else
-                {
-                    arg = ExpectExpression(scope);
-                }
-                
-                expr.arguments.Add(arg);
+                    if (i > firstIndex)
+                    {
+                        ExpectToken(",");
+                    }
 
-                var expectedType = expr.method.Parameters[i].Kind;
-                if (arg.ResultType != expectedType)
-                {
-                    throw new CompilerException($"expected argument of type {expectedType}, got {arg.ResultType} instead");
-                }
+                    Expression arg;
+
+                    if (i == 0 && implicitArg != null)
+                    {
+                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarKind.String);
+                    }
+                    else
+                    {
+                        arg = ExpectExpression(scope);
+                    }
+
+                    expr.arguments.Add(arg);
+
+                    i++;
+                } while (true);
             }
+            else
+            {
+                var paramCount = expr.method.Parameters.Length;
+                for (int i = 0; i < paramCount; i++)
+                {
+                    if (i > firstIndex)
+                    {
+                        ExpectToken(",");
+                    }
 
-            ExpectToken(")");
+                    Expression arg;
+
+                    if (i == 0 && implicitArg != null)
+                    {
+                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarKind.String);
+                    }
+                    else
+                    {
+                        arg = ExpectExpression(scope);
+                    }
+
+                    expr.arguments.Add(arg);
+
+                    var expectedType = expr.method.Parameters[i].Kind;
+                    if (arg.ResultType != expectedType)
+                    {
+                        throw new CompilerException($"expected argument of type {expectedType}, got {arg.ResultType} instead");
+                    }                   
+                }
+
+                ExpectToken(")");
+            }
 
             return expr;
         }

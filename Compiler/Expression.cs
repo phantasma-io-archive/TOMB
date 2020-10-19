@@ -181,6 +181,10 @@ namespace Phantasma.Tomb.Compiler
                 reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
             }
 
+            bool isCallLibrary = method.Library.Name == "Call";
+
+            string customAlias = null;
+
             if (method.Implementation != MethodImplementationType.Custom)
             {
                 for (int i = arguments.Count - 1; i >= 0; i--)
@@ -189,34 +193,67 @@ namespace Phantasma.Tomb.Compiler
 
                     Register argReg;
 
-                    var parameter = this.method.Parameters[i];
-                    if (parameter.Callback != null)
+                    if (isCallLibrary)
                     {
-                        argReg = parameter.Callback(output, ParentScope, arg);
+                        if (i == 0)
+                        {
+                            var literal = arg as LiteralExpression;
+                            if (literal != null && literal.kind == VarKind.String)
+                            {
+                                customAlias = literal.value;
+                            }
+                            else
+                            {
+                                throw new Exception("Expected string literal as first argument");
+                            }
+                            argReg = null;
+                        }
+                        else
+                        {
+                            argReg = arg.GenerateCode(output);
+                        }
                     }
                     else
                     {
-                        argReg = arg.GenerateCode(output);
+                        var parameter = this.method.Parameters[i];
+                        if (parameter.Callback != null)
+                        {
+                            argReg = parameter.Callback(output, ParentScope, arg);
+                        }
+                        else
+                        {
+                            argReg = arg.GenerateCode(output);
+                        }
                     }
 
-                    output.AppendLine(arg, $"PUSH {argReg}");
-                    Parser.Instance.DeallocRegister(ref argReg);
+                    if (argReg != null)
+                    {
+                        output.AppendLine(arg, $"PUSH {argReg}");
+                        Parser.Instance.DeallocRegister(ref argReg);
+                    }
                 }
             }
 
             switch (this.method.Implementation)
             {
                 case MethodImplementationType.ExtCall:
-                    output.AppendLine(this, $"LOAD {reg} \"{this.method.Alias}\"");
-                    output.AppendLine(this, $"EXTCALL {reg}");
-                    break;
+                    {
+                        var extCall = customAlias != null ? customAlias : $"\"{this.method.Alias}\"";
+                        output.AppendLine(this, $"LOAD {reg} {extCall}");
+                        output.AppendLine(this, $"EXTCALL {reg}");
+                        break;
+                    }
 
                 case MethodImplementationType.Contract:
                     {
-                        output.AppendLine(this, $"LOAD {reg} \"{this.method.Alias}\"");
-                        output.AppendLine(this, $"PUSH {reg}");
+                        if (customAlias == null)
+                        {
+                            output.AppendLine(this, $"LOAD {reg} \"{this.method.Alias}\"");
+                            output.AppendLine(this, $"PUSH {reg}");
+                        }
 
-                        output.AppendLine(this, $"LOAD {reg} \"{this.method.Contract}\"");
+                        var contractCall = customAlias != null ? customAlias : $"\"{this.method.Alias}\"";
+                        output.AppendLine(this, $"LOAD {reg} {contractCall}");
                         output.AppendLine(this, $"CTX {reg} {reg}");
                         output.AppendLine(this, $"SWITCH {reg}");
                         break;

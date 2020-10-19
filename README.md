@@ -51,6 +51,12 @@ Different data types are recognized by the compiler.
 
 The following libraries can be imported into a contract.
 
+### Call
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Call.interop(interopName:string, ...) | ... | TODO|
+| Call.contract(contractName:string, contractMethod:string, ...) | ... | TODO|
+
 ### Runtime
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |

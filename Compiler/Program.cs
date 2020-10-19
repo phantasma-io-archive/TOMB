@@ -48,7 +48,7 @@ namespace Phantasma.Tomb.Compiler
 
         static void Main(string[] args)
         {
-            //ExportLibraryInfo();
+            ExportLibraryInfo();
 
             var sourceFile = args.Length > 0 ? args[0] : "startup.txt"; // "katacomb.txt";
 
