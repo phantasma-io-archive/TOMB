@@ -121,7 +121,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 if (this.method.ReturnType == VarKind.None)
                 {
-                    throw new System.Exception("unexpect return expression for void method: " + method.Name);
+                    throw new System.Exception($"unexpect return expression for void method: {method.Name}");
                 }
 
                 if (this.method.ReturnType != this.expression.ResultType && this.method.ReturnType != VarKind.Any)
@@ -136,7 +136,7 @@ namespace Phantasma.Tomb.Compiler
             else
             if (this.method.ReturnType != VarKind.None)
             {
-                throw new System.Exception("expected return expression for non-void method: " + method.Name);
+                throw new System.Exception($"expected return expression for non-void method: {method.Name}");
             }
 
             output.AppendLine(this, "RET");

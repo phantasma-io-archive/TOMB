@@ -432,7 +432,19 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 script.Parameters = ParseParameters(module.Scope);
 
-                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, "main", MethodKind.Method, VarKind.None, new MethodParameter[0]);
+                                script.ReturnType = VarKind.None;
+
+                                var next = FetchToken();
+                                if (next.value == ":")
+                                {
+                                    script.ReturnType = ExpectType();
+                                }
+                                else
+                                {
+                                    Rewind();
+                                }
+
+                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, "main", MethodKind.Method, script.ReturnType, new MethodParameter[0]);
 
                                 ExpectToken("{");
                                 script.main = ParseCommandBlock(script.Scope, method);

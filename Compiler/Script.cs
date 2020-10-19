@@ -16,6 +16,7 @@ namespace Phantasma.Tomb.Compiler
         public StatementBlock main;
 
         public MethodParameter[] Parameters { get; internal set; }
+        public VarKind ReturnType;
 
         public Script(string name) : base(name)
         {
@@ -74,7 +75,26 @@ namespace Phantasma.Tomb.Compiler
                 Parser.Instance.DeallocRegister(ref temp);
             }
 
-            output.AppendLine(this, "RET");
+            if (ReturnType == VarKind.None)
+            {
+                output.AppendLine(this, "RET");
+            }
+            else
+            {
+                bool hasReturn = false;
+                this.main.Visit((node) =>
+                {
+                    if (node is ReturnStatement)
+                    {
+                        hasReturn = true;
+                    }
+                });
+
+                if (!hasReturn)
+                {
+                    throw new Exception("Script is missing return statement");
+                }
+            }
 
             this.Scope.Leave(output);
 
