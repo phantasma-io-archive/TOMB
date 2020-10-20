@@ -71,8 +71,20 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case "Runtime":
+                    libDecl.AddMethod("expect", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("condition", VarKind.Bool), new MethodParameter("error", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"JMPIF {reg} @expect_{expr.NodeID}");
+
+                            var msg = expr.arguments[1].AsStringLiteral();
+
+                            output.AppendLine(expr, $"THROW {msg}");
+
+                            output.AppendLine(expr, $"@expect_{expr.NodeID}: NOP");
+                            return reg;
+                        });
                     libDecl.AddMethod("log", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
-                    libDecl.AddMethod("expect", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("condition", VarKind.Bool), new MethodParameter("error", VarKind.String) });
                     libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
                     libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
                     libDecl.AddMethod("time", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
