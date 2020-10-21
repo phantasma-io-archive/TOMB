@@ -98,7 +98,8 @@ namespace Phantasma.Tomb.Compiler
 
             this.Scope.Leave(output);
 
-            return new ContractInterface(Enumerable.Empty<ContractMethod>());
+            return null;
+            //return new ContractInterface(Enumerable.Empty<ContractMethod>(), Enumerable.Empty<ContractEvent>());
         }
 
     }

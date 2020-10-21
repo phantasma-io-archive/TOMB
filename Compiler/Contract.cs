@@ -9,6 +9,7 @@ namespace Phantasma.Tomb.Compiler
     public class Contract : Module
     {
         public readonly Dictionary<string, MethodDeclaration> Methods = new Dictionary<string, MethodDeclaration>();
+        public readonly Dictionary<string, EventDeclaration> Events = new Dictionary<string, EventDeclaration>();
 
 
         public Contract(string name) : base(name)
@@ -81,7 +82,8 @@ namespace Phantasma.Tomb.Compiler
             this.Scope.Leave(output);
 
             var methods = Methods.Values.Where(x => x.@interface.IsPublic).Select(x => x.GetABI());
-            var abi = new ContractInterface(methods);
+            var events = Events.Values.Select(x => x.GetABI());
+            var abi = new ContractInterface(methods, events);
 
             return abi;
         }

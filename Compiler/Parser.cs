@@ -286,6 +286,56 @@ namespace Phantasma.Tomb.Compiler
                             break;
                         }
 
+                    case "event":
+                        {
+                            var contract = module as Contract;
+                            if (contract != null)
+                            {
+                                var eventName = ExpectIdentifier();
+                                ExpectToken(":");
+                                var kind = ExpectType();
+                                ExpectToken("=");
+
+                                if (kind == VarKind.None)
+                                {
+                                    throw new CompilerException("invad event type: " + kind);
+                                }
+
+                                var temp = FetchToken();
+                                byte[] description;
+                                switch (temp.kind)
+                                {
+                                    case TokenKind.String:
+                                        description = EventDeclaration.GenerateScriptFromString(temp.value);
+                                        break;
+
+                                    case TokenKind.Bytes:
+                                        description = Base16.Decode(temp.value);
+                                        break;
+
+                                    /*case TokenKind.Identifier:
+                                        description = Base16.Decode(temp.value);
+                                        break;*/
+
+                                    default:
+                                        throw new CompilerException($"expected valid event description, got {temp.kind} instead");
+                                }
+
+                                ExpectToken(";");
+
+                                var value = (byte)((byte)EventKind.Custom + contract.Events.Count);
+
+                                var eventDecl = new EventDeclaration(module.Scope, eventName, value, kind, description);
+                                contract.Events[eventName] = eventDecl;
+                            }
+                            else
+                            {
+                                throw new CompilerException("unexpected token: " + token.value);
+                            }
+                            break;
+                        }
+
+
                     case "constructor":
                         {
                             var contract = module as Contract;
@@ -518,6 +568,51 @@ namespace Phantasma.Tomb.Compiler
                         Rewind();
                         return block;
 
+                    case "emit":
+                        {
+                            var contract = scope.Root as Contract;
+                            if (contract != null)
+                            {
+                                var eventName = ExpectIdentifier();
+
+                                ExpectToken("(");
+
+                                var addrExpr = ExpectExpression(scope);
+                                ExpectToken(",");
+                                var valueExpr = ExpectExpression(scope);
+                                ExpectToken(")");
+                                ExpectToken(";");
+
+                                if (contract.Events.ContainsKey(eventName))
+                                {
+                                    var evt = contract.Events[eventName];
+
+                                    if (addrExpr.ResultType != VarKind.Address)
+                                    {
+                                        throw new CompilerException($"Expected first argument of type {VarKind.Address}, got {addrExpr.ResultType} instead");
+                                    }
+
+                                    if (evt.returnType != valueExpr.ResultType)
+                                    {
+                                        throw new CompilerException($"Expected second argument of type {evt.returnType}, got {valueExpr.ResultType} instead");
+                                    }
+
+                                    block.Commands.Add(new EmitStatement(evt, addrExpr, valueExpr));
+                                }
+                                else
+                                {
+                                    throw new CompilerException($"Undeclared event: {eventName}");
+                                }
+
+                            }
+                            else
+                            {
+                                throw new CompilerException("Emit statments only allowed in contracts");
+                            }
+
+                            break;
+                        }
+
                     case "return":
                         {
                             var temp = FetchToken();
@@ -532,7 +627,7 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 expr = null;
                             }
-                            
+
                             block.Commands.Add(new ReturnStatement(method, expr));
                             ExpectToken(";");
                             break;

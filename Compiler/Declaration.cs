@@ -1,7 +1,11 @@
+using Phantasma.CodeGen.Assembler;
+using Phantasma.Cryptography;
 using Phantasma.Domain;
 using Phantasma.Numerics;
+using Phantasma.VM;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -265,6 +269,195 @@ namespace Phantasma.Tomb.Compiler
 
             _genericCache[key] = lib;
             return lib;
+        }
+    }
+
+    public class EventDeclaration : Declaration
+    {
+        public readonly Scope scope;
+        public readonly byte value;
+        public readonly VarKind returnType;
+        public readonly byte[] description;
+
+        struct StringToken
+        {
+            public readonly bool dynamic;
+            public readonly string value;
+
+            public StringToken(bool dynamic, string value)
+            {
+                this.dynamic = dynamic;
+                this.value = value;
+            }
+
+            public override string ToString()
+            {
+                return value;
+            }
+        }
+
+        public EventDeclaration(Scope scope, string name, byte value, VarKind returnType, byte[] description) : base(scope.Parent, name)
+        {
+            this.scope = scope;
+            this.value = value;
+            this.returnType = returnType;
+            this.description = description;
+
+        }
+
+        public static byte[] GenerateScriptFromString(string src)
+        {
+            src = src.Substring(1, src.Length - 2); // remove "" delimiters
+
+            var tokens = new List<StringToken>();
+
+            var sb = new StringBuilder();
+
+            bool insideTags = false;
+            for (int i = 0; i < src.Length; i++)
+            {
+                var ch = src[i];
+
+                switch (ch)
+                {
+                    case '{':
+                        if (insideTags)
+                        {
+                            throw new CompilerException("Open declaration tag mismatch");
+                        }
+
+                        if (sb.Length > 0)
+                        {
+                            tokens.Add(new StringToken(false, sb.ToString()));
+                            sb.Clear();
+                        }
+                        insideTags = true;
+                        break;
+
+                    case '}':
+                        if (!insideTags)
+                        {
+                            throw new CompilerException("Close declaration tag mismatch");
+                        }
+
+                        if (sb.Length == 0)
+                        {
+                            throw new CompilerException("Empty declaration tag");
+                        }
+                        insideTags = false;
+                        tokens.Add(new StringToken(true, sb.ToString()));
+                        sb.Clear();
+                        break;
+
+                    default:
+                        sb.Append(ch);
+                        break;
+                }
+            }
+
+            if (sb.Length > 0)
+            {
+                tokens.Add(new StringToken(false, sb.ToString()));
+            }
+
+            sb.Clear();
+            sb.AppendLine("POP r2"); // address
+            sb.AppendLine("POP r3"); // data
+            sb.AppendLine("LOAD r0 \"\"");
+            foreach (var token in tokens)
+            {
+                if (token.dynamic) {
+                    if (token.value == "address")
+                    {
+                        sb.AppendLine($"CAST r2 r1 #String");
+                    }
+                    else
+                    if (token.value == "data")
+                    {
+                        sb.AppendLine($"CAST r3 r1 #String");
+                    }
+                    else
+                    if (token.value.StartsWith("data."))
+                    {
+                        throw new CompilerException($"Struct tags not implemented");
+                    }
+                    else
+                    {
+                        throw new CompilerException($"Invalid declaration tag: {token.value}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"LOAD r1 \"{token.value}\"");
+                }
+                sb.AppendLine("ADD r0 r1 r0");
+            }
+            sb.AppendLine("PUSH r0"); // return result
+            sb.AppendLine("RET"); 
+
+            var asm = sb.ToString();
+            var script = AssemblerUtils.BuildScript(asm);
+
+            try
+            {
+                var vm = new DescriptionVM(script);
+                vm.Stack.Push(VMObject.FromObject(new BigInteger(123)));
+                vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
+                vm.Execute();
+
+                var result = vm.Stack.Pop();
+            }
+            catch (Exception e)
+            {
+                throw new CompilerException("Error validating description script");
+            }
+
+
+            return script;
+        }
+
+        public class DescriptionVM : VirtualMachine
+        {
+            public DescriptionVM(byte[] script) : base(script)
+            {
+            }
+
+            public override void DumpData(List<string> lines)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override ExecutionState ExecuteInterop(string method)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override ExecutionContext LoadContext(string contextName)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this);
+        }
+
+        public void GenerateCode(CodeGenerator output)
+        {
+            // do nothing
+        }
+
+        internal ContractEvent GetABI()
+        {
+            var type = MethodInterface.ConvertType(this.returnType);
+            return new ContractEvent(this.value, this.Name, type, description);
         }
     }
 
