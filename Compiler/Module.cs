@@ -72,6 +72,24 @@ namespace Phantasma.Tomb.Compiler
 
             var libDecl = new LibraryDeclaration(scope, name);
 
+            var script = scope != null ? (scope.Root as Script): null;
+            if (script != null && script.Hidden) // is description
+            {
+                switch (name)
+                {
+                    case "Output":
+                        libDecl.AddMethod("decimals", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("value", VarKind.Number), new MethodParameter("symbol", VarKind.String) });
+                        libDecl.AddMethod("symbol", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("symbol", VarKind.String) });
+                        libDecl.AddMethod("account", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("address", VarKind.Address) });
+                        break;
+
+                    default:
+                        throw new CompilerException("unknown library: " + name);
+                }
+
+                return libDecl;
+            }
+
             switch (name)
             {
                 case "Call":
