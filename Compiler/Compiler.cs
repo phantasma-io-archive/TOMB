@@ -254,7 +254,7 @@ namespace Phantasma.Tomb.Compiler
         private void ParseModule(Module module)
         {
             var structLibName = "Struct";
-            module.Libraries[structLibName] = Module.LoadLibrary(structLibName, null);
+            module.Libraries[structLibName] = Module.LoadLibrary(structLibName, null, false);
             var structLib = module.FindLibrary(structLibName);
 
             foreach (var structInfo in _structs.Values)
@@ -398,7 +398,8 @@ namespace Phantasma.Tomb.Compiler
                             var libName = ExpectIdentifier();
                             ExpectToken(";");
 
-                            var libDecl = Contract.LoadLibrary(libName, module.Scope);
+                            var script = module.Scope.Root as Script;
+                            var libDecl = Contract.LoadLibrary(libName, module.Scope, script != null ? script.Hidden: false);
                             module.Libraries[libName] = libDecl;
 
                             break;

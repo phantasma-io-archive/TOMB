@@ -1,6 +1,4 @@
-﻿using Phantasma.Domain;
-using Phantasma.VM;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 
@@ -13,7 +11,8 @@ namespace Phantasma.Tomb.Compiler
             var sb = new StringBuilder();
             foreach (var libraryName in Contract.AvailableLibraries)
             {
-                var library = Contract.LoadLibrary(libraryName, null);
+                var library = Contract.LoadLibrary(libraryName, null, libraryName == "Output");
+
                 sb.AppendLine("### "+libraryName);
                 sb.AppendLine("| Method | Return type | Description|");
                 sb.AppendLine("| ------------- | ------------- |------------- |");

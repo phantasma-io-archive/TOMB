@@ -61,9 +61,9 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List" };
+        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", "Output" };
 
-        public static LibraryDeclaration LoadLibrary(string name, Scope scope)
+        public static LibraryDeclaration LoadLibrary(string name, Scope scope, bool isDescription)
         {
             if (name != name.UppercaseFirst() && name != "this")
             {
@@ -77,8 +77,7 @@ namespace Phantasma.Tomb.Compiler
                 return libDecl;
             }
 
-            var script = scope != null ? (scope.Root as Script): null;
-            if (script != null && script.Hidden) // is description
+            if (isDescription)
             {
                 switch (name)
                 {
