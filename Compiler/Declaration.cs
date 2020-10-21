@@ -495,15 +495,33 @@ namespace Phantasma.Tomb.Compiler
             return obj;
         }
 
+        private class CustomDescriptionVM : DescriptionVM
+        {
+            public CustomDescriptionVM(byte[] script) : base(script)
+            {
+            }
+
+            public override IToken FetchToken(string symbol)
+            {
+                return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
+            }
+
+            public override string OutputAddress(Address address)
+            {
+                return address.Text;
+            }
+
+            public override string OutputSymbol(string symbol)
+            {
+                return symbol;
+            }
+        }
+
         public void Validate()
         {
             try
             {
-                var vm = new DescriptionVM(this.descriptionScript, (symbol) =>
-                {
-                    return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
-                });
-
+                var vm = new CustomDescriptionVM(this.descriptionScript);
 
                 var obj = GenerateTestObject(this.returnType);
                 vm.Stack.Push(obj);
