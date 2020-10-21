@@ -72,6 +72,11 @@ namespace Phantasma.Tomb.Compiler
 
             var libDecl = new LibraryDeclaration(scope, name);
 
+            if (name == "Struct")
+            {
+                return libDecl;
+            }
+
             var script = scope != null ? (scope.Root as Script): null;
             if (script != null && script.Hidden) // is description
             {

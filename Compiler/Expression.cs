@@ -3,7 +3,6 @@ using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -181,8 +180,6 @@ namespace Phantasma.Tomb.Compiler
         }
     }
 
-   
-
     public class StructFieldExpression : Expression
     {
         public VarDeclaration varDecl;
@@ -227,9 +224,9 @@ namespace Phantasma.Tomb.Compiler
 
         public override Register GenerateCode(CodeGenerator output)
         {
-            var reg = Compiler.Instance.AllocRegister(output, this, $"{varDecl.Name}.{fieldName}");
+            var reg = Compiler.Instance.AllocRegister(output, this/*, $"{varDecl.Name}.{fieldName}"*/);
 
-            var tempReg = Compiler.Instance.AllocRegister(output, this, $"temp_key");
+            var tempReg = Compiler.Instance.AllocRegister(output, this);
 
             output.AppendLine(this, $"COPY {varDecl.Register} {reg}");
             output.AppendLine(this, $"LOAD {tempReg} \"{fieldName}\"");
@@ -240,7 +237,7 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
     }
-    
+
     public class MethodExpression : Expression
     {
         public MethodInterface method;

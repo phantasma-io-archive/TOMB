@@ -209,6 +209,7 @@ namespace Phantasma.Tomb.Compiler
                             structType.decl = new StructDeclaration(structName, fields);                            
 
                             _structs[structName] = structType.decl;
+
                             break;
                         }
 
@@ -252,6 +253,47 @@ namespace Phantasma.Tomb.Compiler
 
         private void ParseModule(Module module)
         {
+            var structLibName = "Struct";
+            module.Libraries[structLibName] = Module.LoadLibrary(structLibName, null);
+            var structLib = module.FindLibrary(structLibName);
+
+            foreach (var structInfo in _structs.Values)
+            {
+                var args = new List<MethodParameter>();
+
+                foreach (var field in structInfo.fields)
+                {
+                    args.Add(new MethodParameter(field.name, field.type));
+                }
+
+                structLib.AddMethod(structInfo.Name, MethodImplementationType.Custom, VarType.Find(VarKind.Struct, structInfo.Name), args.ToArray()).SetPreCallback(
+                    (output, scope, expr) =>
+                    {
+                        var reg = Compiler.Instance.AllocRegister(output, expr);
+                        var keyReg = Compiler.Instance.AllocRegister(output, expr);
+
+                        output.AppendLine(expr, $"CLEAR {reg}");
+
+                        int index = -1;
+                        foreach (var field in structInfo.fields)
+                        {
+                            index++;
+                            var argument = expr.arguments[index];
+
+                            var exprReg = argument.GenerateCode(output);
+                            output.AppendLine(expr, $"LOAD {keyReg} \"{field.name}\"");
+                            output.AppendLine(expr, $"PUT {exprReg} {reg} {keyReg}");
+
+                            Compiler.Instance.DeallocRegister(ref exprReg);
+                        }
+
+                        Compiler.Instance.DeallocRegister(ref keyReg);
+
+                        return reg;
+
+                    });
+            }
+
             do
             {
                 var token = FetchToken();
@@ -1263,16 +1305,26 @@ namespace Phantasma.Tomb.Compiler
                 default:
                     if (first.kind == TokenKind.Separator)
                     {
-                        Rewind();
-                        var leftSide = ExpectExpression(scope);
-                        ExpectToken(")");
-                        var op = FetchToken();
-                        if (op.kind != TokenKind.Operator)
+                        switch (first.value)
                         {
-                            throw new CompilerException($"expected operator, got {op.kind} instead");
+                            case "(":
+                                {
+                                    Rewind();
+                                    var leftSide = ExpectExpression(scope);
+                                    ExpectToken(")");
+                                    var op = FetchToken();
+                                    if (op.kind != TokenKind.Operator)
+                                    {
+                                        throw new CompilerException($"expected operator, got {op.kind} instead");
+                                    }
+                                    var rightSide = ExpectExpression(scope);
+                                    return ParseBinaryExpression(scope, op, leftSide, rightSide);
+                                }
+
+                            default:
+                                throw new CompilerException($"unexpected token: {first.value}");
                         }
-                        var rightSide = ExpectExpression(scope);
-                        return ParseBinaryExpression(scope, op, leftSide, rightSide);
+
                     }
                     break;
             }

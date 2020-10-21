@@ -299,6 +299,34 @@ contract test {
 }
 ```
 
+A yet more complex version of the previous examples, showcasing custom description scripts and also struct declarations.
+
+```c#
+
+struct my_event_data {
+	amount:number;
+	symbol:string;
+}
+
+description payment_event {
+
+	code(from:address, data:my_event_data): string {
+		local result:string := "";
+		result += from;
+		result += " paid ";
+		result += data.amount;
+		result += " ";
+		result += data.symbol;
+		return result;
+	}
+}
+
+contract test {
+	event MyPayment:my_event_data = payment_event; // here we use a short-form declaration
+
+	// everything else would be same as previous examples
+}
+```
 
 A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
 This example showcases a simple script with one argument, that calls a contract.<br/>
