@@ -119,6 +119,15 @@ The following libraries can be imported into a contract.
 | Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | None | TODO|
 | Leaderboard.reset(from:Address, boardName:String) | None | TODO|
 
+### Output
+Note: Only available in description scripts
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Output.decimals(value:Number, symbol:String) | None | TODO|
+| Output.symbol(symbol:String) | None | TODO|
+| Output.account(address:Address) | None | TODO|
+
+
 ## Available generic types
 
 ### Map
