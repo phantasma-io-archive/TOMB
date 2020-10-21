@@ -43,6 +43,11 @@ namespace Phantasma.Tomb.Compiler
             return currentLabel;
         }
 
+        private bool HasTokens()
+        {
+            return tokenIndex < tokens.Count;
+        }
+
         private LexerToken FetchToken()
         {
             if (tokenIndex >= tokens.Count)
@@ -126,10 +131,10 @@ namespace Phantasma.Tomb.Compiler
                 return "";
             }
 
-            return lines[index-1];
+            return lines[index - 1];
         }
 
-        public Module Parse(string sourceCode)
+        public Module[] Parse(string sourceCode)
         {
             this.tokens = Lexer.Process(sourceCode);
 
@@ -138,40 +143,48 @@ namespace Phantasma.Tomb.Compiler
                 Console.WriteLine(token);
             }*/
 
-            var firstToken = FetchToken();
-
             this.lines = sourceCode.Replace("\r", "").Split('\n');
 
-            switch (firstToken.value)
+            var modules = new List<Module>();
+            while (HasTokens())
             {
-                case "contract":
-                    {
-                        var contractName = ExpectIdentifier();
+                var firstToken = FetchToken();
 
-                        var contractBlock = new Contract(contractName);
-                        ExpectToken("{");
-                        ParseModule(contractBlock);
-                        ExpectToken("}");
-                        return contractBlock;
-                    }
+                switch (firstToken.value)
+                {
+                    case "contract":
+                        {
+                            var contractName = ExpectIdentifier();
 
-                case "script":
-                    {
-                        var scriptName = ExpectIdentifier();
+                            var contractBlock = new Contract(contractName);
+                            ExpectToken("{");
+                            ParseModule(contractBlock);
+                            ExpectToken("}");
 
-                        var scriptBlock = new Script(scriptName);
+                            modules.Add(contractBlock);
+                            break;
+                        }
 
-                        ExpectToken("{");
-                        ParseModule(scriptBlock);
-                        ExpectToken("}");
+                    case "script":
+                        {
+                            var scriptName = ExpectIdentifier();
 
-                        return scriptBlock;
+                            var scriptBlock = new Script(scriptName);
 
-                    }
+                            ExpectToken("{");
+                            ParseModule(scriptBlock);
+                            ExpectToken("}");
 
-                default:
-                    throw new CompilerException("Unexpected token: " + firstToken.value);
+                            modules.Add(scriptBlock);
+                            break;
+                        }
+
+                    default:
+                        throw new CompilerException("Unexpected token: " + firstToken.value);
+                }
             }
+
+            return modules.ToArray();
         }
 
         private void ParseModule(Module module)

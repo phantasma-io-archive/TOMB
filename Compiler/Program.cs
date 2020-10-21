@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.VM;
 using System;
 using System.IO;
@@ -62,28 +62,32 @@ namespace Phantasma.Tomb.Compiler
 
             Console.WriteLine("Parsing " + sourceFile);
             var parser = new Parser();
-            var module = parser.Parse(sourceCode);
+            var modules = parser.Parse(sourceCode);
+            Console.WriteLine($"Found {modules.Length} compilation modules");
 
-            Console.WriteLine("Compiling " + sourceFile);
-            string asm;
-            ContractInterface abi;
-            byte[] script;
-            DebugInfo debugInfo;
-            module.Compile(sourceFile, out script, out asm, out abi, out debugInfo);
-
-            var contractName = Path.GetFileNameWithoutExtension(sourceFile);
-
-            File.WriteAllText(contractName + ".asm", asm);
-            File.WriteAllBytes(contractName + ".script", script);
-
-            if (debugInfo != null)
+            foreach (var module in modules)
             {
-                File.WriteAllText(contractName + ".debug", debugInfo.ToJSON());
-            }
+                Console.WriteLine("Compiling " + module.Name);
+                string asm;
+                ContractInterface abi;
+                byte[] script;
+                DebugInfo debugInfo;
+                module.Compile(sourceFile, out script, out asm, out abi, out debugInfo);
 
-            if (abi != null)
-            {
-                File.WriteAllBytes(contractName + ".abi", abi.ToByteArray());
+
+                File.WriteAllText(module.Name + ".asm", asm);
+                File.WriteAllBytes(module.Name + ".script", script);
+
+                if (debugInfo != null)
+                {
+                    File.WriteAllText(module.Name + ".debug", debugInfo.ToJSON());
+                }
+
+                if (abi != null)
+                {
+                    File.WriteAllBytes(module.Name + ".abi", abi.ToByteArray());
+                }
+
             }
 
             Console.WriteLine("Sucess!");

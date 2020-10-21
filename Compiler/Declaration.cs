@@ -1,3 +1,4 @@
+using Phantasma.Blockchain;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Cryptography;
 using Phantasma.Domain;
@@ -400,7 +401,10 @@ namespace Phantasma.Tomb.Compiler
 
             try
             {
-                var vm = new DescriptionVM(script);
+                var vm = new DescriptionVM(script, (symbol) =>
+                {
+                    return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
+                });
                 vm.Stack.Push(VMObject.FromObject(new BigInteger(123)));
                 vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
                 vm.Execute();
@@ -415,29 +419,6 @@ namespace Phantasma.Tomb.Compiler
 
             return script;
         }
-
-        public class DescriptionVM : VirtualMachine
-        {
-            public DescriptionVM(byte[] script) : base(script)
-            {
-            }
-
-            public override void DumpData(List<string> lines)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override ExecutionState ExecuteInterop(string method)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override ExecutionContext LoadContext(string contextName)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
 
         public override void Visit(Action<Node> callback)
         {
