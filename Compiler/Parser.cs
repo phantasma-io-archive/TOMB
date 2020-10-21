@@ -323,12 +323,12 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 var eventName = ExpectIdentifier();
                                 ExpectToken(":");
-                                var kind = ExpectType();
+                                var eventKind = ExpectType();
                                 ExpectToken("=");
 
-                                if (kind == VarKind.None)
+                                if (eventKind == VarKind.None)
                                 {
-                                    throw new CompilerException("invad event type: " + kind);
+                                    throw new CompilerException("invad event type: " + eventKind);
                                 }
 
                                 var temp = FetchToken();
@@ -345,9 +345,15 @@ namespace Phantasma.Tomb.Compiler
 
                                     case TokenKind.Identifier:
                                         {
-                                            var descModule = FindModule(temp.value);
+                                            var descModule = FindModule(temp.value) as Script;
                                             if (descModule != null)
                                             {
+                                                var descSecondType = descModule.Parameters[1].Kind;
+                                                if (descSecondType != eventKind)
+                                                {
+                                                    throw new CompilerException($"descriptions second parameter has type {descSecondType}, does not match event type: {eventKind}");
+                                                }
+
                                                 if (descModule.script != null)
                                                 {
                                                     description = descModule.script;
@@ -372,7 +378,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 var value = (byte)((byte)EventKind.Custom + contract.Events.Count);
 
-                                var eventDecl = new EventDeclaration(module.Scope, eventName, value, kind, description);
+                                var eventDecl = new EventDeclaration(module.Scope, eventName, value, eventKind, description);
                                 contract.Events[eventName] = eventDecl;
                             }
                             else
@@ -531,6 +537,20 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 var blockName = "main";
                                 script.Parameters = ParseParameters(module.Scope);
+
+                                if (script.Hidden) // if is description
+                                {
+                                    if (script.Parameters.Length != 2)
+                                    {
+                                        throw new CompilerException("descriptions must have exactly 2 parameters");
+                                    }
+
+                                    if (script.Parameters[0].Kind != VarKind.Address)
+                                    {
+                                        throw new CompilerException("descriptions first parameter must always be of type " + VarKind.Address);
+                                    }
+                                }
+
                                 var scope = new Scope(module.Scope, blockName, script.Parameters);
 
                                 script.ReturnType = VarKind.None;
