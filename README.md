@@ -20,6 +20,7 @@ TOMB smart contract compiler for Phantasma platform
 - Custom events
 - Interop and Contract calls
 - Inline asm
+- Structs
 - Import libraries (Runtime, Leaderboard, Token, etc)
 - Comments (single and multi line)
 - ABI generation
@@ -27,7 +28,6 @@ TOMB smart contract compiler for Phantasma platform
 ## Planned features
 
 - Contract tasks
-- Structs
 - For.. Loops
 - Switch .. case
 - Try .. Catch

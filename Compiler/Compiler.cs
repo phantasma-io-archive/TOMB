@@ -1194,6 +1194,8 @@ namespace Phantasma.Tomb.Compiler
 
                         LibraryDeclaration libDecl;
 
+                        Expression leftSide = null;
+
                         if (varDecl != null)
                         {
                             // TODO this code is duplicated, copypasted from other method above, refactor this later...
@@ -1223,6 +1225,14 @@ namespace Phantasma.Tomb.Compiler
                                         break;
                                     }
 
+                                case VarKind.Struct:
+                                    {
+                                        libDecl = null;
+
+                                        leftSide = ParseStructFieldExpression(scope, varDecl);
+                                        break;
+                                    }
+
                                 default:
                                     throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
                             }
@@ -1232,7 +1242,10 @@ namespace Phantasma.Tomb.Compiler
                             libDecl = scope.Root.FindLibrary(first.value);
                         }
 
-                        var leftSide = ParseMethodExpression(scope, libDecl, varDecl);
+                        if (leftSide == null)
+                        {
+                            leftSide = ParseMethodExpression(scope, libDecl, varDecl);
+                        }
 
                         second = FetchToken();
                         if (second.kind == TokenKind.Operator)
@@ -1343,7 +1356,7 @@ namespace Phantasma.Tomb.Compiler
                     if (arg.ResultType != expectedType && expectedType.Kind != VarKind.Any)
                     {
                         throw new CompilerException($"expected argument of type {expectedType}, got {arg.ResultType} instead");
-                    }                   
+                    }
                 }
 
                 ExpectToken(")");
@@ -1351,6 +1364,15 @@ namespace Phantasma.Tomb.Compiler
 
             return expr;
         }
+
+
+        private StructFieldExpression ParseStructFieldExpression(Scope scope, VarDeclaration varDecl)
+        {
+            var fieldName = ExpectIdentifier();
+            var expr = new StructFieldExpression(scope, varDecl, fieldName);
+            return expr;
+        }
+
 
         public static readonly string[] ValidTriggerNames = Enum.GetNames(typeof(AccountTrigger)).Union(Enum.GetNames(typeof(TokenTrigger))).ToArray();
 
