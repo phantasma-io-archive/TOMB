@@ -80,20 +80,20 @@ namespace Phantasma.Tomb.Compiler
 
             this.Scope.Leave(output);
 
-            var methods = Methods.Values.Select(x => x.GetABI());
+            var methods = Methods.Values.Where(x => x.@interface.IsPublic).Select(x => x.GetABI());
             var abi = new ContractInterface(methods);
 
             return abi;
         }
 
-        public MethodInterface AddMethod(int line, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, Scope scope)
+        public MethodInterface AddMethod(int line, string name, bool isPublic, MethodKind kind, VarKind returnType, MethodParameter[] parameters, Scope scope)
         {
             if (Methods.Count == 0)
             {
                 this.LineNumber = line;
             }
 
-            var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, kind, returnType, parameters);
+            var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, isPublic, kind, returnType, parameters);
             this.Scope.Methods.Add(method);
 
             var decl = new MethodDeclaration(scope, method);

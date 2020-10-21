@@ -301,7 +301,7 @@ namespace Phantasma.Tomb.Compiler
                                     throw new CompilerException("constructor must have only one parameter of type address");
                                 }
 
-                                var method = contract.AddMethod(line, name, MethodKind.Constructor, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Constructor, VarKind.None, parameters, scope);
 
                                 ExpectToken("{");
 
@@ -316,7 +316,8 @@ namespace Phantasma.Tomb.Compiler
 
                         }
 
-                    case "method":
+                    case "public":
+                    case "private":
                         {
                             var contract = module as Contract;
                             if (contract != null)
@@ -339,7 +340,7 @@ namespace Phantasma.Tomb.Compiler
                                     Rewind();
                                 }
 
-                                var method = contract.AddMethod(line, name, MethodKind.Method, returnType, parameters, scope);
+                                var method = contract.AddMethod(line, name, token.value == "public", MethodKind.Method, returnType, parameters, scope);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -366,7 +367,7 @@ namespace Phantasma.Tomb.Compiler
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, MethodKind.Task, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarKind.None, parameters, scope);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -412,7 +413,7 @@ namespace Phantasma.Tomb.Compiler
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, MethodKind.Trigger, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Trigger, VarKind.None, parameters, scope);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -445,7 +446,7 @@ namespace Phantasma.Tomb.Compiler
                                     Rewind();
                                 }
 
-                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, "main", MethodKind.Method, script.ReturnType, new MethodParameter[0]);
+                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, "main", true, MethodKind.Method, script.ReturnType, new MethodParameter[0]);
 
                                 ExpectToken("{");
                                 script.main = ParseCommandBlock(script.Scope, method);

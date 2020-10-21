@@ -140,7 +140,7 @@ namespace Phantasma.Tomb.Compiler
                 }
             }
 
-            var method = new MethodInterface(this, convention, name, MethodKind.Method, returnType, parameters, alias);
+            var method = new MethodInterface(this, convention, name, true, MethodKind.Method, returnType, parameters, alias);
             methods[name] = method;
 
             return method;
@@ -195,7 +195,7 @@ namespace Phantasma.Tomb.Compiler
                     parameters.Add(entry);
                 }
 
-                var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
+                var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.IsPublic, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
                 newMethod.Contract = method.Contract;
                 newMethod.PreCallback = method.PreCallback;
                 newMethod.PostCallback = method.PostCallback;

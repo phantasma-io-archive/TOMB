@@ -52,6 +52,7 @@ namespace Phantasma.Tomb.Compiler
         public MethodKind Kind;
         public VarKind ReturnType;
         public MethodParameter[] Parameters;
+        public bool IsPublic;
         public string Alias;
         public string Contract;
         public MethodImplementationType Implementation;
@@ -61,12 +62,13 @@ namespace Phantasma.Tomb.Compiler
         public int StartAsmLine;
         public int EndAsmLine;
 
-        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
+        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
         {
             this.Name = name;
             this.Library = library;
             this.Implementation = implementation;
             this.Kind = kind;
+            this.IsPublic = isPublic; 
             this.ReturnType = returnType;
             this.Parameters = parameters;
             this.PreCallback = null;
