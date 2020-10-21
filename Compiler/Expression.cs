@@ -136,6 +136,11 @@ namespace Phantasma.Tomb.Compiler
             var regRight = right.GenerateCode(output);
             var regResult = Parser.Instance.AllocRegister(output, this);
 
+            if (this.op == OperatorKind.Addition && left.ResultType == VarKind.String && right.ResultType != VarKind.String)
+            {
+                output.AppendLine(this, $"CAST {regRight} {regRight} #String");
+            }
+
             Opcode opcode;
             switch (this.op)
             {
