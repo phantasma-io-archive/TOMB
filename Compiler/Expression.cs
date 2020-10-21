@@ -134,7 +134,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var regLeft = left.GenerateCode(output);
             var regRight = right.GenerateCode(output);
-            var regResult = Parser.Instance.AllocRegister(output, this);
+            var regResult = Compiler.Instance.AllocRegister(output, this);
 
             if (this.op == OperatorKind.Addition && left.ResultType == VarKind.String && right.ResultType != VarKind.String)
             {
@@ -169,8 +169,8 @@ namespace Phantasma.Tomb.Compiler
 
             output.AppendLine(this, $"{opcode} {regLeft} {regRight} {regResult}");
 
-            Parser.Instance.DeallocRegister(ref regRight);
-            Parser.Instance.DeallocRegister(ref regLeft);
+            Compiler.Instance.DeallocRegister(ref regRight);
+            Compiler.Instance.DeallocRegister(ref regLeft);
 
             return regResult;
         }
@@ -231,7 +231,7 @@ namespace Phantasma.Tomb.Compiler
             }
             else
             {
-                reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
+                reg = Compiler.Instance.AllocRegister(output, this, this.NodeID);
             }
 
             bool isCallLibrary = method.Library.Name == "Call";
@@ -274,7 +274,7 @@ namespace Phantasma.Tomb.Compiler
                     if (argReg != null)
                     {
                         output.AppendLine(arg, $"PUSH {argReg}");
-                        Parser.Instance.DeallocRegister(ref argReg);
+                        Compiler.Instance.DeallocRegister(ref argReg);
                     }
                 }
             }
@@ -362,7 +362,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override Register GenerateCode(CodeGenerator output)
         {
-            var reg = Parser.Instance.AllocRegister(output, this, this.NodeID);
+            var reg = Compiler.Instance.AllocRegister(output, this, this.NodeID);
 
             output.AppendLine(this, $"LOAD {reg} {this.value}");
 
@@ -453,7 +453,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException(this, $"var not initialized:" + decl.Name);
             }
 
-            var reg = Parser.Instance.AllocRegister(output, this);
+            var reg = Compiler.Instance.AllocRegister(output, this);
             output.AppendLine(this, $"COPY {decl.Register} {reg}");
             return reg;
         }
@@ -498,7 +498,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override Register GenerateCode(CodeGenerator output)
         {
-            var reg = Parser.Instance.AllocRegister(output, this, decl.Name);
+            var reg = Compiler.Instance.AllocRegister(output, this, decl.Name);
             output.AppendLine(this, $"LOAD {reg} {decl.Value}");
             this.CallNecessaryConstructors(output, decl.Kind, reg);
             return reg;

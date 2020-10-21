@@ -187,7 +187,7 @@ namespace Phantasma.Tomb.Compiler
                         .SetPreCallback((output, scope, expr) =>
                         {
                             var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
-                            var reg = Parser.Instance.AllocRegister(output, expr);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
 
                             output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
                             output.AppendLine(expr, $"PUSH {reg}");
@@ -239,7 +239,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new System.Exception("expected literal expression for field key");
             }
 
-            var reg = Parser.Instance.AllocRegister(output, expression);
+            var reg = Compiler.Instance.AllocRegister(output, expression);
 
             output.AppendLine(expression, $"LOAD {reg} {literal.value} // field name");
 
@@ -265,7 +265,7 @@ namespace Phantasma.Tomb.Compiler
             var sb = new CodeGenerator();
             abi = this.GenerateCode(sb);
 
-            Parser.Instance.VerifyRegisters();
+            Compiler.Instance.VerifyRegisters();
 
             asm = sb.ToString();
 

@@ -238,6 +238,11 @@ namespace Phantasma.Tomb.Compiler
                     }
                     else
                     {
+                        if (ch == '\n')
+                        {
+                            line++;
+                        }
+
                         sb.Append(ch);
                         continue;
                     }
@@ -263,6 +268,10 @@ namespace Phantasma.Tomb.Compiler
                     }
                     else
                     {
+                        if (ch == '\n')
+                        {
+                            line++;
+                        }
                         lastChar = ch;
                     }
                     continue;
@@ -346,6 +355,7 @@ namespace Phantasma.Tomb.Compiler
                             curToken = new LexerToken(tokenX, tokenY, val);
                             tokens.Add(curToken);
                             sb.Clear();
+
 
                             if (val == "{" && prevToken.value == "asm")
                             {

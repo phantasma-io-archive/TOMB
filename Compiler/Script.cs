@@ -55,7 +55,7 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var parameter in this.Parameters)
             {
-                var reg = Parser.Instance.AllocRegister(output, this, parameter.Name);
+                var reg = Compiler.Instance.AllocRegister(output, this, parameter.Name);
                 output.AppendLine(this, $"POP {reg}");
 
                 if (!this.main.ParentScope.Variables.ContainsKey(parameter.Name))

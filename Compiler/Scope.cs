@@ -156,7 +156,7 @@ namespace Phantasma.Tomb.Compiler
                     throw new CompilerException("unused variable: " + variable.Name);
                 }
 
-                Parser.Instance.DeallocRegister(ref variable.Register);
+                Compiler.Instance.DeallocRegister(ref variable.Register);
             }
 
             CodeGenerator.currentScope = previousScope;

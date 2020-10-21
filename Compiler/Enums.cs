@@ -14,6 +14,7 @@
         Bytes,
         Any,
         Method,
+        Struct,
         Storage_Map,
         Storage_List,
         Storage_Set,

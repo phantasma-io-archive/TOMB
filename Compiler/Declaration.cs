@@ -6,6 +6,7 @@ using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Phantasma.Tomb.Compiler
@@ -19,6 +20,32 @@ namespace Phantasma.Tomb.Compiler
         {
             Name = name;
             ParentScope = parentScope;
+        }
+    }
+
+    public struct StructField
+    {
+        public string name;
+        public VarKind kind;
+    }
+
+    public class StructDeclaration: Declaration
+    {
+        public StructField[] fields;
+
+        public StructDeclaration(string name, IEnumerable<StructField> fields) : base(null, name)
+        {
+            this.fields = fields.ToArray();
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this);
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
         }
     }
 
@@ -500,14 +527,14 @@ namespace Phantasma.Tomb.Compiler
 
                 if (tempReg1 == null && !isConstructor)
                 {
-                    tempReg1 = Parser.Instance.AllocRegister(output, this, "dataGet");
+                    tempReg1 = Compiler.Instance.AllocRegister(output, this, "dataGet");
                     output.AppendLine(this, $"LOAD {tempReg1} \"Data.Get\"");
 
-                    tempReg2 = Parser.Instance.AllocRegister(output, this, "contractName");
+                    tempReg2 = Compiler.Instance.AllocRegister(output, this, "contractName");
                     output.AppendLine(this, $"LOAD {tempReg2} \"{this.scope.Root.Name}\"");
                 }
 
-                var reg = Parser.Instance.AllocRegister(output, variable, variable.Name);
+                var reg = Compiler.Instance.AllocRegister(output, variable, variable.Name);
                 variable.Register = reg;
 
                 if (isConstructor)
@@ -530,8 +557,8 @@ namespace Phantasma.Tomb.Compiler
                 variable.CallNecessaryConstructors(output, variable.Kind, reg);
             }
 
-            Parser.Instance.DeallocRegister(ref tempReg1);
-            Parser.Instance.DeallocRegister(ref tempReg2);
+            Compiler.Instance.DeallocRegister(ref tempReg1);
+            Compiler.Instance.DeallocRegister(ref tempReg2);
 
             foreach (var variable in this.scope.Variables.Values)
             {
@@ -540,7 +567,7 @@ namespace Phantasma.Tomb.Compiler
                     continue;
                 }
 
-                variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
+                variable.Register = Compiler.Instance.AllocRegister(output, variable, variable.Name);
                 output.AppendLine(this, $"POP {variable.Register}");
                 variable.CallNecessaryConstructors(output, variable.Kind, variable.Register);
             }
@@ -556,7 +583,7 @@ namespace Phantasma.Tomb.Compiler
                     continue;
                 }
 
-                Parser.Instance.DeallocRegister(ref variable.Register);
+                Compiler.Instance.DeallocRegister(ref variable.Register);
             }
 
             // NOTE we don't need to dealloc anything here besides the global vars
@@ -594,7 +621,7 @@ namespace Phantasma.Tomb.Compiler
                 {
                     if (tempReg1 == null)
                     {
-                        tempReg1 = Parser.Instance.AllocRegister(output, this);
+                        tempReg1 = Compiler.Instance.AllocRegister(output, this);
                         output.AppendLine(this, $"LOAD {tempReg1} \"Data.Set\"");
                     }
 
@@ -608,10 +635,10 @@ namespace Phantasma.Tomb.Compiler
 
                 if (variable.Register != null)
                 {
-                    Parser.Instance.DeallocRegister(ref variable.Register);
+                    Compiler.Instance.DeallocRegister(ref variable.Register);
                 }
             }
-            Parser.Instance.DeallocRegister(ref tempReg1);
+            Compiler.Instance.DeallocRegister(ref tempReg1);
 
             output.AppendLine(this, "RET");
             this.@interface.EndAsmLine = output.LineCount;

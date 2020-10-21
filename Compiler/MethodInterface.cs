@@ -175,6 +175,9 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.None:
                     return VMType.None;
 
+                case VarKind.Struct:
+                    return VMType.Struct;
+
                 default:
                     throw new System.Exception("Not a valid ABI return type: " + kind);
             }

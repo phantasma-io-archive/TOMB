@@ -184,8 +184,8 @@ namespace Tests
             "counter += 1;\n" +
             "}}\n";
 
-            var parser = new Parser();
-            var contract = parser.ParseAndCompile(sourceCode).First();
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 

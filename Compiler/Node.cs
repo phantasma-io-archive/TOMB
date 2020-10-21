@@ -10,11 +10,11 @@ namespace Phantasma.Tomb.Compiler
 
         public Node()
         {
-            if (Parser.Instance != null)
+            if (Compiler.Instance != null)
             {
-                this.LineNumber = Parser.Instance.CurrentLine;
-                this.Column = Parser.Instance.CurrentColumn;
-                this.NodeID = this.GetType().Name.ToLower() + Parser.Instance.AllocateLabel();
+                this.LineNumber = Compiler.Instance.CurrentLine;
+                this.Column = Compiler.Instance.CurrentColumn;
+                this.NodeID = this.GetType().Name.ToLower() + Compiler.Instance.AllocateLabel();
             }
             else
             {

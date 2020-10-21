@@ -61,8 +61,8 @@ namespace Phantasma.Tomb.Compiler
             var sourceCode = File.ReadAllText(sourceFilePath);
 
             Console.WriteLine("Compiling " + sourceFilePath);
-            var parser = new Parser();
-            var modules = parser.ParseAndCompile(sourceCode);
+            var compiler = new Compiler();
+            var modules = compiler.Process(sourceCode);
 
             foreach (var module in modules)
             {
