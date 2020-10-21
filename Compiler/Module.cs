@@ -139,7 +139,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("unixTime", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) }).SetPostCallback((output, scope, method, reg) =>
                     {
                         var nameExpr = method.arguments[0] as LiteralExpression;
-                        if (nameExpr != null && nameExpr.kind == VarKind.Number)
+                        if (nameExpr != null && nameExpr.type.Kind == VarKind.Number)
                         {
                             var timestamp = uint.Parse(nameExpr.value);
                             output.AppendLine(method, $"LOAD {reg} {timestamp}");
@@ -155,7 +155,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("contractAddress", MethodImplementationType.Custom, VarKind.Address, new[] { new MethodParameter("name", VarKind.String) }).SetPostCallback((output, scope, method, reg) =>
                     {
                         var nameExpr = method.arguments[0] as LiteralExpression;
-                        if (nameExpr != null && nameExpr.kind == VarKind.String)
+                        if (nameExpr != null && nameExpr.type.Kind == VarKind.String)
                         {
                             var address = SmartContract.GetAddressForName(nameExpr.value);
                             var hex = Base16.Encode(address.ToByteArray());

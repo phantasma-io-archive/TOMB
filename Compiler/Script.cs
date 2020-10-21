@@ -9,7 +9,7 @@ namespace Phantasma.Tomb.Compiler
         public StatementBlock main;
 
         public MethodParameter[] Parameters { get; internal set; }
-        public VarKind ReturnType;
+        public VarType ReturnType;
 
         public Script(string name, bool hidden) : base(name, hidden)
         {
@@ -70,7 +70,7 @@ namespace Phantasma.Tomb.Compiler
             this.main.GenerateCode(output);
             this.main.ParentScope.Leave(output);
 
-            if (ReturnType == VarKind.None)
+            if (ReturnType.Kind == VarKind.None)
             {
                 output.AppendLine(this, "RET");
             }

@@ -119,12 +119,12 @@ namespace Phantasma.Tomb.Compiler
         {
             if (expression != null)
             {
-                if (this.method.ReturnType == VarKind.None)
+                if (this.method.ReturnType.Kind == VarKind.None)
                 {
                     throw new System.Exception($"unexpect return expression for void method: {method.Name}");
                 }
 
-                if (this.method.ReturnType != this.expression.ResultType && this.method.ReturnType != VarKind.Any)
+                if (this.method.ReturnType != this.expression.ResultType && this.method.ReturnType.Kind != VarKind.Any)
                 {
                     throw new System.Exception($"expected return expression of type {this.method.ReturnType} for {method.Name}, got {this.expression.ResultType} instead");
                 }
@@ -134,7 +134,7 @@ namespace Phantasma.Tomb.Compiler
                 Compiler.Instance.DeallocRegister(ref reg);
             }
             else
-            if (this.method.ReturnType != VarKind.None)
+            if (this.method.ReturnType.Kind != VarKind.None)
             {
                 throw new System.Exception($"expected return expression for non-void method: {method.Name}");
             }

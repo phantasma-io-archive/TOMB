@@ -110,7 +110,7 @@ namespace Phantasma.Tomb.Compiler
             return ExpectKind(TokenKind.Bool);
         }
 
-        private VarKind ExpectType()
+        private VarType ExpectType()
         {
             var token = FetchToken();
 
@@ -118,13 +118,14 @@ namespace Phantasma.Tomb.Compiler
             {
                 if (_structs.ContainsKey(token.value))
                 {
-                    return VarKind.Struct;
+                    return VarType.Find(VarKind.Struct, token.value);
                 }
 
                 throw new CompilerException("expected type, got " + token.kind);
             }
 
-            return (VarKind)Enum.Parse(typeof(VarKind), token.value, true);
+            var kind = (VarKind)Enum.Parse(typeof(VarKind), token.value, true);
+            return VarType.Find(kind);
         }
 
         public string GetLine(int index)
@@ -199,12 +200,15 @@ namespace Phantasma.Tomb.Compiler
 
                                 var fieldType = ExpectType();
                                 ExpectToken(";");
+
+                                fields.Add(new StructField(fieldName, fieldType));
                             } while (true);
 
 
-                            var entry = new StructDeclaration(structName, fields);
+                            var structType = (StructVarType)VarType.Find(VarKind.Struct, structName);
+                            structType.decl = new StructDeclaration(structName, fields);                            
 
-                            _structs[structName] = entry;
+                            _structs[structName] = structType.decl;
                             break;
                         }
 
@@ -262,12 +266,12 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var constName = ExpectIdentifier();
                             ExpectToken(":");
-                            var kind = ExpectType();
+                            var type = ExpectType();
                             ExpectToken("=");
 
                             string constVal;
 
-                            switch (kind)
+                            switch (type.Kind)
                             {
                                 case VarKind.String:
                                     constVal = ExpectString();
@@ -288,7 +292,7 @@ namespace Phantasma.Tomb.Compiler
 
                             ExpectToken(";");
 
-                            var constDecl = new ConstDeclaration(module.Scope, constName, kind, constVal);
+                            var constDecl = new ConstDeclaration(module.Scope, constName, type, constVal);
                             module.Scope.AddConstant(constDecl);
                             break;
                         }
@@ -297,11 +301,11 @@ namespace Phantasma.Tomb.Compiler
                         {                            
                             var varName = ExpectIdentifier();
                             ExpectToken(":");
-                            var kind = ExpectType();
+                            var type = ExpectType();
 
                             VarDeclaration varDecl;
 
-                            switch (kind)
+                            switch (type.Kind)
                             {
                                 case VarKind.Storage_Map:
                                     {
@@ -337,7 +341,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 default:
                                     {
-                                        varDecl = new VarDeclaration(module.Scope, varName, kind, VarStorage.Global);
+                                        varDecl = new VarDeclaration(module.Scope, varName, type, VarStorage.Global);
                                         break;
                                     }
                             }
@@ -365,12 +369,12 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 var eventName = ExpectIdentifier();
                                 ExpectToken(":");
-                                var eventKind = ExpectType();
+                                var eventType = ExpectType();
                                 ExpectToken("=");
 
-                                if (eventKind == VarKind.None)
+                                if (eventType.Kind == VarKind.None || eventType.Kind == VarKind.Unknown || eventType.Kind == VarKind.Generic || eventType.Kind == VarKind.Any)
                                 {
-                                    throw new CompilerException("invad event type: " + eventKind);
+                                    throw new CompilerException("invalid event type: " + eventType);
                                 }
 
                                 var temp = FetchToken();
@@ -390,10 +394,10 @@ namespace Phantasma.Tomb.Compiler
                                             var descModule = FindModule(temp.value) as Script;
                                             if (descModule != null)
                                             {
-                                                var descSecondType = descModule.Parameters[1].Kind;
-                                                if (descSecondType != eventKind)
+                                                var descSecondType = descModule.Parameters[1].Type;
+                                                if (descSecondType != eventType)
                                                 {
-                                                    throw new CompilerException($"descriptions second parameter has type {descSecondType}, does not match event type: {eventKind}");
+                                                    throw new CompilerException($"descriptions second parameter has type {descSecondType}, does not match event type: {eventType}");
                                                 }
 
                                                 if (descModule.script != null)
@@ -420,7 +424,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 var value = (byte)((byte)EventKind.Custom + contract.Events.Count);
 
-                                var eventDecl = new EventDeclaration(module.Scope, eventName, value, eventKind, description);
+                                var eventDecl = new EventDeclaration(module.Scope, eventName, value, eventType, description);
                                 contract.Events[eventName] = eventDecl;
                             }
                             else
@@ -441,12 +445,12 @@ namespace Phantasma.Tomb.Compiler
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                if (parameters.Length != 1 || parameters[0].Kind != VarKind.Address)
+                                if (parameters.Length != 1 || parameters[0].Type.Kind != VarKind.Address)
                                 {
                                     throw new CompilerException("constructor must have only one parameter of type address");
                                 }
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Constructor, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Constructor, VarType.Find(VarKind.None), parameters, scope);
 
                                 ExpectToken("{");
 
@@ -473,7 +477,7 @@ namespace Phantasma.Tomb.Compiler
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var returnType = VarKind.None;
+                                var returnType = VarType.Find(VarKind.None);
 
                                 var next = FetchToken();
                                 if (next.value == ":")
@@ -512,7 +516,7 @@ namespace Phantasma.Tomb.Compiler
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarType.Find(VarKind.None), parameters, scope);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -558,7 +562,7 @@ namespace Phantasma.Tomb.Compiler
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Trigger, VarKind.None, parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Trigger, VarType.Find(VarKind.None), parameters, scope);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -587,7 +591,7 @@ namespace Phantasma.Tomb.Compiler
                                         throw new CompilerException("descriptions must have exactly 2 parameters");
                                     }
 
-                                    if (script.Parameters[0].Kind != VarKind.Address)
+                                    if (script.Parameters[0].Type.Kind != VarKind.Address)
                                     {
                                         throw new CompilerException("descriptions first parameter must always be of type " + VarKind.Address);
                                     }
@@ -595,7 +599,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 var scope = new Scope(module.Scope, blockName, script.Parameters);
 
-                                script.ReturnType = VarKind.None;
+                                script.ReturnType = VarType.Find(VarKind.None);
 
                                 var next = FetchToken();
                                 if (next.value == ":")
@@ -698,7 +702,7 @@ namespace Phantasma.Tomb.Compiler
                                 {
                                     var evt = contract.Events[eventName];
 
-                                    if (addrExpr.ResultType != VarKind.Address)
+                                    if (addrExpr.ResultType.Kind != VarKind.Address)
                                     {
                                         throw new CompilerException($"Expected first argument of type {VarKind.Address}, got {addrExpr.ResultType} instead");
                                     }
@@ -804,7 +808,7 @@ namespace Phantasma.Tomb.Compiler
                             ExpectToken("(");
                             ifCommand.condition = ExpectExpression(scope);
 
-                            if (ifCommand.condition.ResultType != VarKind.Bool)
+                            if (ifCommand.condition.ResultType.Kind != VarKind.Bool)
                             {
                                 throw new CompilerException($"condition must be boolean expression");
                             }
@@ -843,7 +847,7 @@ namespace Phantasma.Tomb.Compiler
                             ExpectToken("(");
                             whileCommand.condition = ExpectExpression(scope);
 
-                            if (whileCommand.condition.ResultType != VarKind.Bool)
+                            if (whileCommand.condition.ResultType.Kind != VarKind.Bool)
                             {
                                 throw new CompilerException($"condition must be boolean expression");
                             }
@@ -875,7 +879,7 @@ namespace Phantasma.Tomb.Compiler
                             ExpectToken("(");
                             whileCommand.condition = ExpectExpression(scope);
 
-                            if (whileCommand.condition.ResultType != VarKind.Bool)
+                            if (whileCommand.condition.ResultType.Kind != VarKind.Bool)
                             {
                                 throw new CompilerException($"condition must be boolean expression");
                             }
@@ -912,9 +916,9 @@ namespace Phantasma.Tomb.Compiler
 
                                 setCommand.expression = expr;
 
-                                if (setCommand.expression.ResultType != setCommand.variable.Kind && setCommand.expression.ResultType != VarKind.Any)
+                                if (setCommand.expression.ResultType != setCommand.variable.Type && setCommand.expression.ResultType.Kind != VarKind.Any)
                                 {
-                                    throw new CompilerException($"expected {setCommand.variable.Kind} expression");
+                                    throw new CompilerException($"expected {setCommand.variable.Type} expression");
                                 }
 
                                 block.Commands.Add(setCommand);
@@ -928,7 +932,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 if (varDecl != null)
                                 {
-                                    switch (varDecl.Kind)
+                                    switch (varDecl.Type.Kind)
                                     {
                                         case VarKind.Storage_Map:
                                             {
@@ -955,7 +959,7 @@ namespace Phantasma.Tomb.Compiler
                                             }
 
                                         default:
-                                            throw new CompilerException($"expected {token.value} to be generic type, but is {varDecl.Kind} instead");
+                                            throw new CompilerException($"expected {token.value} to be generic type, but is {varDecl.Type} instead");
                                     }
                                 }
                                 else
@@ -1033,32 +1037,32 @@ namespace Phantasma.Tomb.Compiler
 
                 case TokenKind.Number:
                     {
-                        return new LiteralExpression(scope, first.value, VarKind.Number);
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Number));
                     }
 
                 case TokenKind.String:
                     {
-                        return new LiteralExpression(scope, first.value, VarKind.String);
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.String));
                     }
 
                 case TokenKind.Bool:
                     {
-                        return new LiteralExpression(scope, first.value, VarKind.Bool);
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Bool));
                     }
 
                 case TokenKind.Address:
                     {
-                        return new LiteralExpression(scope, first.value, VarKind.Address);
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Address));
                     }
 
                 case TokenKind.Hash:
                     {
-                        return new LiteralExpression(scope, first.value, VarKind.Hash);
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Hash));
                     }
 
                 case TokenKind.Bytes:
                     {
-                        return new LiteralExpression(scope, first.value, VarKind.Bytes);
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Bytes));
                     }
 
                 case TokenKind.Macro:
@@ -1144,9 +1148,9 @@ namespace Phantasma.Tomb.Compiler
 
             if (rightSide.ResultType != leftSide.ResultType)
             {
-                if (leftSide.ResultType == VarKind.String && op == OperatorKind.Addition)
+                if (leftSide.ResultType.Kind == VarKind.String && op == OperatorKind.Addition)
                 {
-                    rightSide = new CastExpression(scope, VarKind.String, rightSide);
+                    rightSide = new CastExpression(scope, VarType.Find(VarKind.String), rightSide);
                 }
                 else
                 {
@@ -1193,7 +1197,7 @@ namespace Phantasma.Tomb.Compiler
                         if (varDecl != null)
                         {
                             // TODO this code is duplicated, copypasted from other method above, refactor this later...
-                            switch (varDecl.Kind)
+                            switch (varDecl.Type.Kind)
                             {
                                 case VarKind.Storage_Map:
                                     {
@@ -1220,7 +1224,7 @@ namespace Phantasma.Tomb.Compiler
                                     }
 
                                 default:
-                                    throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Kind} instead");
+                                    throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
                             }
                         }
                         else
@@ -1300,7 +1304,7 @@ namespace Phantasma.Tomb.Compiler
 
                     if (i == 0 && implicitArg != null)
                     {
-                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarKind.String);
+                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarType.Find(VarKind.String));
                     }
                     else
                     {
@@ -1326,7 +1330,7 @@ namespace Phantasma.Tomb.Compiler
 
                     if (i == 0 && implicitArg != null)
                     {
-                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarKind.String);
+                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarType.Find(VarKind.String));
                     }
                     else
                     {
@@ -1335,8 +1339,8 @@ namespace Phantasma.Tomb.Compiler
 
                     expr.arguments.Add(arg);
 
-                    var expectedType = expr.method.Parameters[i].Kind;
-                    if (arg.ResultType != expectedType && expectedType != VarKind.Any)
+                    var expectedType = expr.method.Parameters[i].Type;
+                    if (arg.ResultType != expectedType && expectedType.Kind != VarKind.Any)
                     {
                         throw new CompilerException($"expected argument of type {expectedType}, got {arg.ResultType} instead");
                     }                   

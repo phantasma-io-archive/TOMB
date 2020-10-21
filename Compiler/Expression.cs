@@ -9,7 +9,7 @@ namespace Phantasma.Tomb.Compiler
 {
     public abstract class Expression :Node
     {
-        public abstract VarKind ResultType { get; }
+        public abstract VarType ResultType { get; }
         public Scope ParentScope { get; }
 
         public Expression(Scope parentScope) : base()
@@ -28,7 +28,7 @@ namespace Phantasma.Tomb.Compiler
     public class NegationExpression : Expression
     {
         public Expression expr;
-        public override VarKind ResultType => VarKind.Bool;
+        public override VarType ResultType => VarType.Find(VarKind.Bool);
 
         public NegationExpression(Scope parentScope, Expression expr) : base(parentScope)
         {
@@ -59,9 +59,9 @@ namespace Phantasma.Tomb.Compiler
     {
         public Expression expr;
 
-        public override VarKind ResultType { get; }
+        public override VarType ResultType { get; }
 
-        public CastExpression(Scope parentScope, VarKind resultType, Expression expr) : base(parentScope)
+        public CastExpression(Scope parentScope, VarType resultType, Expression expr) : base(parentScope)
         {
             this.expr = expr;
             this.ResultType = resultType;
@@ -94,7 +94,7 @@ namespace Phantasma.Tomb.Compiler
         private Expression left;
         private Expression right;
 
-        public override VarKind ResultType => op.IsLogicalOperator() ? VarKind.Bool : left.ResultType;
+        public override VarType ResultType => op.IsLogicalOperator() ? VarType.Find(VarKind.Bool) : left.ResultType;
 
         public BinaryExpression(Scope parentScope, OperatorKind op, Expression leftSide, Expression rightSide) : base(parentScope)
         {
@@ -110,7 +110,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override string AsStringLiteral()
         {
-            if (ResultType == VarKind.String && op == OperatorKind.Addition)
+            if (ResultType.Kind == VarKind.String && op == OperatorKind.Addition)
             {
                 return left.AsStringLiteral() + right.AsStringLiteral();
             }
@@ -136,7 +136,7 @@ namespace Phantasma.Tomb.Compiler
             var regRight = right.GenerateCode(output);
             var regResult = Compiler.Instance.AllocRegister(output, this);
 
-            if (this.op == OperatorKind.Addition && left.ResultType == VarKind.String && right.ResultType != VarKind.String)
+            if (this.op == OperatorKind.Addition && left.ResultType.Kind == VarKind.String && right.ResultType.Kind != VarKind.String)
             {
                 output.AppendLine(this, $"CAST {regRight} {regRight} #String");
             }
@@ -186,7 +186,7 @@ namespace Phantasma.Tomb.Compiler
         public MethodInterface method;
         public List<Expression> arguments = new List<Expression>();
 
-        public override VarKind ResultType => method.ReturnType;
+        public override VarType ResultType => method.ReturnType;
 
         public MethodExpression(Scope parentScope) : base(parentScope)
         {
@@ -320,7 +320,7 @@ namespace Phantasma.Tomb.Compiler
                     break;
             }
 
-            if (this.method.ReturnType != VarKind.None && this.method.Implementation != MethodImplementationType.Custom) 
+            if (this.method.ReturnType.Kind != VarKind.None && this.method.Implementation != MethodImplementationType.Custom) 
             {
                 output.AppendLine(this, $"POP {reg}");
             }
@@ -337,12 +337,12 @@ namespace Phantasma.Tomb.Compiler
     public class LiteralExpression : Expression
     {
         public string value;
-        public VarKind kind;
+        public VarType type;
 
-        public LiteralExpression(Scope parentScope, string value, VarKind kind) : base(parentScope)
+        public LiteralExpression(Scope parentScope, string value, VarType type) : base(parentScope)
         {
             this.value = value;
-            this.kind = kind;
+            this.type = type;
         }
 
         public override string ToString()
@@ -352,7 +352,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override string AsStringLiteral()
         {
-            if (this.kind == VarKind.String)
+            if (this.type.Kind == VarKind.String)
             {
                 return this.value;
             }
@@ -366,7 +366,7 @@ namespace Phantasma.Tomb.Compiler
 
             output.AppendLine(this, $"LOAD {reg} {this.value}");
 
-            this.CallNecessaryConstructors(output, kind, reg);
+            this.CallNecessaryConstructors(output, type, reg);
 
             return reg;
         }
@@ -381,7 +381,7 @@ namespace Phantasma.Tomb.Compiler
             return (node == this);
         }
 
-        public override VarKind ResultType => kind;
+        public override VarType ResultType => type;
     }
 
     public class MacroExpression : Expression
@@ -421,7 +421,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         var addr = SmartContract.GetAddressForName(scope.Root.Name);
                         var hex = Base16.Encode(addr.ToByteArray());
-                        return new LiteralExpression(scope, "0x"+hex, VarKind.Address);
+                        return new LiteralExpression(scope, "0x"+hex, VarType.Find(VarKind.Address));
                     }
 
                 default:
@@ -429,7 +429,7 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
-        public override VarKind ResultType => VarKind.Unknown;
+        public override VarType ResultType => VarType.Find(VarKind.Unknown);
     }
 
     public class VarExpression : Expression
@@ -469,7 +469,7 @@ namespace Phantasma.Tomb.Compiler
             return (node == this) || node == decl;
         }
 
-        public override VarKind ResultType => decl.Kind;
+        public override VarType ResultType => decl.Type;
     }
 
     public class ConstExpression : Expression
@@ -488,7 +488,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override string AsStringLiteral()
         {
-            if (decl.Kind == VarKind.String)
+            if (decl.Type.Kind == VarKind.String)
             {
                 return decl.Value;
             }
@@ -500,7 +500,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var reg = Compiler.Instance.AllocRegister(output, this, decl.Name);
             output.AppendLine(this, $"LOAD {reg} {decl.Value}");
-            this.CallNecessaryConstructors(output, decl.Kind, reg);
+            this.CallNecessaryConstructors(output, decl.Type, reg);
             return reg;
         }
 
@@ -515,7 +515,7 @@ namespace Phantasma.Tomb.Compiler
             return (node == this) || node == decl;
         }
 
-        public override VarKind ResultType => decl.Kind;
+        public override VarType ResultType => decl.Type;
     }
 
 }

@@ -30,7 +30,7 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var entry in parameters)
             {
-                var varDecl = new VarDeclaration(this, entry.Name, entry.Kind, VarStorage.Argument);
+                var varDecl = new VarDeclaration(this, entry.Name, entry.Type, VarStorage.Argument);
                 this.AddVariable( varDecl);
             }
         }

@@ -25,8 +25,14 @@ namespace Phantasma.Tomb.Compiler
 
     public struct StructField
     {
-        public string name;
-        public VarKind kind;
+        public readonly string name;
+        public readonly VarType type;
+
+        public StructField(string name, VarType type)
+        {
+            this.name = name;
+            this.type = type;
+        }
     }
 
     public class StructDeclaration: Declaration
@@ -51,19 +57,19 @@ namespace Phantasma.Tomb.Compiler
 
     public class VarDeclaration : Declaration
     {
-        public VarKind Kind;
+        public VarType Type;
         public VarStorage Storage;
         public Register Register = null;
 
-        public VarDeclaration(Scope parentScope, string name, VarKind kind, VarStorage storage) : base(parentScope, name)
+        public VarDeclaration(Scope parentScope, string name, VarType type, VarStorage storage) : base(parentScope, name)
         {
-            this.Kind = kind;
+            this.Type = type;
             this.Storage = storage;
         }
 
         public override string ToString()
         {
-            return $"var {Name}:{Kind}";
+            return $"var {Name}:{Type}";
         }
 
         public override void Visit(Action<Node> callback)
@@ -79,10 +85,10 @@ namespace Phantasma.Tomb.Compiler
 
     public class MapDeclaration: VarDeclaration
     {
-        public VarKind KeyKind;
-        public VarKind ValueKind;
+        public VarType KeyKind;
+        public VarType ValueKind;
 
-        public MapDeclaration(Scope parentScope, string name, VarKind keyKind, VarKind valKind) : base(parentScope, name, VarKind.Storage_Map, VarStorage.Global)
+        public MapDeclaration(Scope parentScope, string name, VarType keyKind, VarType valKind) : base(parentScope, name, VarType.Find(VarKind.Storage_Map), VarStorage.Global)
         {
             this.KeyKind = keyKind;
             this.ValueKind = valKind;
@@ -91,9 +97,9 @@ namespace Phantasma.Tomb.Compiler
 
     public class ListDeclaration : VarDeclaration
     {
-        public VarKind ValueKind;
+        public VarType ValueKind;
 
-        public ListDeclaration(Scope parentScope, string name, VarKind valKind) : base(parentScope, name, VarKind.Storage_List, VarStorage.Global)
+        public ListDeclaration(Scope parentScope, string name, VarType valKind) : base(parentScope, name, VarType.Find(VarKind.Storage_List), VarStorage.Global)
         {
             this.ValueKind = valKind;
         }
@@ -101,9 +107,9 @@ namespace Phantasma.Tomb.Compiler
 
     public class SetDeclaration : VarDeclaration
     {
-        public VarKind ValueKind;
+        public VarType ValueKind;
 
-        public SetDeclaration(Scope parentScope, string name, VarKind valKind) : base(parentScope, name, VarKind.Storage_Set, VarStorage.Global)
+        public SetDeclaration(Scope parentScope, string name, VarType valKind) : base(parentScope, name, VarType.Find(VarKind.Storage_Set), VarStorage.Global)
         {
             this.ValueKind = valKind;
         }
@@ -111,12 +117,12 @@ namespace Phantasma.Tomb.Compiler
 
     public class ConstDeclaration : Declaration
     {
-        public VarKind Kind;
+        public VarType Type;
         public string Value;
 
-        public ConstDeclaration(Scope parentScope, string name, VarKind kind, string value) : base(parentScope, name)
+        public ConstDeclaration(Scope parentScope, string name, VarType kind, string value) : base(parentScope, name)
         {
-            this.Kind = kind;
+            this.Type = kind;
             this.Value = value;
         }
 
@@ -127,7 +133,7 @@ namespace Phantasma.Tomb.Compiler
 
         public override string ToString()
         {
-            return $"const {Name}:{Kind}";
+            return $"const {Name}:{Type}";
         }
 
         public override void Visit(Action<Node> callback)
@@ -157,7 +163,12 @@ namespace Phantasma.Tomb.Compiler
             // DO NOTHING
         }
 
-        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarKind returnType, MethodParameter[] parameters, string alias = null)
+        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarKind returnKind, MethodParameter[] parameters, string alias = null)
+        {
+            return AddMethod(name, convention, VarType.Find(returnKind), parameters, alias);
+        }
+
+        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarType returnType, MethodParameter[] parameters, string alias = null)
         {
             /*if (name != name.ToLower())
             {
@@ -166,7 +177,7 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var entry in parameters)
             {
-                if (entry.Kind == VarKind.Generic)
+                if (entry.Type.Kind == VarKind.Generic)
                 {
                     IsGeneric = true;
                 }
@@ -222,7 +233,7 @@ namespace Phantasma.Tomb.Compiler
                 
                 foreach (var parameter in method.Parameters)
                 {
-                    var entry = new MethodParameter(parameter.Name, parameter.Kind);
+                    var entry = new MethodParameter(parameter.Name, parameter.Type);
                     entry.Callback = parameter.Callback;
                     parameters.Add(entry);
                 }
@@ -238,7 +249,7 @@ namespace Phantasma.Tomb.Compiler
             return result;
         }
 
-        public void PatchParam(string name, VarKind kind)
+        public void PatchParam(string name, VarType kind)
         {
             foreach (var method in methods.Values)
             {
@@ -304,7 +315,7 @@ namespace Phantasma.Tomb.Compiler
     {
         public readonly Scope scope;
         public readonly byte value;
-        public readonly VarKind returnType;
+        public readonly VarType returnType;
         public readonly byte[] descriptionScript;
 
         struct StringToken
@@ -324,7 +335,7 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
-        public EventDeclaration(Scope scope, string name, byte value, VarKind returnType, byte[] description) : base(scope.Parent, name)
+        public EventDeclaration(Scope scope, string name, byte value, VarType returnType, byte[] description) : base(scope.Parent, name)
         {
             this.scope = scope;
             this.value = value;
@@ -445,6 +456,45 @@ namespace Phantasma.Tomb.Compiler
             // do nothing
         }
 
+        private VMObject GenerateTestObject(VarType type)
+        {
+            VMObject obj;
+
+            switch (type.Kind)
+            {
+                case VarKind.Number:
+                    obj = VMObject.FromObject(new BigInteger(123));
+                    break;
+
+                case VarKind.String:
+                    obj = VMObject.FromObject("test");
+                    break;
+
+                case VarKind.Bool:
+                    obj = VMObject.FromObject(true);
+                    break;
+
+                case VarKind.Struct:
+                    var fields = new Dictionary<VMObject, VMObject>();
+
+                    var structInfo = type as StructVarType;
+                    foreach (var field in structInfo.decl.fields)
+                    {
+                        fields[VMObject.FromObject(field.name)] = GenerateTestObject(field.type);
+                    }
+
+                    obj = new VMObject();
+                    obj.SetValue(fields);
+                    break;
+
+
+                default:
+                    throw new CompilerException($"Can't initialize test object with type: {type}");
+            }
+
+            return obj;
+        }
+
         public void Validate()
         {
             try
@@ -453,15 +503,36 @@ namespace Phantasma.Tomb.Compiler
                 {
                     return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
                 });
-                vm.Stack.Push(VMObject.FromObject(new BigInteger(123)));
-                vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
-                vm.Execute();
 
-                var result = vm.Stack.Pop();
+
+                var obj = GenerateTestObject(this.returnType);
+                vm.Stack.Push(obj);
+                vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
+                vm.ThrowOnFault = true;
+                var state = vm.Execute();
+
+                if (state != ExecutionState.Halt)
+                {
+                    throw new CompilerException("description script did not execute correctly");
+                }
+
+                if (vm.Stack.Count > 0)
+                {
+                    var result = vm.Stack.Pop();
+                }
+                else
+                {
+                    throw new CompilerException("description script did not return a result");
+                }
             }
             catch (Exception e)
             {
-                throw new CompilerException("Error validating description script");
+                if (e is CompilerException)
+                {
+                    throw e;
+                }
+
+                throw new CompilerException($"Error validating description script. {e.Message}");
             }
         }
 
@@ -544,7 +615,7 @@ namespace Phantasma.Tomb.Compiler
 
                 //var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
-                VM.VMType vmType = MethodInterface.ConvertType(variable.Kind);
+                VM.VMType vmType = MethodInterface.ConvertType(variable.Type);
 
                 output.AppendLine(this, $"// reading global: {variable.Name}");
                 output.AppendLine(this, $"LOAD r0 {(int)vmType}");
@@ -554,7 +625,7 @@ namespace Phantasma.Tomb.Compiler
                 output.AppendLine(this, $"PUSH {tempReg2}");
                 output.AppendLine(this, $"EXTCALL {tempReg1}");
                 output.AppendLine(this, $"POP {reg}");
-                variable.CallNecessaryConstructors(output, variable.Kind, reg);
+                variable.CallNecessaryConstructors(output, variable.Type, reg);
             }
 
             Compiler.Instance.DeallocRegister(ref tempReg1);
@@ -569,7 +640,7 @@ namespace Phantasma.Tomb.Compiler
 
                 variable.Register = Compiler.Instance.AllocRegister(output, variable, variable.Name);
                 output.AppendLine(this, $"POP {variable.Register}");
-                variable.CallNecessaryConstructors(output, variable.Kind, variable.Register);
+                variable.CallNecessaryConstructors(output, variable.Type, variable.Register);
             }
 
             this.scope.Enter(output);
@@ -595,10 +666,8 @@ namespace Phantasma.Tomb.Compiler
                 }
 
                 if (variable.Register == null)
-                {
-                    var isGeneric = variable.Kind == VarKind.Storage_Map || variable.Kind == VarKind.Storage_List || variable.Kind == VarKind.Storage_Set;
-
-                    if (isConstructor && !isGeneric)
+                {                    
+                    if (isConstructor && !variable.Type.IsGeneric)
                     {
                         throw new CompilerException("global variable not assigned in constructor: " + variable.Name);
                     }
@@ -662,7 +731,7 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var entry in this.@interface.Parameters)
             {
-                temp.Add(new ContractParameter(entry.Name, MethodInterface.ConvertType(entry.Kind)));
+                temp.Add(new ContractParameter(entry.Name, MethodInterface.ConvertType(entry.Type)));
             }
 
             return new ContractMethod(this.Name, MethodInterface.ConvertType(this.@interface.ReturnType), -1, temp.ToArray());

@@ -35,7 +35,7 @@ namespace Phantasma.Tomb.Compiler
                             parameters.Append(", ");
                         }
 
-                        parameters.Append(entry.Name + ":" + entry.Kind + "");
+                        parameters.Append(entry.Name + ":" + entry.Type + "");
                     }
 
                     sb.AppendLine($"| {libraryName}.{method.Name}({parameters}) | {method.ReturnType} | TODO|");

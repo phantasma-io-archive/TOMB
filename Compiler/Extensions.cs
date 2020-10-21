@@ -17,6 +17,11 @@
             return op != OperatorKind.Unknown && op < OperatorKind.Addition;
         }
 
+        public static void CallNecessaryConstructors(this Node node, CodeGenerator output, VarType type, Register reg)
+        {
+            CallNecessaryConstructors(node, output, type.Kind, reg);
+        }
+
         public static void CallNecessaryConstructors(this Node node, CodeGenerator output, VarKind kind, Register reg)
         {
             switch (kind)

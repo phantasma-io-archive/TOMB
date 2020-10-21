@@ -93,7 +93,7 @@ namespace Phantasma.Tomb.Compiler
             return abi;
         }
 
-        public MethodInterface AddMethod(int line, string name, bool isPublic, MethodKind kind, VarKind returnType, MethodParameter[] parameters, Scope scope)
+        public MethodInterface AddMethod(int line, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, Scope scope)
         {
             if (Methods.Count == 0)
             {

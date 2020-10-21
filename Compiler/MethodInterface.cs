@@ -6,19 +6,23 @@ namespace Phantasma.Tomb.Compiler
     public class MethodParameter: Node
     {
         public string Name { get; private set; }
-        public VarKind Kind { get; internal set; }
+        public VarType Type { get; internal set; }
 
         public Func<CodeGenerator, Scope, Expression, Register> Callback;
 
-        public MethodParameter(string name, VarKind kind)
+        public MethodParameter(string name, VarType type)
         {
             Name = name;
-            Kind = kind;
+            Type = type;
+        }
+
+        public MethodParameter(string name, VarKind kind) : this(name, VarType.Find(kind))
+        {
         }
 
         public override string ToString()
         {
-            return $"{Name}:{Kind}";
+            return $"{Name}:{Type}";
         }
 
         public override void Visit(Action<Node> callback)
@@ -50,7 +54,7 @@ namespace Phantasma.Tomb.Compiler
         public string Name;
         public LibraryDeclaration Library;
         public MethodKind Kind;
-        public VarKind ReturnType;
+        public VarType ReturnType;
         public MethodParameter[] Parameters;
         public bool IsPublic;
         public string Alias;
@@ -62,7 +66,7 @@ namespace Phantasma.Tomb.Compiler
         public int StartAsmLine;
         public int EndAsmLine;
 
-        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarKind returnType, MethodParameter[] parameters, string alias = null) 
+        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, string alias = null) 
         {
             this.Name = name;
             this.Library = library;
@@ -133,21 +137,26 @@ namespace Phantasma.Tomb.Compiler
             throw new Exception($"method {this.Library.Name}.{this.Name} contains no parameter called {name}");
         }
 
-        public void PatchParam(string name, VarKind kind)
+        public void PatchParam(string name, VarType kind)
         {
             foreach (var arg in Parameters)
             {
                 if (arg.Name == name)
                 {
-                    if (arg.Kind != VarKind.Generic)
+                    if (arg.Type.Kind != VarKind.Generic)
                     {
                         throw new Exception($"Expected parameter {arg.Name} to be patchable as generic");
                     }
 
-                    arg.Kind = kind;
+                    arg.Type = kind;
                     break;
                 }
             }
+        }
+
+        public static VMType ConvertType(VarType type)
+        {
+            return ConvertType(type.Kind);
         }
 
         public static VMType ConvertType(VarKind kind)
