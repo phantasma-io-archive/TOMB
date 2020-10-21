@@ -12,15 +12,24 @@ namespace Phantasma.Tomb.Compiler
     public abstract class Module: Node
     {
         public readonly string Name;
+
+        public readonly bool Hidden;
         public Scope Scope { get; }
 
         public readonly Dictionary<string, LibraryDeclaration> Libraries = new Dictionary<string, LibraryDeclaration>();
 
         public readonly LibraryDeclaration library;
 
-        public Module(string name)
+        // only available after compilation
+        public byte[] script { get; private set; }
+        public string asm { get; private set; }
+        public ContractInterface abi { get; private set; }
+        public DebugInfo debugInfo { get; private set; }
+
+        public Module(string name, bool hidden)
         {
             this.Name = name;
+            this.Hidden = hidden;
             this.Scope = new Scope(this);
             this.library = new LibraryDeclaration(Scope, "this");
             this.Libraries[library.Name] = library;
@@ -251,7 +260,7 @@ namespace Phantasma.Tomb.Compiler
             // do nothing
         }
 
-        public void Compile(string fileName, out byte[] script, out string asm, out ContractInterface abi, out DebugInfo debugInfo)
+        public void Compile()
         {
             var sb = new CodeGenerator();
             abi = this.GenerateCode(sb);
@@ -261,11 +270,13 @@ namespace Phantasma.Tomb.Compiler
             asm = sb.ToString();
 
             var lines = asm.Split('\n');
-            script = AssemblerUtils.BuildScript(lines, fileName, out debugInfo);
+            DebugInfo temp;
+            script = AssemblerUtils.BuildScript(lines, this.Name, out temp);
+            this.debugInfo = temp;
 
-            lines = AssemblerUtils.CommentOffsets(lines, debugInfo).ToArray();
+            lines = AssemblerUtils.CommentOffsets(lines, this.debugInfo).ToArray();
 
-            ProcessABI(abi, debugInfo);
+            ProcessABI(abi, this.debugInfo);
 
             asm = string.Join('\n', lines);
         }

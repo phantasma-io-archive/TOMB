@@ -138,11 +138,6 @@ namespace Phantasma.Tomb.Compiler
             CodeGenerator.currentScope = this;
 
             Console.WriteLine("entering " + this.Name);
-
-            /*foreach (var variable in this.Variables.Values)
-            {
-                variable.Register = Parser.Instance.AllocRegister(output, variable, variable.Name);
-            }*/
         }
 
         public void Leave(CodeGenerator output)

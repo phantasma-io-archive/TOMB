@@ -7,6 +7,7 @@ using Phantasma.VM;
 using Phantasma.VM.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Tests
 {
@@ -184,13 +185,7 @@ namespace Tests
             "}}\n";
 
             var parser = new Parser();
-            var contract = parser.Parse(sourceCode);
-
-            string asm;
-            ContractInterface abi;
-            byte[] script;
-            DebugInfo debugInfo;
-            contract.Compile("test", out script, out asm, out abi, out debugInfo);
+            var contract = parser.ParseAndCompile(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 
@@ -201,7 +196,7 @@ namespace Tests
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);*/
 
-            vm = new TestVM(script, storage);
+            vm = new TestVM(contract.script, storage);
             vm.Stack.Push(VMObject.FromObject("increment"));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);

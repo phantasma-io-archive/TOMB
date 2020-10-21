@@ -12,7 +12,7 @@ namespace Phantasma.Tomb.Compiler
         public readonly Dictionary<string, EventDeclaration> Events = new Dictionary<string, EventDeclaration>();
 
 
-        public Contract(string name) : base(name)
+        public Contract(string name) : base(name, false)
         {
         }
 
@@ -59,6 +59,11 @@ namespace Phantasma.Tomb.Compiler
 
         public override ContractInterface GenerateCode(CodeGenerator output)
         {
+            foreach (var evt in Events.Values)
+            {
+                evt.Validate();
+            }
+
             this.Scope.Enter(output);
 
             /*{

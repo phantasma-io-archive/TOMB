@@ -17,6 +17,7 @@ TOMB smart contract compiler for Phantasma platform
 - While ... and Do ... While loops
 - Throw Exceptions
 - Uninitialized globals validation
+- Custom events
 - Interop and Contract calls
 - Inline asm
 - Import libraries (Runtime, Leaderboard, Token, etc)
@@ -257,6 +258,47 @@ contract test {
 	}
 }
 ```
+
+Showcases how a contract can declare and emit custom events.
+
+```c#
+contract test {
+	event MyPayment:number = "{address} paid {data}"; // here we use a short-form description
+	
+	method paySomething(from:address, x:number)
+	{		
+		Runtime.expect(Runtime.isWitness(from), "witness failed");
+
+		local price: number := 10;
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(from, thisAddr, "SOUL", price);
+		
+		emit MyPayment(from, price);
+	}
+}
+```
+
+A more complex version of the previous example, showcasing custom description scripts.
+
+```c#
+description payment_event {
+
+	code(from:address, amount:number): string {
+		local result:string := "";
+		result += from;
+		result += " paid ";
+		result += amount;
+		return result;
+	}
+}
+
+contract test {
+	event MyPayment:number = payment_event; // here we use a short-form declaration
+
+	// everything else would be same as previous example
+}
+```
+
 
 A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
 This example showcases a simple script with one argument, that calls a contract.<br/>

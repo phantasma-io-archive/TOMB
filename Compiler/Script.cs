@@ -1,13 +1,6 @@
-﻿using Phantasma.Blockchain.Contracts;
-using Phantasma.CodeGen.Assembler;
-using Phantasma.CodeGen.Core.Nodes;
-using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.VM;
+﻿using Phantasma.Domain;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -18,7 +11,7 @@ namespace Phantasma.Tomb.Compiler
         public MethodParameter[] Parameters { get; internal set; }
         public VarKind ReturnType;
 
-        public Script(string name) : base(name)
+        public Script(string name, bool hidden) : base(name, hidden)
         {
 
         }
@@ -58,22 +51,24 @@ namespace Phantasma.Tomb.Compiler
         {
             this.Scope.Enter(output);
 
-            var paramRegs = new Dictionary<MethodParameter, Register>();
+            this.main.ParentScope.Enter(output);
 
             foreach (var parameter in this.Parameters)
             {
                 var reg = Parser.Instance.AllocRegister(output, this, parameter.Name);
                 output.AppendLine(this, $"POP {reg}");
-                paramRegs[parameter] = reg;
+
+                if (!this.main.ParentScope.Variables.ContainsKey(parameter.Name))
+                {
+                    throw new CompilerException("script parameter not initialized: " + parameter.Name);
+                }
+
+                var varDecl = this.main.ParentScope.Variables[parameter.Name];
+                varDecl.Register = reg;
             }
 
             this.main.GenerateCode(output);
-
-            foreach (var reg in paramRegs.Values)
-            {
-                var temp = reg;
-                Parser.Instance.DeallocRegister(ref temp);
-            }
+            this.main.ParentScope.Leave(output);
 
             if (ReturnType == VarKind.None)
             {

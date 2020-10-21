@@ -134,7 +134,22 @@ namespace Phantasma.Tomb.Compiler
             return lines[index - 1];
         }
 
-        public Module[] Parse(string sourceCode)
+        private List<Module> _modules = new List<Module>();
+
+        private Module FindModule(string name)
+        {
+            foreach (var entry in _modules)
+            {
+                if (entry.Name == name)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        public Module[] ParseAndCompile(string sourceCode)
         {
             this.tokens = Lexer.Process(sourceCode);
 
@@ -145,10 +160,12 @@ namespace Phantasma.Tomb.Compiler
 
             this.lines = sourceCode.Replace("\r", "").Split('\n');
 
-            var modules = new List<Module>();
+            _modules.Clear();
             while (HasTokens())
             {
                 var firstToken = FetchToken();
+
+                Module module;
 
                 switch (firstToken.value)
                 {
@@ -156,35 +173,35 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var contractName = ExpectIdentifier();
 
-                            var contractBlock = new Contract(contractName);
+                            module = new Contract(contractName);
                             ExpectToken("{");
-                            ParseModule(contractBlock);
+                            ParseModule(module);
                             ExpectToken("}");
-
-                            modules.Add(contractBlock);
                             break;
                         }
 
                     case "script":
+                    case "description":
                         {
                             var scriptName = ExpectIdentifier();
 
-                            var scriptBlock = new Script(scriptName);
+                            module = new Script(scriptName, firstToken.value == "description");
 
                             ExpectToken("{");
-                            ParseModule(scriptBlock);
+                            ParseModule(module);
                             ExpectToken("}");
-
-                            modules.Add(scriptBlock);
                             break;
                         }
 
                     default:
                         throw new CompilerException("Unexpected token: " + firstToken.value);
                 }
+
+                module.Compile();
+                _modules.Add(module);
             }
 
-            return modules.ToArray();
+            return _modules.ToArray();
         }
 
         private void ParseModule(Module module)
@@ -326,9 +343,26 @@ namespace Phantasma.Tomb.Compiler
                                         description = Base16.Decode(temp.value);
                                         break;
 
-                                    /*case TokenKind.Identifier:
-                                        description = Base16.Decode(temp.value);
-                                        break;*/
+                                    case TokenKind.Identifier:
+                                        {
+                                            var descModule = FindModule(temp.value);
+                                            if (descModule != null)
+                                            {
+                                                if (descModule.script != null)
+                                                {
+                                                    description = descModule.script;
+                                                }
+                                                else
+                                                {
+                                                    throw new CompilerException($"description module not ready: {temp.value}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                throw new CompilerException($"description module not found: {temp.value}");
+                                            }
+                                            break;
+                                        }
 
                                     default:
                                         throw new CompilerException($"expected valid event description, got {temp.kind} instead");
@@ -495,7 +529,9 @@ namespace Phantasma.Tomb.Compiler
                             var script = module as Script;
                             if (script != null)
                             {
+                                var blockName = "main";
                                 script.Parameters = ParseParameters(module.Scope);
+                                var scope = new Scope(module.Scope, blockName, script.Parameters);
 
                                 script.ReturnType = VarKind.None;
 
@@ -509,10 +545,10 @@ namespace Phantasma.Tomb.Compiler
                                     Rewind();
                                 }
 
-                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, "main", true, MethodKind.Method, script.ReturnType, new MethodParameter[0]);
+                                var method = new MethodInterface(script.library, MethodImplementationType.Custom, blockName, true, MethodKind.Method, script.ReturnType, new MethodParameter[0]);
 
                                 ExpectToken("{");
-                                script.main = ParseCommandBlock(script.Scope, method);
+                                script.main = ParseCommandBlock(scope, method);
                                 ExpectToken("}");
 
                                 break;

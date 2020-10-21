@@ -278,7 +278,7 @@ namespace Phantasma.Tomb.Compiler
         public readonly Scope scope;
         public readonly byte value;
         public readonly VarKind returnType;
-        public readonly byte[] description;
+        public readonly byte[] descriptionScript;
 
         struct StringToken
         {
@@ -302,7 +302,7 @@ namespace Phantasma.Tomb.Compiler
             this.scope = scope;
             this.value = value;
             this.returnType = returnType;
-            this.description = description;
+            this.descriptionScript = description;
 
         }
 
@@ -399,23 +399,6 @@ namespace Phantasma.Tomb.Compiler
             var asm = sb.ToString();
             var script = AssemblerUtils.BuildScript(asm);
 
-            try
-            {
-                var vm = new DescriptionVM(script, (symbol) =>
-                {
-                    return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
-                });
-                vm.Stack.Push(VMObject.FromObject(new BigInteger(123)));
-                vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
-                vm.Execute();
-
-                var result = vm.Stack.Pop();
-            }
-            catch (Exception e)
-            {
-                throw new CompilerException("Error validating description script");
-            }
-
 
             return script;
         }
@@ -435,10 +418,30 @@ namespace Phantasma.Tomb.Compiler
             // do nothing
         }
 
+        public void Validate()
+        {
+            try
+            {
+                var vm = new DescriptionVM(this.descriptionScript, (symbol) =>
+                {
+                    return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
+                });
+                vm.Stack.Push(VMObject.FromObject(new BigInteger(123)));
+                vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
+                vm.Execute();
+
+                var result = vm.Stack.Pop();
+            }
+            catch (Exception e)
+            {
+                throw new CompilerException("Error validating description script");
+            }
+        }
+
         internal ContractEvent GetABI()
         {
             var type = MethodInterface.ConvertType(this.returnType);
-            return new ContractEvent(this.value, this.Name, type, description);
+            return new ContractEvent(this.value, this.Name, type, descriptionScript);
         }
     }
 

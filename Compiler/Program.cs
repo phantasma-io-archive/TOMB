@@ -1,4 +1,4 @@
-using Phantasma.Domain;
+﻿using Phantasma.Domain;
 using Phantasma.VM;
 using System;
 using System.IO;
@@ -50,42 +50,45 @@ namespace Phantasma.Tomb.Compiler
         {
             ExportLibraryInfo();
 
-            var sourceFile = args.Length > 0 ? args[0] : "startup.txt"; // "katacomb.txt";
+            var sourceFilePath = args.Length > 0 ? args[0] : "katacomb.txt";
 
-            if (!File.Exists(sourceFile))
+            if (!File.Exists(sourceFilePath))
             {
-                Console.WriteLine("File not found:" + sourceFile);
+                Console.WriteLine("File not found:" + sourceFilePath);
                 return;
             }
 
-            var sourceCode = File.ReadAllText(sourceFile);
+            var sourceCode = File.ReadAllText(sourceFilePath);
 
-            Console.WriteLine("Parsing " + sourceFile);
+            Console.WriteLine("Compiling " + sourceFilePath);
             var parser = new Parser();
-            var modules = parser.Parse(sourceCode);
-            Console.WriteLine($"Found {modules.Length} compilation modules");
+            var modules = parser.ParseAndCompile(sourceCode);
 
             foreach (var module in modules)
             {
-                Console.WriteLine("Compiling " + module.Name);
-                string asm;
-                ContractInterface abi;
-                byte[] script;
-                DebugInfo debugInfo;
-                module.Compile(sourceFile, out script, out asm, out abi, out debugInfo);
-
-
-                File.WriteAllText(module.Name + ".asm", asm);
-                File.WriteAllBytes(module.Name + ".script", script);
-
-                if (debugInfo != null)
+                if (module.Hidden)
                 {
-                    File.WriteAllText(module.Name + ".debug", debugInfo.ToJSON());
+                    continue;
                 }
 
-                if (abi != null)
+                if (module.asm != null)
                 {
-                    File.WriteAllBytes(module.Name + ".abi", abi.ToByteArray());
+                    File.WriteAllText(module.Name + ".asm", module.asm);
+                }
+
+                if (module.script != null)
+                {
+                    File.WriteAllBytes(module.Name + ".script", module.script);
+                }
+
+                if (module.debugInfo != null)
+                {
+                    File.WriteAllText(module.Name + ".debug", module.debugInfo.ToJSON());
+                }
+
+                if (module.abi != null)
+                {
+                    File.WriteAllBytes(module.Name + ".abi", module.abi.ToByteArray());
                 }
 
             }
