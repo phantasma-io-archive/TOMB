@@ -274,7 +274,11 @@ namespace Phantasma.Tomb.Compiler
         }
     }
 
-    public class WhileStatement : Statement
+    public abstract class LoopStatement: Statement
+    {
+    }
+
+    public class WhileStatement : LoopStatement
     {
         public Expression condition;
         public StatementBlock body;
@@ -303,26 +307,28 @@ namespace Phantasma.Tomb.Compiler
 
         public override void GenerateCode(CodeGenerator output)
         {
-            output.AppendLine(this, $"@loop_{this.NodeID}: NOP");
+            Compiler.Instance.PushLoop(this);
+
+            output.AppendLine(this, $"@loop_start_{this.NodeID}: NOP");
 
             var reg = condition.GenerateCode(output);
 
             this.Scope.Enter(output);
 
-            output.AppendLine(this, $"JMPNOT {reg} @break_{this.NodeID}");
+            output.AppendLine(this, $"JMPNOT {reg} @loop_end_{this.NodeID}");
             body.GenerateCode(output);
 
-            output.AppendLine(this, $"JMP @loop_{this.NodeID}");
-            output.AppendLine(this, $"@break_{this.NodeID}: NOP");
+            output.AppendLine(this, $"JMP @loop_start_{this.NodeID}");
+            output.AppendLine(this, $"@loop_end_{this.NodeID}: NOP");
 
             this.Scope.Leave(output);
 
             Compiler.Instance.DeallocRegister(ref reg);
-
+            Compiler.Instance.PopLoop(this);
         }
     }
 
-    public class DoWhileStatement : Statement
+    public class DoWhileStatement : LoopStatement
     {
         public Expression condition;
         public StatementBlock body;
@@ -351,19 +357,77 @@ namespace Phantasma.Tomb.Compiler
 
         public override void GenerateCode(CodeGenerator output)
         {
-            output.AppendLine(this, $"@loop_{this.NodeID}: NOP");
+            Compiler.Instance.PushLoop(this);
+
+            output.AppendLine(this, $"@loop_start_{this.NodeID}: NOP");
 
             this.Scope.Enter(output);
 
             body.GenerateCode(output);
 
             var reg = condition.GenerateCode(output);
-            output.AppendLine(this, $"JMPIF {reg} @loop_{this.NodeID}");
+            output.AppendLine(this, $"JMPIF {reg} @loop_start_{this.NodeID}");
+
+            output.AppendLine(this, $"@loop_end_{this.NodeID}: NOP");
 
             this.Scope.Leave(output);
 
             Compiler.Instance.DeallocRegister(ref reg);
+            Compiler.Instance.PopLoop(this);
+        }
+    }
 
+    public class BreakStatement : Statement
+    {
+        public BreakStatement()
+        {
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this);
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+
+        public override void GenerateCode(CodeGenerator output)
+        {
+            if (Compiler.Instance.CurrentLoop == null)
+            {
+                throw new CompilerException("not inside a loop");
+            }
+
+            output.AppendLine(this, $"JMP @loop_end_{ Compiler.Instance.CurrentLoop.NodeID}");
+        }
+    }
+
+    public class ContinueStatement : Statement
+    {
+        public ContinueStatement()
+        {
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this);
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+        }
+
+        public override void GenerateCode(CodeGenerator output)
+        {
+            if (Compiler.Instance.CurrentLoop == null)
+            {
+                throw new CompilerException("not inside a loop");
+            }
+
+            output.AppendLine(this, $"JMP @loop_start_{ Compiler.Instance.CurrentLoop.NodeID}");
         }
     }
 

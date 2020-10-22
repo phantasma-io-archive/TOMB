@@ -932,6 +932,23 @@ namespace Phantasma.Tomb.Compiler
                             block.Commands.Add(whileCommand);
                             break;
                         }
+
+                    case "break":
+                        {
+                            ExpectToken(";");
+
+                            block.Commands.Add(new BreakStatement());
+                            break;
+                        }
+
+                    case "continue":
+                        {
+                            ExpectToken(";");
+
+                            block.Commands.Add(new ContinueStatement());
+                            break;
+                        }
+
                     default:
                         if (token.kind == TokenKind.Identifier)
                         {
@@ -1505,5 +1522,23 @@ namespace Phantasma.Tomb.Compiler
             }            
         }
 
+        public LoopStatement CurrentLoop { get; private set; }
+        private Stack<LoopStatement> _loops = new Stack<LoopStatement>();
+        public void PushLoop(LoopStatement loop)
+        {
+            _loops.Push(loop);
+            CurrentLoop = loop;
+        }
+
+        public void PopLoop(LoopStatement loop)
+        {
+            if (CurrentLoop != loop)
+            {
+                throw new CompilerException("error popping loop node");
+            }
+
+            _loops.Pop();
+            CurrentLoop = _loops.Count > 0 ? _loops.Peek() : null;
+        }
     }
 }

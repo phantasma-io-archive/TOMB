@@ -15,6 +15,7 @@ TOMB smart contract compiler for Phantasma platform
 - Generics (Maps and lists)
 - If ... Else
 - While ... and Do ... While loops
+- Break and Continue
 - Throw Exceptions
 - Uninitialized globals validation
 - Custom events
@@ -46,7 +47,7 @@ Different data types are recognized by the compiler.
 | String  | "hello"  |
 | Timestamp  | no literal support, use either Runtime.time or Utils.unixTime  |
 | Byte array  | 0xFAFAFA2423424 |
-| Address | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA |
+| Address | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA or @null|
 | Hash  | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |
 | Compiler macro   | $SOMETHING |
 
