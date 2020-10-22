@@ -131,14 +131,14 @@ namespace Phantasma.Tomb.Compiler
 
         public override Register GenerateCode(CodeGenerator output)
         {
+            if (this.op == OperatorKind.Addition && left.ResultType.Kind == VarKind.String && right.ResultType.Kind != VarKind.String)
+            {
+                this.right = new CastExpression(this.ParentScope, VarType.Find(VarKind.String), right);
+            }
+
             var regLeft = left.GenerateCode(output);
             var regRight = right.GenerateCode(output);
             var regResult = Compiler.Instance.AllocRegister(output, this);
-
-            if (this.op == OperatorKind.Addition && left.ResultType.Kind == VarKind.String && right.ResultType.Kind != VarKind.String)
-            {
-                output.AppendLine(this, $"CAST {regRight} {regRight} #String");
-            }
 
             Opcode opcode;
             switch (this.op)
