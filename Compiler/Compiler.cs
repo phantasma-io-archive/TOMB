@@ -424,7 +424,7 @@ namespace Phantasma.Tomb.Compiler
                                 switch (temp.kind)
                                 {
                                     case TokenKind.String:
-                                        description = EventDeclaration.GenerateScriptFromString(temp.value);
+                                        description = EventDeclaration.GenerateScriptFromString(eventType, temp.value);
                                         break;
 
                                     case TokenKind.Bytes:

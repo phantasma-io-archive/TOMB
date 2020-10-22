@@ -345,7 +345,7 @@ namespace Phantasma.Tomb.Compiler
 
         }
 
-        public static byte[] GenerateScriptFromString(string src)
+        public static byte[] GenerateScriptFromString(VarType type, string src)
         {
             src = src.Substring(1, src.Length - 2); // remove "" delimiters
 
@@ -414,7 +414,14 @@ namespace Phantasma.Tomb.Compiler
                     else
                     if (token.value == "data")
                     {
-                        sb.AppendLine($"CAST r3 r1 #String");
+                        if (type.Kind == VarKind.Struct)
+                        {
+                            throw new CompilerException($"struct fields not specified");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"CAST r3 r1 #String");
+                        }
                     }
                     else
                     if (token.value.StartsWith("data."))
