@@ -776,7 +776,7 @@ namespace Phantasma.Tomb.Compiler
                             Rewind();
 
                             Expression expr;
-                            if (token.value != ";")
+                            if (temp.value != ";")
                             {
                                 expr = ExpectExpression(scope);
                             }
