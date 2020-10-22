@@ -217,7 +217,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var contractName = ExpectIdentifier();
 
-                            module = new Contract(contractName);
+                            module = new Contract(contractName, ModuleKind.Contract);
                             ExpectToken("{");
                             ParseModule(module);
                             ExpectToken("}");
@@ -229,7 +229,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var scriptName = ExpectIdentifier();
 
-                            module = new Script(scriptName, firstToken.value == "description");
+                            module = new Script(scriptName, firstToken.value == "description" ? ModuleKind.Description : ModuleKind.Script);
 
                             ExpectToken("{");
                             ParseModule(module);
@@ -254,7 +254,7 @@ namespace Phantasma.Tomb.Compiler
         private void ParseModule(Module module)
         {
             var structLibName = "Struct";
-            module.Libraries[structLibName] = Module.LoadLibrary(structLibName, null, false);
+            module.Libraries[structLibName] = Module.LoadLibrary(structLibName, null, ModuleKind.Script);
             var structLib = module.FindLibrary(structLibName);
 
             foreach (var structInfo in _structs.Values)
@@ -398,8 +398,7 @@ namespace Phantasma.Tomb.Compiler
                             var libName = ExpectIdentifier();
                             ExpectToken(";");
 
-                            var script = module.Scope.Root as Script;
-                            var libDecl = Contract.LoadLibrary(libName, module.Scope, script != null ? script.Hidden: false);
+                            var libDecl = Contract.LoadLibrary(libName, module.Scope, module.Kind);
                             module.Libraries[libName] = libDecl;
 
                             break;
@@ -627,7 +626,7 @@ namespace Phantasma.Tomb.Compiler
                                 var blockName = "main";
                                 script.Parameters = ParseParameters(module.Scope);
 
-                                if (script.Hidden) // if is description
+                                if (module.Kind == ModuleKind.Description) 
                                 {
                                     if (script.Parameters.Length != 2)
                                     {

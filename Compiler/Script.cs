@@ -11,7 +11,7 @@ namespace Phantasma.Tomb.Compiler
         public MethodParameter[] Parameters { get; internal set; }
         public VarType ReturnType;
 
-        public Script(string name, bool hidden) : base(name, hidden)
+        public Script(string name, ModuleKind kind) : base(name, kind)
         {
 
         }

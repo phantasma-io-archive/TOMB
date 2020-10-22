@@ -9,11 +9,21 @@ using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
+    public enum ModuleKind
+    {
+        Contract,
+        Script,
+        Description,
+        Token,
+        Account,
+        Organization
+    }
+
     public abstract class Module: Node
     {
         public readonly string Name;
 
-        public readonly bool Hidden;
+        public readonly ModuleKind Kind;
         public Scope Scope { get; }
 
         public readonly Dictionary<string, LibraryDeclaration> Libraries = new Dictionary<string, LibraryDeclaration>();
@@ -26,10 +36,10 @@ namespace Phantasma.Tomb.Compiler
         public ContractInterface abi { get; private set; }
         public DebugInfo debugInfo { get; private set; }
 
-        public Module(string name, bool hidden)
+        public Module(string name, ModuleKind kind)
         {
             this.Name = name;
-            this.Hidden = hidden;
+            this.Kind = kind;
             this.Scope = new Scope(this);
             this.library = new LibraryDeclaration(Scope, "this");
             this.Libraries[library.Name] = library;
@@ -63,7 +73,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", "Output" };
 
-        public static LibraryDeclaration LoadLibrary(string name, Scope scope, bool isDescription)
+        public static LibraryDeclaration LoadLibrary(string name, Scope scope, ModuleKind moduleKind)
         {
             if (name != name.UppercaseFirst() && name != "this")
             {
@@ -77,7 +87,7 @@ namespace Phantasma.Tomb.Compiler
                 return libDecl;
             }
 
-            if (isDescription)
+            if (moduleKind == ModuleKind.Description)
             {
                 switch (name)
                 {

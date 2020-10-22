@@ -11,7 +11,7 @@ namespace Phantasma.Tomb.Compiler
             var sb = new StringBuilder();
             foreach (var libraryName in Contract.AvailableLibraries)
             {
-                var library = Contract.LoadLibrary(libraryName, null, libraryName == "Output");
+                var library = Contract.LoadLibrary(libraryName, null, libraryName == "Output" ? ModuleKind.Description : ModuleKind.Contract);
 
                 sb.AppendLine("### "+libraryName);
                 sb.AppendLine("| Method | Return type | Description|");
@@ -65,10 +65,10 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var module in modules)
             {
-                if (module.Hidden)
+                /*if (module.Hidden)
                 {
                     continue;
-                }
+                }*/
 
                 if (module.asm != null)
                 {
