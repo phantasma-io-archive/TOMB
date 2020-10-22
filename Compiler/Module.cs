@@ -71,7 +71,9 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", "Output" };
+        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", FormatLibraryName };
+
+        public const string FormatLibraryName = "Format";
 
         public static LibraryDeclaration LoadLibrary(string name, Scope scope, ModuleKind moduleKind)
         {
@@ -91,10 +93,10 @@ namespace Phantasma.Tomb.Compiler
             {
                 switch (name)
                 {
-                    case "Output":
-                        libDecl.AddMethod("decimals", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("value", VarKind.Number), new MethodParameter("symbol", VarKind.String) });
-                        libDecl.AddMethod("symbol", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("symbol", VarKind.String) });
-                        libDecl.AddMethod("account", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("address", VarKind.Address) });
+                    case FormatLibraryName:
+                        libDecl.AddMethod("decimals", MethodImplementationType.ExtCall, VarKind.String, new[] { new MethodParameter("value", VarKind.Number), new MethodParameter("symbol", VarKind.String) });
+                        libDecl.AddMethod("symbol", MethodImplementationType.ExtCall, VarKind.String, new[] { new MethodParameter("symbol", VarKind.String) });
+                        libDecl.AddMethod("account", MethodImplementationType.ExtCall, VarKind.String, new[] { new MethodParameter("address", VarKind.Address) });
                         break;
 
                     default:
