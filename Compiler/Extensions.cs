@@ -36,6 +36,12 @@
                         output.AppendLine(node, $"POP {reg}");
                         break;
                     }
+
+                case VarKind.Struct:
+                    {
+                        output.AppendLine(node, $"UNPACK {reg} {reg}");
+                        break;
+                    }
             }
         }
 

@@ -58,6 +58,8 @@ namespace Phantasma.Tomb.Compiler
                 var reg = Compiler.Instance.AllocRegister(output, this, parameter.Name);
                 output.AppendLine(this, $"POP {reg}");
 
+                this.CallNecessaryConstructors(output, parameter.Type, reg);
+
                 if (!this.main.ParentScope.Variables.ContainsKey(parameter.Name))
                 {
                     throw new CompilerException("script parameter not initialized: " + parameter.Name);
