@@ -6,6 +6,7 @@ using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -485,6 +486,18 @@ namespace Phantasma.Tomb.Compiler
 
                     obj = new VMObject();
                     obj.SetValue(fields);
+
+                    using (var stream = new MemoryStream())
+                    {
+                        using (var writer = new BinaryWriter(stream))
+                        {
+                            obj.SerializeData(writer);
+                        }
+
+                        var bytes = stream.ToArray();
+                        obj.SetValue(bytes);
+                    }
+
                     break;
 
 
