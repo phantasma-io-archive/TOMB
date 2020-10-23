@@ -230,6 +230,17 @@ namespace Phantasma.Tomb.Compiler
                 i++;
                 col++;
 
+                if (insideString)
+                {
+                    sb.Append(ch);
+
+                    if (ch == '"') { 
+                        insideString = false;
+                    }
+
+                    continue;
+                }
+                else
                 if (insideAsm)
                 {
                     if (ch == '}')
@@ -295,16 +306,11 @@ namespace Phantasma.Tomb.Compiler
                 {
                     case '\t':
                     case ' ':
-                        if (insideString)
-                        {
-                            sb.Append(ch);
-                        }
-                        else
                         {
                             lastType = -1;
+                            break;
                         }
 
-                        break;
 
                     case '\r':
                         break;
@@ -324,7 +330,7 @@ namespace Phantasma.Tomb.Compiler
 
                         if (ch == '\"')
                         {
-                            insideString = !insideString;
+                            insideString = true;
                             curType = 0;
                         }
                         else
