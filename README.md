@@ -472,3 +472,54 @@ contract test {
 }
 ```
 
+
+## NFTs
+Showcases how to implement an NFT that holds a certain asset when minted, and releases it when burned (Enjin-style).
+
+```c#
+struct nacho_rom
+{
+	genes:bytes;
+	name:string;
+}
+
+struct nacho_ram
+{
+	experience:number;
+	level:number;
+}
+
+nft luchador<nacho_rom, nacho_ram> {
+	
+	property name: string {
+		return rom.name;
+	}
+
+	property description: string {
+		return "Luchador with level " + ram.level;
+	}
+
+	property imageURL: string {
+		return "https://nacho.men/api/nft_img/"+id;
+	}
+
+	property infoURL: string {
+		return "https://nacho.men/api/nft_info/"+id;
+	}
+
+	const MINT_COST: number = 90000;
+
+	constructor(owner:address)
+	{
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(owner, thisAddr, "SOUL", MINT_COST);
+	}
+	
+	trigger onBurn(from:address) 
+	{
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(thisAddr, owner, "SOUL", MINT_COST);
+	}		
+}
+```
+

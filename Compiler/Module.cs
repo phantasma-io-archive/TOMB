@@ -16,7 +16,8 @@ namespace Phantasma.Tomb.Compiler
         Description,
         Token,
         Account,
-        Organization
+        Organization,
+        NFT,
     }
 
     public abstract class Module: Node

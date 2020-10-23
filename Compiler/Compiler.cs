@@ -224,6 +224,23 @@ namespace Phantasma.Tomb.Compiler
                             break;
                         }
 
+                    case "nft":
+                        {
+                            var nftName = ExpectIdentifier();
+
+                            ExpectToken("<");
+                            var romType = ExpectType();
+                            ExpectToken(",");
+                            var ramType = ExpectType();
+                            ExpectToken(">");
+
+                            module = new NFT(nftName, romType, ramType);
+                            ExpectToken("{");
+                            ParseModule(module);
+                            ExpectToken("}");
+                            break;
+                        }
+
                     case "script":
                     case "description":
                         {
@@ -503,6 +520,58 @@ namespace Phantasma.Tomb.Compiler
                             else
                             {
                                 throw new CompilerException("unexpected token: " + token.value);                                    
+                            }
+
+                        }
+
+                    case "property":
+                        {
+                            var contract = module as Contract;
+                            if (contract != null)
+                            {
+                                var line = this.CurrentLine;
+                                var name = ExpectIdentifier();
+
+                                var parameters = new MethodParameter[0];
+                                var scope = new Scope(module.Scope, name, parameters);
+
+                                ExpectToken(":");
+
+                                var returnType = ExpectType();
+
+                                var method = contract.AddMethod(line, name, true, MethodKind.Property, returnType, parameters, scope);
+
+                                var next = FetchToken();
+                                if (next.value == "=")
+                                {
+
+                                    var literal = ExpectExpression(scope);
+
+                                    if (literal.ResultType != returnType)
+                                    {
+                                        throw new CompilerException($"Expected expression of type {returnType} for property {name}, found {literal.ResultType} instead");
+                                    }
+
+                                    var block = new StatementBlock(scope);
+                                    block.Commands.Add(new ReturnStatement(method, literal));
+                                    contract.SetMethodBody(name, block);
+                                }
+                                else
+                                {
+                                    Rewind();
+
+                                    ExpectToken("{");
+                                    contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                    ExpectToken("}");
+                                }
+
+
+                                contract.library.AddMethod(name, MethodImplementationType.LocalCall, returnType, parameters);
+                                break;
+                            }
+                            else
+                            {
+                                throw new CompilerException("unexpected token: " + token.value);
                             }
 
                         }

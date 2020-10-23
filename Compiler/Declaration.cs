@@ -34,6 +34,10 @@ namespace Phantasma.Tomb.Compiler
             this.name = name;
             this.type = type;
         }
+
+        public StructField(string name, VarKind kind) : this(name, VarType.Find(kind))
+        {
+        }
     }
 
     public class StructDeclaration: Declaration

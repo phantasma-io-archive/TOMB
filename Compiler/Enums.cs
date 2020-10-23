@@ -171,5 +171,6 @@ namespace Phantasma.Tomb.Compiler
         Constructor,
         Task,
         Trigger,
+        Property,
     }
 }
