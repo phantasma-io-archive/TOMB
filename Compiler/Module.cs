@@ -122,7 +122,8 @@ namespace Phantasma.Tomb.Compiler
 
                             var msg = expr.arguments[1].AsStringLiteral();
 
-                            output.AppendLine(expr, $"THROW {msg}");
+                            output.AppendLine(expr, $"LOAD r0 {msg}");
+                            output.AppendLine(expr, $"THROW r0");
 
                             output.AppendLine(expr, $"@expect_{expr.NodeID}: NOP");
                             return reg;

@@ -838,8 +838,14 @@ namespace Phantasma.Tomb.Compiler
 
                     case "throw":
                         {
-                            var msg = ExpectString();
-                            block.Commands.Add(new ThrowStatement(msg));
+                            var expr = ExpectExpression(scope);
+
+                            if (expr.ResultType.Kind != VarKind.String)
+                            {
+                                throw new CompilerException("string expression expected");
+                            }
+
+                            block.Commands.Add(new ThrowStatement(expr));
                             ExpectToken(";");
                             break;
                         }

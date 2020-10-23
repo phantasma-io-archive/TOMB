@@ -191,11 +191,11 @@ namespace Phantasma.Tomb.Compiler
 
     public class ThrowStatement : Statement
     {
-        public readonly string message;
+        public readonly Expression expr;
 
-        public ThrowStatement(string msg) : base()
+        public ThrowStatement(Expression expr) : base()
         {
-            this.message = msg;
+            this.expr = expr;
         }
 
         public override void Visit(Action<Node> callback)
@@ -210,7 +210,9 @@ namespace Phantasma.Tomb.Compiler
 
         public override void GenerateCode(CodeGenerator output)
         {
-            output.AppendLine(this, $"THROW {message}");
+            var reg = expr.GenerateCode(output);
+            output.AppendLine(this, $"THROW {reg}");
+            Compiler.Instance.DeallocRegister(ref reg);
         }
     }
 

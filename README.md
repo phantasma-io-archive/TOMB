@@ -339,6 +339,22 @@ contract test {
 ```
 
 A contract example showcasing triggers.<br/>
+In this example, this account will only accept transfers of KCAL and reject anything else.
+
+```c#
+contract test {
+	
+	trigger onReceive(from:address, symbol:string, amount:number) 
+	{
+		if (symbol != "KCAL") {
+			throw "can't receive asset: " + symbol;
+		}
+		
+		return;
+	}
+}```
+
+Another contract example showcasing triggers.<br/>
 In this example, any asset sent to this account will be auto-converted into SOUL.
 
 ```c#
