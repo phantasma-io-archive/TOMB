@@ -352,7 +352,8 @@ contract test {
 		
 		return;
 	}
-}```
+}
+```
 
 Another contract example showcasing triggers.<br/>
 In this example, any asset sent to this account will be auto-converted into SOUL.
@@ -368,7 +369,8 @@ contract test {
 		
 		return;
 	}
-}```
+}
+```
 
 Yet another contract example showcasing triggers.<br/>
 In this example, a multi-signature account is implemented.
@@ -419,7 +421,8 @@ contract test {
 	{
 		validateSignatures();
 	}
-}```
+}
+```
 
 A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
 This example showcases a simple script with one argument, that calls a contract.<br/>
@@ -434,7 +437,8 @@ script startup {
 		local temp:number := 50000;
 		Call.contract("Stake", "Unstake", target, temp);
 	}
-}```
+}
+```
 
 Inline asm allows to write assembly code that is then inserted and merged into the rest of the code.<br/>
 This feature is useful as an workaround for missing features in the compiler.
@@ -450,5 +454,6 @@ script startup {
 			LOAD $temp "hello"
 		}
 	}
-}```
+}
+```
 
