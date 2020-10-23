@@ -370,6 +370,56 @@ contract test {
 	}
 }```
 
+Yet another contract example showcasing triggers.<br/>
+In this example, a multi-signature account is implemented.
+
+```c#
+contract test {
+
+	global owners: storage_list<address>;
+	
+	constructor(owner:address) 
+	{
+		owners.add(owner);
+	}
+	
+	private validateSignatures() {
+		local index:number := 0;
+		local count:number := owners.count();
+		
+		while (index < count) {
+			local addr:address := owners.get(index);
+			if (!Runtime.isWitness(addr)) {
+				throw "missing signature of "+addr;
+			}
+		}
+	}
+	
+	public isOwner(target:address):bool {
+		local index:number := 0;
+		local count:number := owners.count();
+		
+		while (index < count) {
+			local addr:address := owners.get(index);
+			if (addr == target) {
+				return true;
+			}
+		}
+	
+		return false;
+	}
+	
+	public addOwner(target:address) {
+		Runtime.expect(!isOwner(target), "already is owner");
+		validateSignatures();
+		owners.add(target);
+	}
+	
+	trigger onSend(from:address, symbol:string, amount:number) 
+	{
+		validateSignatures();
+	}
+}```
 
 A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
 This example showcases a simple script with one argument, that calls a contract.<br/>
