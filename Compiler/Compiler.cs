@@ -214,10 +214,11 @@ namespace Phantasma.Tomb.Compiler
                         }
 
                     case "contract":
+                    case "token":
                         {
                             var contractName = ExpectIdentifier();
 
-                            module = new Contract(contractName, ModuleKind.Contract);
+                            module = new Contract(contractName, firstToken.value == "token" ? ModuleKind.Token: ModuleKind.Contract);
                             ExpectToken("{");
                             ParseModule(module);
                             ExpectToken("}");
@@ -555,6 +556,8 @@ namespace Phantasma.Tomb.Compiler
                                     var block = new StatementBlock(scope);
                                     block.Commands.Add(new ReturnStatement(method, literal));
                                     contract.SetMethodBody(name, block);
+
+                                    ExpectToken(";");
                                 }
                                 else
                                 {

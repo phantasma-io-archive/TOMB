@@ -473,6 +473,7 @@ contract test {
 ```
 
 
+
 ## NFTs
 Showcases how to implement an NFT that holds a certain asset when minted, and releases it when burned (Enjin-style).
 
@@ -487,6 +488,32 @@ struct nacho_ram
 {
 	experience:number;
 	level:number;
+}
+
+token nacho {
+	global _owner: address;
+
+	property name: string = "Nachomen";	
+	property symbol: string = "NACHO";
+
+	property isBurnable: bool = true;
+	property isFungible: bool = false;
+	property maxSupply: number = 1000000;
+	
+	const MINT_COST: number = 90000;
+
+	trigger OnMint(from:address; amount:number) {
+		Runtime.expect(from == _owner, "must be owner");
+
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(owner, thisAddr, "SOUL", MINT_COST);
+	}
+	
+	trigger onBurn(from:address) 
+	{
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(thisAddr, owner, "SOUL", MINT_COST);
+	}			
 }
 
 nft luchador<nacho_rom, nacho_ram> {
@@ -506,20 +533,6 @@ nft luchador<nacho_rom, nacho_ram> {
 	property infoURL: string {
 		return "https://nacho.men/api/nft_info/"+id;
 	}
-
-	const MINT_COST: number = 90000;
-
-	constructor(owner:address)
-	{
-		local thisAddr:address := $THIS_ADDRESS;
-		Token.transfer(owner, thisAddr, "SOUL", MINT_COST);
-	}
-	
-	trigger onBurn(from:address) 
-	{
-		local thisAddr:address := $THIS_ADDRESS;
-		Token.transfer(thisAddr, owner, "SOUL", MINT_COST);
-	}		
 }
 ```
 
