@@ -631,7 +631,7 @@ namespace Phantasma.Tomb.Compiler
                                     case "OnBurn":
                                     case "OnSend":
                                     case "OnReceive": // address, symbol, amount
-                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.String, VarKind.Number });
+                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address, VarKind.String, VarKind.Number });
                                         break;
 
                                     case "OnWitness": // address
