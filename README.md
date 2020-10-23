@@ -174,17 +174,19 @@ throw "something happened";
 
 # Examples
 
+## Simple Sum
 Simple contract that sums two numbers and returns the result
 
 ```c#
 contract test {	
-	method sum(a:number, b:number):number
+	public sum(a:number, b:number):number
 	{
 		return a + b;
 	}
 }
 ```
 
+## Simple Counter
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
 Note that any global variable that is not generic must be initialized in the contract constructor.<br/>
 
@@ -197,7 +199,7 @@ contract test {
 		counter:= 0;
 	}
 	
-	method increment()
+	public increment()
 	{
 		if (counter < 0){
 			throw "invalid state";
@@ -207,6 +209,7 @@ contract test {
 }
 ```
 
+## Counter per Address
 Another contract that implements a counter, this time unique per user address.<br/>
 Showcases how to validate that a transaction was done by user possessing private keys to 'from' address
 
@@ -217,7 +220,7 @@ contract test {
 	
 	global counters: storage_map<address, number>;
 		
-	method increment(from:address)
+	public increment(from:address)
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 		local temp: number;
@@ -228,6 +231,7 @@ contract test {
 }
 ```
 
+## Transfer Tokens
 A contract that takes a payment in tokens from a user.<br/>
 Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain address of the contract.
 
@@ -236,7 +240,7 @@ contract test {
 	import Runtime;
 	import Token;
 			
-	method paySomething(from:address, quantity:number)
+	public paySomething(from:address, quantity:number)
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 		
@@ -251,15 +255,17 @@ contract test {
 }
 ```
 
-Showcases how a contract method can call other methods.
+## Call method
+Showcases how a contract method can call other methods.<br/>
+If a method is declared private, it can't be called by anyone except the actual contract that implements it.
 
 ```c#
 contract test {
-	method sum(a:number, b:number) {
+	private sum(a:number, b:number) {
 		return a + b;
 	}
 			
-	method calculatePrice(x:number): number
+	public calculatePrice(x:number): number
 	{		
 		local price: number := 10;
 		price := this.sum(price, x); // here we use 'this' for calling another method
@@ -269,13 +275,50 @@ contract test {
 }
 ```
 
+
+## Scripts
+A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
+This example showcases a simple script with one argument, that calls a contract.<br/>
+Note that for scripts with arguments, for them to run properly you will have to push them into the stack before.
+
+```c#
+script startup {
+
+	import Call;
+	
+	code(target:address) {
+		local temp:number := 50000;
+		Call.contract("Stake", "Unstake", target, temp);
+	}
+}
+```
+
+## Inline asm
+Inline asm allows to write assembly code that is then inserted and merged into the rest of the code.<br/>
+This feature is useful as an workaround for missing features in the compiler.
+
+```c#
+script startup {
+
+	import Call;
+	
+	code() {
+		local temp:string;
+		asm {
+			LOAD $temp "hello"
+		}
+	}
+}
+```
+
+## Custom events 1
 Showcases how a contract can declare and emit custom events.
 
 ```c#
 contract test {
 	event MyPayment:number = "{address} paid {data}"; // here we use a short-form description
 	
-	method paySomething(from:address, x:number)
+	public paySomething(from:address, x:number)
 	{		
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 
@@ -288,6 +331,7 @@ contract test {
 }
 ```
 
+## Custom events 2
 A more complex version of the previous example, showcasing custom description scripts.
 
 ```c#
@@ -309,6 +353,7 @@ contract test {
 }
 ```
 
+## Custom events 3
 A yet more complex version of the previous examples, showcasing custom description scripts and also struct declarations.
 
 ```c#
@@ -338,6 +383,7 @@ contract test {
 }
 ```
 
+## Triggers 1
 A contract example showcasing triggers.<br/>
 In this example, this account will only accept transfers of KCAL and reject anything else.
 
@@ -355,6 +401,7 @@ contract test {
 }
 ```
 
+## Triggers 2
 Another contract example showcasing triggers.<br/>
 In this example, any asset sent to this account will be auto-converted into SOUL.
 
@@ -375,6 +422,7 @@ contract test {
 Yet another contract example showcasing triggers.<br/>
 In this example, a multi-signature account is implemented.
 
+## Multi-signature
 ```c#
 contract test {
 
@@ -420,39 +468,6 @@ contract test {
 	trigger onSend(from:address, symbol:string, amount:number) 
 	{
 		validateSignatures();
-	}
-}
-```
-
-A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
-This example showcases a simple script with one argument, that calls a contract.<br/>
-Note that for scripts with arguments, for them to run properly you will have to push them into the stack before.
-
-```c#
-script startup {
-
-	import Call;
-	
-	code(target:address) {
-		local temp:number := 50000;
-		Call.contract("Stake", "Unstake", target, temp);
-	}
-}
-```
-
-Inline asm allows to write assembly code that is then inserted and merged into the rest of the code.<br/>
-This feature is useful as an workaround for missing features in the compiler.
-
-```c#
-script startup {
-
-	import Call;
-	
-	code() {
-		local temp:string;
-		asm {
-			LOAD $temp "hello"
-		}
 	}
 }
 ```
