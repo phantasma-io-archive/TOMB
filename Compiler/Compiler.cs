@@ -586,7 +586,29 @@ namespace Phantasma.Tomb.Compiler
                                 }
 
                                 var isValid = false;
-                                foreach (var allowedName in Compiler.ValidTriggerNames)
+
+                                string[] validTriggerNames;
+
+                                switch (module.Kind)
+                                {
+                                    case ModuleKind.Account:
+                                    case ModuleKind.Contract:
+                                        validTriggerNames = Enum.GetNames(typeof(AccountTrigger)).ToArray();
+                                        break;
+
+                                    case ModuleKind.Token:
+                                        validTriggerNames = Enum.GetNames(typeof(TokenTrigger)).ToArray();
+                                        break;
+
+                                    case ModuleKind.Organization:
+                                        validTriggerNames = Enum.GetNames(typeof(OrganizationTrigger)).ToArray();
+                                        break;
+
+                                    default:
+                                        throw new CompilerException("Triggers not supported in " + module.Kind);
+                                }
+
+                                foreach (var allowedName in validTriggerNames)
                                 {
                                     if (allowedName.Equals(name, StringComparison.OrdinalIgnoreCase))
                                     {
@@ -602,6 +624,24 @@ namespace Phantasma.Tomb.Compiler
                                 }
 
                                 var parameters = ParseParameters(module.Scope);
+
+                                switch (name)
+                                {
+                                    case "OnMint":
+                                    case "OnBurn":
+                                    case "OnSend":
+                                    case "OnReceive": // address, symbol, amount
+                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.String, VarKind.Number });
+                                        break;
+
+                                    case "OnWitness": // address
+                                        CheckParameters(name, parameters, new[] { VarKind.Address });
+                                        break;
+
+                                    default:
+                                        throw new CompilerException($"Proper trigger support for trigger {name} is not implemented");
+                                }
+
                                 var scope = new Scope(module.Scope, name, parameters);
 
                                 var method = contract.AddMethod(line, name, true, MethodKind.Trigger, VarType.Find(VarKind.None), parameters, scope);
@@ -628,15 +668,7 @@ namespace Phantasma.Tomb.Compiler
 
                                 if (module.Kind == ModuleKind.Description) 
                                 {
-                                    if (script.Parameters.Length != 2)
-                                    {
-                                        throw new CompilerException("descriptions must have exactly 2 parameters");
-                                    }
-
-                                    if (script.Parameters[0].Type.Kind != VarKind.Address)
-                                    {
-                                        throw new CompilerException("descriptions first parameter must always be of type " + VarKind.Address);
-                                    }
+                                    CheckParameters(blockName, script.Parameters, new[] { VarKind.Address, VarKind.Any });
                                 }
 
                                 var scope = new Scope(module.Scope, blockName, script.Parameters);
@@ -673,6 +705,20 @@ namespace Phantasma.Tomb.Compiler
                 }
 
             } while (true);
+        }
+
+        private void CheckParameters(string name, MethodParameter[] parameters, VarKind[] expected)
+        {
+            if (parameters.Length != expected.Length)
+            {
+                throw new CompilerException($"Expected {expected.Length} parameters for {name}, found {parameters.Length} instead");
+            }
+
+            for (int i=0; i<parameters.Length; i++)
+            if (parameters[i].Type.Kind != expected[i] && expected[i] != VarKind.Any)
+            {
+                throw new CompilerException($"Expected parameter #{i+1} to be {expected[i]} got {parameters[i].Type} instead");
+            }
         }
 
         private MethodParameter[] ParseParameters(Scope scope)
@@ -1441,9 +1487,6 @@ namespace Phantasma.Tomb.Compiler
             var expr = new StructFieldExpression(scope, varDecl, fieldName);
             return expr;
         }
-
-
-        public static readonly string[] ValidTriggerNames = Enum.GetNames(typeof(AccountTrigger)).Union(Enum.GetNames(typeof(TokenTrigger))).ToArray();
 
         private const int MaxRegisters = VirtualMachine.DefaultRegisterCount;
         private Node[] registerAllocs = new Node[MaxRegisters];

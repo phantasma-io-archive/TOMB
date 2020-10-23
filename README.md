@@ -338,6 +338,23 @@ contract test {
 }
 ```
 
+A contract example showcasing triggers.<br/>
+In this example, any asset sent to this account will be auto-converted into SOUL.
+
+```c#
+contract test {
+	
+	trigger onReceive(from:address, symbol:string, amount:number) 
+	{
+		if (symbol != "SOUL") {
+			Call.contract("Swap", "SwapTokens", from, symbol, "SOUL", amount);
+		}
+		
+		return;
+	}
+}```
+
+
 A script is something that can be used either for a transaction or for an API invokeScript call.<br/>
 This example showcases a simple script with one argument, that calls a contract.<br/>
 Note that for scripts with arguments, for them to run properly you will have to push them into the stack before.
@@ -349,7 +366,7 @@ script startup {
 	
 	code(target:address) {
 		local temp:number := 50000;
-		Call.contract("Stake", "unstake", target, temp);
+		Call.contract("Stake", "Unstake", target, temp);
 	}
 }```
 
