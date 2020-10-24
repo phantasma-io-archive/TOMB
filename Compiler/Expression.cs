@@ -371,7 +371,8 @@ namespace Phantasma.Tomb.Compiler
 
                     if (this.method.PreCallback == null && this.method.PostCallback == null)
                     {
-                        output.AppendLine(this, $"THROW \"{this.method.Library.Name}.{this.method.Name} not implemented\"");
+                        output.AppendLine(this, $"LOAD r0 \"{this.method.Library.Name}.{this.method.Name} not implemented\"");
+                        output.AppendLine(this, $"THROW r0");
                     }
 
                     break;
