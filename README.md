@@ -83,6 +83,13 @@ The following libraries can be imported into a contract.
 | Token.burn(from:Address, symbol:String, amount:Number) | None | TODO|
 | Token.getBalance(from:Address, symbol:String) | Number | TODO|
 
+### NFT
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| NFT.transfer(from:Address, to:Address, symbol:String, id:Number) | None | TODO|
+| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any) | None | TODO|
+| NFT.burn(from:Address, symbol:String, amount:Number) | None | TODO|
+
 ### Organization
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
@@ -289,6 +296,26 @@ script startup {
 	code(target:address) {
 		local temp:number := 50000;
 		Call.contract("Stake", "Unstake", target, temp);
+	}
+}
+```
+
+## Minting Script
+This example showcases a script that mints an custom NFT.<br/>
+
+```c#
+struct my_rom_data {
+	name:string;
+	counter:number;
+}
+
+script token_minter {
+
+	import Token;
+	
+	code(source:address; target:address) {
+		local rom_data:my_rom_data := Struct.my_rom_data("hello", 123);
+		NFT.mint(source, target, "LOL", rom_data, "ram_can_be_anything");
 	}
 }
 ```

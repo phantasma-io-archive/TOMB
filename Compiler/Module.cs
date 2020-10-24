@@ -72,7 +72,7 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", FormatLibraryName };
+        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -145,6 +145,12 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.MintTokens");
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.BurnTokens");
                     libDecl.AddMethod("getBalance", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String) });
+                    break;
+
+                case "NFT":
+                    libDecl.AddMethod("transfer", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) });
+                    libDecl.AddMethod("mint", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("rom", VarKind.Any), new MethodParameter("ram", VarKind.Any) });
+                    libDecl.AddMethod("burn", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) });
                     break;
 
                 case "Organization":
