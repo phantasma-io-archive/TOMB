@@ -25,7 +25,7 @@ namespace Tests
             private Dictionary<string, ScriptContext> contexts;
             private Dictionary<byte[], byte[]> storage;
 
-            public TestVM(byte[] script, Dictionary<byte[], byte[]> storage) : base(script)
+            public TestVM(byte[] script, Dictionary<byte[], byte[]> storage, uint offset) : base(script, offset)
             {
                 this.storage = storage;
                 RegisterContextLoader(ContextLoader);
@@ -196,7 +196,7 @@ namespace Tests
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);*/
 
-            vm = new TestVM(contract.script, storage);
+            vm = new TestVM(contract.script, storage, 0);
             vm.Stack.Push(VMObject.FromObject("increment"));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);

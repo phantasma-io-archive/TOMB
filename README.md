@@ -313,7 +313,7 @@ script token_minter {
 
 	import Token;
 	
-	code(source:address; target:address) {
+	code(source:address, target:address) {
 		local rom_data:my_rom_data := Struct.my_rom_data("hello", 123);
 		NFT.mint(source, target, "LOL", rom_data, "ram_can_be_anything");
 	}

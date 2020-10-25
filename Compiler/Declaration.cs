@@ -521,13 +521,13 @@ namespace Phantasma.Tomb.Compiler
 
         private class CustomDescriptionVM : DescriptionVM
         {
-            public CustomDescriptionVM(byte[] script) : base(script)
+            public CustomDescriptionVM(byte[] script, uint offset) : base(script, offset)
             {
             }
 
             public override IToken FetchToken(string symbol)
             {
-                return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0]);
+                return new Blockchain.Tokens.TokenInfo(symbol, symbol, 0, 8, TokenFlags.None, new byte[0], null);
             }
 
             public override string OutputAddress(Address address)
@@ -545,7 +545,7 @@ namespace Phantasma.Tomb.Compiler
         {
             try
             {
-                var vm = new CustomDescriptionVM(this.descriptionScript);
+                var vm = new CustomDescriptionVM(this.descriptionScript, 0);
 
                 var obj = GenerateTestObject(this.returnType);
                 vm.Stack.Push(obj);
