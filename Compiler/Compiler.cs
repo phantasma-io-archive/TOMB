@@ -1351,7 +1351,7 @@ namespace Phantasma.Tomb.Compiler
             return new BinaryExpression(scope, op, leftSide, rightSide);
         }
 
-        private Expression ParseExpression(Scope scope)
+        private Expression ParseExpression(Scope scope, bool allowBinary = true)
         {
             var first = FetchToken();
             var second = FetchToken();
@@ -1367,8 +1367,28 @@ namespace Phantasma.Tomb.Compiler
                 case TokenKind.Operator:
                     {
                         var leftSide = ParseExpressionFromToken(first, scope);
-                        var rightSide = ExpectExpression(scope);
-                        return ParseBinaryExpression(scope, second, leftSide, rightSide);
+
+                        if (!allowBinary)
+                        {
+                            Rewind();
+                            return leftSide;
+                        }
+
+                        var rightSide = ParseExpression(scope, false);
+                        var result = ParseBinaryExpression(scope, second, leftSide, rightSide);
+
+                        var next = FetchToken();
+                        if (next.kind == TokenKind.Operator)
+                        {
+                            var third = ParseExpression(scope);
+                            var op = ParseOperator(next.value);
+                            return new BinaryExpression(scope, op, result, third);
+                        }
+                        else
+                        {
+                            Rewind();
+                            return result;
+                        }
                     }
 
                 case TokenKind.Selector:
