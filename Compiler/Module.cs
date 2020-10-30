@@ -312,7 +312,9 @@ namespace Phantasma.Tomb.Compiler
 
             var lines = asm.Split('\n');
             DebugInfo temp;
-            script = AssemblerUtils.BuildScript(lines, this.Name, out temp);
+            Dictionary<string, int> labels;
+
+            script = AssemblerUtils.BuildScript(lines, this.Name, out temp, out labels);
             this.debugInfo = temp;
 
             lines = AssemblerUtils.CommentOffsets(lines, this.debugInfo).ToArray();

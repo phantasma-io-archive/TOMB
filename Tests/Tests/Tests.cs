@@ -25,7 +25,7 @@ namespace Tests
             private Dictionary<string, ScriptContext> contexts;
             private Dictionary<byte[], byte[]> storage;
 
-            public TestVM(byte[] script, Dictionary<byte[], byte[]> storage, uint offset) : base(script, offset)
+            public TestVM(byte[] script, Dictionary<byte[], byte[]> storage, uint offset) : base(script, offset, null)
             {
                 this.storage = storage;
                 RegisterContextLoader(ContextLoader);
