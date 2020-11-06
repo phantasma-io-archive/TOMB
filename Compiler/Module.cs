@@ -44,6 +44,8 @@ namespace Phantasma.Tomb.Compiler
             this.Scope = new Scope(this);
             this.library = new LibraryDeclaration(Scope, "this");
             this.Libraries[library.Name] = library;
+
+            ImportLibrary("String");
         }
         public LibraryDeclaration FindLibrary(string name, bool required = true)
         {
@@ -72,7 +74,15 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        public static string[] AvailableLibraries = new[] { "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Map", "List", FormatLibraryName };
+        public void ImportLibrary(string name)
+        {
+            var lib = LoadLibrary(name, this.Scope, this.Kind);
+            Libraries[lib.Name] = lib;
+        }
+
+        public static string[] AvailableLibraries = new[] { 
+            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", 
+            "Map", "List", "String", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -253,6 +263,17 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
                     libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
                     libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
+                    break;
+
+                case "String":
+                    libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = expr.arguments[0].GenerateCode(output);
+                        output.AppendLine(expr, $"SIZE {reg} {reg}");
+                        return reg;
+                    });
+
                     break;
 
                 default:

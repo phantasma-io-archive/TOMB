@@ -1,4 +1,5 @@
-﻿using Phantasma.Domain;
+﻿using Phantasma.CodeGen.Core.Nodes;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -1399,6 +1400,8 @@ namespace Phantasma.Tomb.Compiler
 
                         Expression leftSide = null;
 
+                        bool implicitIsLiteral = true;
+
                         if (varDecl != null)
                         {
                             // TODO this code is duplicated, copypasted from other method above, refactor this later...
@@ -1437,7 +1440,18 @@ namespace Phantasma.Tomb.Compiler
                                     }
 
                                 default:
-                                    throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
+                                    {
+                                        var typeName = varDecl.Type.Kind.ToString();
+                                        libDecl = scope.Root.FindLibrary(typeName, false);
+                                        if (libDecl != null)
+                                        {
+                                            implicitIsLiteral = false;
+                                            break;
+                                        }
+
+                                        throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
+                                    }
+
                             }
                         }
                         else
@@ -1447,7 +1461,7 @@ namespace Phantasma.Tomb.Compiler
 
                         if (leftSide == null)
                         {
-                            leftSide = ParseMethodExpression(scope, libDecl, varDecl);
+                            leftSide = ParseMethodExpression(scope, libDecl, varDecl, implicitIsLiteral);
                         }
 
                         second = FetchToken();
@@ -1493,7 +1507,7 @@ namespace Phantasma.Tomb.Compiler
             return null;
         }
 
-        private MethodExpression ParseMethodExpression(Scope scope, LibraryDeclaration library, VarDeclaration implicitArg = null)
+        private MethodExpression ParseMethodExpression(Scope scope, LibraryDeclaration library, VarDeclaration implicitArg = null, bool implicitAsLiteral = true)
         {
             var expr = new MethodExpression(scope);
 
@@ -1556,7 +1570,14 @@ namespace Phantasma.Tomb.Compiler
 
                     if (i == 0 && implicitArg != null)
                     {
-                        arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarType.Find(VarKind.String));
+                        if (implicitAsLiteral)
+                        {
+                            arg = new LiteralExpression(scope, $"\"{implicitArg.Name}\"", VarType.Find(VarKind.String));
+                        }
+                        else
+                        {
+                            arg = new VarExpression(scope, implicitArg);
+                        }
                     }
                     else
                     {

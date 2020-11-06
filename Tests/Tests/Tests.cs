@@ -199,13 +199,13 @@ namespace Tests
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
+            Assert.IsTrue(storage.Count == 1);
 
             // call increment
             var increment = contract.abi.FindMethod("increment");
             Assert.IsNotNull(increment);
 
             vm = new TestVM(contract, storage, increment);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -215,14 +215,15 @@ namespace Tests
         [Test]
         public void TestStrings()
         {
+            var str = "hello";
+
             var sourceCode =
             "contract test{\n" +
             "global name: string;\n" +
             "constructor(owner:address)	{\n" +
-            "name:= \"hello\";\n" +
-            /*"if (counter < 0){\n" +
-            "throw \"invalid state\";}\n" +
-            "counter += 1;\n" +*/
+            "name:= \"" + str + "\";\n}" +
+            "public getLength():number {\n" +
+            "return name.length();\n" +
             "}}\n";
 
             var parser = new Compiler();
@@ -243,6 +244,26 @@ namespace Tests
             Assert.IsTrue(result == ExecutionState.Halt);
 
             Assert.IsTrue(storage.Count == 1);
+
+            // call getLength
+            var getLength = contract.abi.FindMethod("getLength");
+            Assert.IsNotNull(getLength);
+
+            vm = new TestVM(contract, storage, getLength);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var len = obj.AsNumber();
+
+            var expectedLength = str.Length;
+
+            Assert.IsTrue(len == expectedLength);
         }
     }
 }
