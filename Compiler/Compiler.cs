@@ -5,6 +5,7 @@ using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -123,6 +124,11 @@ namespace Phantasma.Tomb.Compiler
                 }
 
                 throw new CompilerException("expected type, got " + token.kind);
+            }
+
+            if (token.value == "decimal")
+            {
+                return ParseDecimal();
             }
 
             var kind = (VarKind)Enum.Parse(typeof(VarKind), token.value, true);
@@ -794,6 +800,20 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
+        private DecimalVarType ParseDecimal() 
+        {
+            ExpectToken("<");
+            var decimals = int.Parse(ExpectNumber());
+            ExpectToken(">");
+
+            if (decimals < 1 || decimals > 32)
+            {
+                throw new CompilerException("invalid decimals: " + decimals);
+            }
+
+            return new DecimalVarType(decimals);
+        }
+
         private MethodParameter[] ParseParameters(Scope scope)
         {
             var list = new List<MethodParameter>();
@@ -937,7 +957,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var varName = ExpectIdentifier();
                             ExpectToken(":");
-                            var kind = ExpectType();
+                            var type = ExpectType();
 
                             var next = FetchToken();
 
@@ -954,7 +974,8 @@ namespace Phantasma.Tomb.Compiler
 
                             ExpectToken(";");
 
-                            var varDecl = new VarDeclaration(scope, varName, kind, VarStorage.Local);
+                            var varDecl = new VarDeclaration(scope, varName, type, VarStorage.Local);
+
                             scope.AddVariable(varDecl);
 
                             if (initExpr != null)
@@ -1098,13 +1119,10 @@ namespace Phantasma.Tomb.Compiler
                                     expr = new BinaryExpression(scope, op, new VarExpression(scope, setCommand.variable), expr);
                                 }
 
+
+                                expr = Expression.AutoCast(expr, setCommand.variable.Type);
+
                                 setCommand.expression = expr;
-
-                                if (setCommand.expression.ResultType != setCommand.variable.Type && setCommand.expression.ResultType.Kind != VarKind.Any)
-                                {
-                                    throw new CompilerException($"expected {setCommand.variable.Type} expression");
-                                }
-
                                 block.Commands.Add(setCommand);
                             }
                             else
@@ -1222,6 +1240,13 @@ namespace Phantasma.Tomb.Compiler
                 case TokenKind.Number:
                     {
                         return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Number));
+                    }
+
+                case TokenKind.Decimal:
+                    {
+                        var temp = first.value.Split('.')[1];
+                        var decimals = temp.Length;
+                        return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Decimal, decimals));
                     }
 
                 case TokenKind.String:

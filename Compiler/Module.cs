@@ -46,6 +46,7 @@ namespace Phantasma.Tomb.Compiler
             this.Libraries[library.Name] = library;
 
             ImportLibrary("String");
+            ImportLibrary("Decimal");
         }
         public LibraryDeclaration FindLibrary(string name, bool required = true)
         {
@@ -268,12 +269,23 @@ namespace Phantasma.Tomb.Compiler
                 case "String":
                     libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
                         SetPreCallback((output, scope, expr) =>
-                    {
-                        var reg = expr.arguments[0].GenerateCode(output);
-                        output.AppendLine(expr, $"SIZE {reg} {reg}");
-                        return reg;
-                    });
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"SIZE {reg} {reg}");
+                            return reg;
+                        });
+                    break;
 
+                case "Decimal":
+                    libDecl.AddMethod("decimals", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.Any) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var arg = expr.arguments[0];
+                            var decType = (DecimalVarType)arg.ResultType;
+                            output.AppendLine(expr, $"LOAD {reg} {decType.decimals}");
+                            return reg;
+                        });
                     break;
 
                 default:

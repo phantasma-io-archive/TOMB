@@ -3,6 +3,7 @@ using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -22,6 +23,26 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public abstract Register GenerateCode(CodeGenerator output);
+
+        public static Expression AutoCast(Expression expr, VarType expectedType)
+        {
+            if (expr.ResultType == expectedType || expectedType.Kind == VarKind.Any)
+            {
+                return expr;
+            }
+
+            if (expr.ResultType.Kind == VarKind.Decimal)
+            {
+                switch (expectedType.Kind)
+                {
+                    case VarKind.Decimal:
+                    case VarKind.Number:
+                            return new CastExpression(expr.ParentScope, expectedType, expr);
+                }
+            }
+
+            throw new CompilerException($"expected {expectedType} expression");
+        }
     }
 
     public class NegationExpression : Expression
@@ -69,6 +90,43 @@ namespace Phantasma.Tomb.Compiler
         public override Register GenerateCode(CodeGenerator output)
         {
             var reg = expr.GenerateCode(output);
+
+            if (expr.ResultType.Kind == VarKind.Decimal)
+            {
+                switch (this.ResultType.Kind)
+                {
+                    case VarKind.Number:
+                        return reg;
+
+                    case VarKind.Decimal:
+                        {
+                            var srcDecimals = ((DecimalVarType)expr.ResultType).decimals;
+                            var dstDecimals = ((DecimalVarType)this.ResultType).decimals;
+
+                            if (srcDecimals == dstDecimals)
+                            {
+                                return reg;
+                            }
+                            else
+                            if (srcDecimals < dstDecimals)
+                            {
+                                var diff = (dstDecimals - srcDecimals);
+                                var mult = (int)Math.Pow(10, diff);
+                                output.AppendLine(this, $"LOAD r0 {mult}");
+                                output.AppendLine(this, $"MUL {reg} r0 {reg}");
+                                return reg;
+                            }
+                            else
+                            {
+                                throw new CompilerException($"Decimal precision failure: {expr.ResultType} => {this.ResultType}");
+                            }
+                        }
+
+                    default:
+                        throw new CompilerException($"Unsupported cast: {expr.ResultType} => {this.ResultType}");
+                }
+            }
+
             var vmType = MethodInterface.ConvertType(ResultType);
             output.AppendLine(this, $"CAST {reg} {reg} #{vmType}");
             return reg;
@@ -422,7 +480,21 @@ namespace Phantasma.Tomb.Compiler
         {
             var reg = Compiler.Instance.AllocRegister(output, this, this.NodeID);
 
-            output.AppendLine(this, $"LOAD {reg} {this.value}");
+            string val;
+
+            var decType = this.type as DecimalVarType;
+
+            if (decType != null)
+            {
+                var temp = decimal.Parse(this.value, CultureInfo.InvariantCulture);
+                val = UnitConversion.ToBigInteger(temp, decType.decimals).ToString();
+            }
+            else
+            {
+                val = this.value;
+            }
+
+            output.AppendLine(this, $"LOAD {reg} {val}");
 
             this.CallNecessaryConstructors(output, type, reg);
 

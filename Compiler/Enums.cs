@@ -17,6 +17,7 @@ namespace Phantasma.Tomb.Compiler
         Any,
         Method,
         Struct,
+        Decimal,
         Storage_Map,
         Storage_List,
         Storage_Set,
@@ -37,9 +38,9 @@ namespace Phantasma.Tomb.Compiler
 
         private static Dictionary<string, VarType> _cache = new Dictionary<string, VarType>();
 
-        public bool IsGeneric => Kind == VarKind.Storage_Map || Kind == VarKind.Storage_List || Kind == VarKind.Storage_Set;
+        public bool IsStorageBound => Kind == VarKind.Storage_Map || Kind == VarKind.Storage_List || Kind == VarKind.Storage_Set;
 
-        public static VarType Find(VarKind kind, string extra = null)
+        public static VarType Find(VarKind kind, object extra = null)
         {
             var key = kind.ToString();
             if (extra!= null)
@@ -73,12 +74,16 @@ namespace Phantasma.Tomb.Compiler
                     result =  new PrimitiveVarType(kind);
                     break;
 
+                case VarKind.Decimal:
+                    result = new DecimalVarType((int) extra);
+                    break;
+
                 case VarKind.Struct:
-                    result = new StructVarType(extra);
+                    result = new StructVarType((string)extra);
                     break;
 
                 case VarKind.Method:
-                    result = new MethodVarType(extra);
+                    result = new MethodVarType((string)extra);
                     break;
 
                 default:
@@ -119,6 +124,22 @@ namespace Phantasma.Tomb.Compiler
             return $"{Kind}<{name}>";
         }
     }
+
+    public class DecimalVarType : VarType
+    {
+        public readonly int decimals;
+
+        public DecimalVarType(int decimals) : base(VarKind.Decimal)
+        {
+            this.decimals = decimals;
+        }
+
+        public override string ToString()
+        {
+            return $"{Kind}<{decimals}>";
+        }
+    }
+
 
     public class MethodVarType : VarType
     {

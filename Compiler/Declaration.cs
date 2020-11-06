@@ -88,6 +88,16 @@ namespace Phantasma.Tomb.Compiler
         }
     }
 
+    public class DecimalDeclaration : VarDeclaration
+    {
+        public readonly int Decimals;
+
+        public DecimalDeclaration(Scope parentScope, string name, int decimals, VarStorage storage) : base(parentScope, name, VarType.Find(VarKind.Decimal), storage)
+        {
+            this.Decimals = decimals;
+        }
+    }
+
     public class MapDeclaration: VarDeclaration
     {
         public VarType KeyKind;
@@ -709,7 +719,7 @@ namespace Phantasma.Tomb.Compiler
 
                 if (variable.Register == null)
                 {                    
-                    if (isConstructor && !variable.Type.IsGeneric)
+                    if (isConstructor && !variable.Type.IsStorageBound)
                     {
                         throw new CompilerException("global variable not assigned in constructor: " + variable.Name);
                     }

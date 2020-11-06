@@ -4,11 +4,13 @@ using Phantasma.CodeGen.Assembler;
 using Phantasma.Core.Utils;
 using Phantasma.Cryptography;
 using Phantasma.Domain;
+using Phantasma.Numerics;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
 using Phantasma.VM.Utils;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Tests
@@ -265,5 +267,81 @@ namespace Tests
 
             Assert.IsTrue(len == expectedLength);
         }
+
+        [Test]
+        public void TestDecimals()
+        {
+            var valStr = "2.4587";
+            var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
+            var decimals = 8;
+
+            var sourceCode =
+            "contract test{\n" +
+            $"global amount: decimal<{decimals}>;\n" +
+            "constructor(owner:address)	{\n" +
+            "amount := "+valStr+";\n}" +
+            "public getValue():number {\n" +
+            "return amount;\n}" +
+            "public getLength():number {\n" +
+            "return amount.decimals();\n}" +
+            "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call getVal
+            var getValue = contract.abi.FindMethod("getValue");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsNumber();
+            var expectedVal = UnitConversion.ToBigInteger(val, decimals);
+
+            Assert.IsTrue(newVal == expectedVal);
+
+            // call getLength
+            var getLength = contract.abi.FindMethod("getLength");
+            Assert.IsNotNull(getLength);
+
+            vm = new TestVM(contract, storage, getLength);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            obj = vm.Stack.Pop();
+            var len = obj.AsNumber();
+
+            Assert.IsTrue(len == decimals);
+        }
+
     }
 }

@@ -3,6 +3,7 @@ using Phantasma.Cryptography;
 using Phantasma.Numerics;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -17,6 +18,7 @@ namespace Phantasma.Tomb.Compiler
         Type,
         String,
         Number,
+        Decimal,
         Bool,
         Address,
         Hash,
@@ -39,6 +41,8 @@ namespace Phantasma.Tomb.Compiler
             this.column = column;
             this.line = line;
             this.value = value;
+
+            decimal decval;
 
             if (value.StartsWith("0x"))
             {
@@ -104,6 +108,11 @@ namespace Phantasma.Tomb.Compiler
             if (BigInteger.IsParsable(value))
             {
                 this.kind = TokenKind.Number;
+            }
+            else
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decval))
+            {
+                this.kind = TokenKind.Decimal;
             }
             else
             {
@@ -217,6 +226,7 @@ namespace Phantasma.Tomb.Compiler
 
             bool insideString = false;
             bool insideAsm = false;
+            bool insideNumber = false;
             var insideComment = CommentMode.None;
 
             LexerToken prevToken = new LexerToken(0, 0, "");
@@ -339,7 +349,7 @@ namespace Phantasma.Tomb.Compiler
                             curType = 0;
                         }
                         else
-                        if (IsSeparatorSymbol(ch))
+                        if (IsSeparatorSymbol(ch) && (ch != '.' || !insideNumber))
                         {
                             curType = 2;
                         }
@@ -362,6 +372,8 @@ namespace Phantasma.Tomb.Compiler
                             tokens.Add(curToken);
                             sb.Clear();
 
+                            insideNumber = false;
+
 
                             if (val == "{" && prevToken.value == "asm")
                             {
@@ -374,6 +386,12 @@ namespace Phantasma.Tomb.Compiler
                         {
                             tokenX = col;
                             tokenY = line;
+                        }
+
+
+                        if (sb.Length == 0 && char.IsDigit(ch))
+                        {
+                            insideNumber = true;
                         }
 
                         sb.Append(ch);
