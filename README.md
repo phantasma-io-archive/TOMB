@@ -43,6 +43,7 @@ Different data types are recognized by the compiler.
 | Type  | Example |
 | ------------- | ------------- |
 | Number  | 123  |
+| Decimal<X>  | 0.123  | Where X is the number of maximum decimal places
 | Bool  | false  |
 | String  | "hello"  |
 | Timestamp  | no literal support, use either Runtime.time or Utils.unixTime  |
