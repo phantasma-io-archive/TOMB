@@ -258,6 +258,27 @@ contract test {
 }
 ```
 
+## Map support
+The compiler supports generic types, including maps.<br/>
+Maps are one of the few types that don't have to initialized in the constructor.<br/>
+
+```c#
+contract test {
+	global my_state: storage_map<address, number>;
+	
+	constructor(owner:address) 
+	{
+		my_state.set(owner, 42);
+	}
+	
+	public getState(target:address):number
+	{
+		return my_state.get(target);
+	}
+}
+```
+
+
 ## Transfer Tokens
 A contract that takes a payment in tokens from a user.<br/>
 Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain address of the contract.
