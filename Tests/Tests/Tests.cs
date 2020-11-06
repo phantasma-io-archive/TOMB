@@ -343,5 +343,32 @@ namespace Tests
             Assert.IsTrue(len == decimals);
         }
 
+        [Test]
+        public void TestDecimalsPrecision()
+        {
+            var valStr = "2.4587";
+            var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
+
+            var sourceCode =
+            "contract test{\n" +
+            $"global amount: decimal<3>;\n" +
+            "constructor(owner:address)	{\n" +
+            "amount := " + valStr + ";\n}" +
+            "}\n";
+
+            var parser = new Compiler();
+
+            try
+            {
+                var contract = parser.Process(sourceCode).First();
+                Assert.Fail("should have throw compile error");
+            }
+            catch (CompilerException e)
+            {
+                Assert.IsTrue(e.Message.ToLower().Contains("precision"));
+            }
+
+        }
+
     }
 }
