@@ -96,9 +96,34 @@ namespace Phantasma.Tomb.Compiler
 
             var libDecl = new LibraryDeclaration(scope, name);
 
-            if (name == "Struct")
+
+            switch (name)
             {
-                return libDecl;
+                case "Struct":
+                    return libDecl;
+
+                case "String":
+                    libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"SIZE {reg} {reg}");
+                            return reg;
+                        });
+                    return libDecl;
+
+                case "Decimal":
+                    libDecl.AddMethod("decimals", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.Any) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var arg = expr.arguments[0];
+                            var decType = (DecimalVarType)arg.ResultType;
+                            output.AppendLine(expr, $"LOAD {reg} {decType.decimals}");
+                            return reg;
+                        });
+                    return libDecl;
+
             }
 
             if (moduleKind == ModuleKind.Description)
@@ -264,28 +289,6 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
                     libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
                     libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
-                    break;
-
-                case "String":
-                    libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
-                        SetPreCallback((output, scope, expr) =>
-                        {
-                            var reg = expr.arguments[0].GenerateCode(output);
-                            output.AppendLine(expr, $"SIZE {reg} {reg}");
-                            return reg;
-                        });
-                    break;
-
-                case "Decimal":
-                    libDecl.AddMethod("decimals", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.Any) }).
-                        SetPreCallback((output, scope, expr) =>
-                        {
-                            var reg = Compiler.Instance.AllocRegister(output, expr);
-                            var arg = expr.arguments[0];
-                            var decType = (DecimalVarType)arg.ResultType;
-                            output.AppendLine(expr, $"LOAD {reg} {decType.decimals}");
-                            return reg;
-                        });
                     break;
 
                 default:
