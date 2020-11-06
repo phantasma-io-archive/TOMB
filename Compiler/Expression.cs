@@ -31,17 +31,22 @@ namespace Phantasma.Tomb.Compiler
                 return expr;
             }
 
-            if (expr.ResultType.Kind == VarKind.Decimal)
+            switch (expr.ResultType.Kind) 
             {
-                switch (expectedType.Kind)
-                {
-                    case VarKind.Decimal:
-                    case VarKind.Number:
-                            return new CastExpression(expr.ParentScope, expectedType, expr);
-                }
+                case VarKind.Decimal:
+                    switch (expectedType.Kind)
+                    {
+                        case VarKind.Decimal:
+                        case VarKind.Number:
+                                return new CastExpression(expr.ParentScope, expectedType, expr);
+                    }
+                    break;
+
+                case VarKind.Any:
+                    return new CastExpression(expr.ParentScope, expectedType, expr);
             }
 
-            throw new CompilerException($"expected {expectedType} expression");
+            throw new CompilerException($"expected {expectedType} expression, got {expr.ResultType} instead");
         }
     }
 
@@ -91,40 +96,43 @@ namespace Phantasma.Tomb.Compiler
         {
             var reg = expr.GenerateCode(output);
 
-            if (expr.ResultType.Kind == VarKind.Decimal)
+            switch (expr.ResultType.Kind)
             {
-                switch (this.ResultType.Kind)
-                {
-                    case VarKind.Number:
-                        return reg;
-
-                    case VarKind.Decimal:
+                case VarKind.Decimal:
+                    {
+                        switch (this.ResultType.Kind)
                         {
-                            var srcDecimals = ((DecimalVarType)expr.ResultType).decimals;
-                            var dstDecimals = ((DecimalVarType)this.ResultType).decimals;
+                            case VarKind.Number:
+                                return reg;
 
-                            if (srcDecimals == dstDecimals)
-                            {
-                                return reg;
-                            }
-                            else
-                            if (srcDecimals < dstDecimals)
-                            {
-                                var diff = (dstDecimals - srcDecimals);
-                                var mult = (int)Math.Pow(10, diff);
-                                output.AppendLine(this, $"LOAD r0 {mult}");
-                                output.AppendLine(this, $"MUL {reg} r0 {reg}");
-                                return reg;
-                            }
-                            else
-                            {
-                                throw new CompilerException($"Decimal precision failure: {expr.ResultType} => {this.ResultType}");
-                            }
+                            case VarKind.Decimal:
+                                {
+                                    var srcDecimals = ((DecimalVarType)expr.ResultType).decimals;
+                                    var dstDecimals = ((DecimalVarType)this.ResultType).decimals;
+
+                                    if (srcDecimals == dstDecimals)
+                                    {
+                                        return reg;
+                                    }
+                                    else
+                                    if (srcDecimals < dstDecimals)
+                                    {
+                                        var diff = (dstDecimals - srcDecimals);
+                                        var mult = (int)Math.Pow(10, diff);
+                                        output.AppendLine(this, $"LOAD r0 {mult}");
+                                        output.AppendLine(this, $"MUL {reg} r0 {reg}");
+                                        return reg;
+                                    }
+                                    else
+                                    {
+                                        throw new CompilerException($"Decimal precision failure: {expr.ResultType} => {this.ResultType}");
+                                    }
+                                }
+
+                            default:
+                                throw new CompilerException($"Unsupported cast: {expr.ResultType} => {this.ResultType}");
                         }
-
-                    default:
-                        throw new CompilerException($"Unsupported cast: {expr.ResultType} => {this.ResultType}");
-                }
+                    }
             }
 
             var vmType = MethodInterface.ConvertType(ResultType);
