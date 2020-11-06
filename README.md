@@ -238,6 +238,26 @@ contract test {
 }
 ```
 
+## Simple strings
+Simple contract that shows how to use strings and builtin type methods, string.length() in this specific case.<br/>
+
+```c#
+contract test {
+	global val: string;
+	
+	constructor(owner:address) 
+	{
+		val := "hello";
+		val += " world";
+	}
+	
+	public getLength():number
+	{
+		return val.length();
+	}
+}
+```
+
 ## Transfer Tokens
 A contract that takes a payment in tokens from a user.<br/>
 Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain address of the contract.
