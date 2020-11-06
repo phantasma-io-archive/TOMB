@@ -501,7 +501,7 @@ namespace Phantasma.Tomb.Compiler
                             if (contract != null)
                             {
                                 var line = this.CurrentLine;
-                                var name = "Initialize";
+                                var name = SmartContract.ConstructorName;
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
 

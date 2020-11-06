@@ -1,6 +1,8 @@
 using NUnit.Framework;
+using Phantasma.Blockchain;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Core.Utils;
+using Phantasma.Cryptography;
 using Phantasma.Domain;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
@@ -20,18 +22,24 @@ namespace Tests
 
         public class TestVM : VirtualMachine
         {
-            private Dictionary<string, Func<ExecutionFrame, ExecutionState>> _interops = new Dictionary<string, Func<ExecutionFrame, ExecutionState>>();
+            private Dictionary<string, Func<VirtualMachine, ExecutionState>> _interops = new Dictionary<string, Func<VirtualMachine, ExecutionState>>();
             private Func<string, ExecutionContext> _contextLoader;
             private Dictionary<string, ScriptContext> contexts;
             private Dictionary<byte[], byte[]> storage;
 
-            public TestVM(byte[] script, Dictionary<byte[], byte[]> storage, uint offset) : base(script, offset, null)
+            public TestVM(Module module, Dictionary<byte[], byte[]> storage, ContractMethod method) : base(module.script, (uint)method.offset, module.Name)
             {
                 this.storage = storage;
                 RegisterContextLoader(ContextLoader);
-                RegisterInterop("Data.Set", Data_Set);
-                RegisterInterop("Data.Get", Data_Get);
-                RegisterInterop("Data.Delete", Data_Delete);
+
+                RegisterMethod("ABI()", ExtCalls.Constructor_ABI);
+                RegisterMethod("Address()", ExtCalls.Constructor_Address);
+                RegisterMethod("Hash()", ExtCalls.Constructor_Hash);
+                RegisterMethod("Timestamp()", ExtCalls.Constructor_Timestamp);
+
+                RegisterMethod("Data.Set", Data_Set);
+                RegisterMethod("Data.Get", Data_Get);
+                RegisterMethod("Data.Delete", Data_Delete);
                 contexts = new Dictionary<string, ScriptContext>();
             }
 
@@ -70,7 +78,7 @@ namespace Tests
                 return script;
             }
 
-            public void RegisterInterop(string method, Func<ExecutionFrame, ExecutionState> callback)
+            public void RegisterMethod(string method, Func<VirtualMachine, ExecutionState> callback)
             {
                 _interops[method] = callback;
             }
@@ -84,10 +92,10 @@ namespace Tests
             {
                 if (_interops.ContainsKey(method))
                 {
-                    return _interops[method](this.CurrentFrame);
+                    return _interops[method](this);
                 }
 
-                throw new NotImplementedException();
+                throw new VMException(this, $"unknown interop: {method}");
             }
 
             public override ExecutionContext LoadContext(string contextName)
@@ -97,7 +105,7 @@ namespace Tests
                     return _contextLoader(contextName);
                 }
 
-                throw new NotImplementedException();
+                throw new VMException(this, $"unknown context: {contextName}");
             }
 
             public override void DumpData(List<string> lines)
@@ -105,64 +113,52 @@ namespace Tests
                 // do nothing
             }
 
-            public void Expect(bool condition, string description)
+            private ExecutionState Data_Get(VirtualMachine vm)
             {
-                if (condition)
-                {
-                    return;
-                }
+                var contractName = vm.PopString("contract");
+                //vm.Expect(vm.ContractDeployed(contractName), $"contract {contractName} is not deployed");
 
-                throw new VMException(this, description);
-            }
+                var field = vm.PopString("field");
+                var key = SmartContract.GetKeyForField(contractName, field, false);
 
-
-            private ExecutionState Data_Get(ExecutionFrame frame)
-            {
-                var key = this.Stack.Pop();
-                var key_bytes = key.AsByteArray();
-
-                var type_obj = this.Stack.Pop();
+                var type_obj = vm.Stack.Pop();
                 var vmType = type_obj.AsEnum<VMType>();
 
-                this.Expect(key_bytes.Length > 0, "invalid key");
-
-                var value_bytes = storage[key_bytes];
+                var value_bytes = this.storage.ContainsKey(key) ? this.storage[key] : new byte[0];
                 var val = new VMObject();
+                val.SetValue(value_bytes, vmType);
+
                 val.SetValue(value_bytes, vmType);
                 this.Stack.Push(val);
 
                 return ExecutionState.Running;
             }
 
-            private ExecutionState Data_Set(ExecutionFrame frame)
+            private ExecutionState Data_Set(VirtualMachine vm)
             {
-                var key = this.Stack.Pop();
-                var key_bytes = key.AsByteArray();
+                // for security reasons we don't accept the caller to specify a contract name
+                var contractName = vm.CurrentContext.Name;
 
-                var val = this.Stack.Pop();
-                var val_bytes = val.AsByteArray();
+                var field = vm.PopString("field");
+                var key = SmartContract.GetKeyForField(contractName, field, false);
 
-                this.Expect(key_bytes.Length > 0, "invalid key");
+                var obj = vm.Stack.Pop();
+                var valBytes = obj.AsByteArray();
 
-                var firstChar = (char)key_bytes[0];
-                this.Expect(firstChar != '.', "permission denied"); // NOTE link correct PEPE here
-
-                this.storage[key_bytes] = val_bytes;
+                this.storage[key] = valBytes;
 
                 return ExecutionState.Running;
             }
 
-            private ExecutionState Data_Delete(ExecutionFrame frame)
+            private ExecutionState Data_Delete(VirtualMachine vm)
             {
-                var key = this.Stack.Pop();
-                var key_bytes = key.AsByteArray();
+                // for security reasons we don't accept the caller to specify a contract name
+                var contractName = vm.CurrentContext.Name;
 
-                this.Expect(key_bytes.Length > 0, "invalid key");
+                var field = vm.PopString("field");
+                var key = SmartContract.GetKeyForField(contractName, field, false);
 
-                var firstChar = (char)key_bytes[0];
-                this.Expect(firstChar != '.', "permission denied"); // NOTE link correct PEPE here
-
-                this.storage.Remove(key_bytes);
+                this.storage.Remove(key);
 
                 return ExecutionState.Running;
             }
@@ -176,9 +172,9 @@ namespace Tests
             var sourceCode =
             "contract test{\n" +
             "global counter: number;\n" +
-            "constructor()	{\n" +
+            "constructor(owner:address)	{\n" +
             "counter:= 0;}\n" +
-            "method increment(){\n" +
+            "public increment(){\n" +
             "if (counter < 0){\n" +
             "throw \"invalid state\";}\n" +
             "counter += 1;\n" +
@@ -190,16 +186,63 @@ namespace Tests
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 
             TestVM vm;
-            
-            /*vm = new TestVM(script, storage);
-            vm.Stack.Push(VMObject.FromObject("test()"));
-            var result = vm.Execute();
-            Assert.IsTrue(result == ExecutionState.Halt);*/
 
-            vm = new TestVM(contract.script, storage, 0);
-            vm.Stack.Push(VMObject.FromObject("increment"));
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            // call constructor
+            vm = new TestVM(contract, storage, constructor);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
+
+
+            // call increment
+            var increment = contract.abi.FindMethod("increment");
+            Assert.IsNotNull(increment);
+
+            vm = new TestVM(contract, storage, increment);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+        }
+
+        [Test]
+        public void TestStrings()
+        {
+            var sourceCode =
+            "contract test{\n" +
+            "global name: string;\n" +
+            "constructor(owner:address)	{\n" +
+            "name:= \"hello\";\n" +
+            /*"if (counter < 0){\n" +
+            "throw \"invalid state\";}\n" +
+            "counter += 1;\n" +*/
+            "}}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
         }
     }
 }
