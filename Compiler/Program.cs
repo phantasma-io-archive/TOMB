@@ -92,7 +92,7 @@ namespace Phantasma.Tomb.Compiler
 
             }
 
-            Console.WriteLine("Sucess!");
+            Console.WriteLine("Success!");
         }
     }
 }
