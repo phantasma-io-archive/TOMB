@@ -26,6 +26,18 @@ namespace Phantasma.Tomb.Compiler
         public Compiler()
         {
             Instance = this;
+
+            // HACK put this in a better place latter
+            var tokenFlagsNames = Enum.GetNames(typeof(TokenFlags)).Cast<string>().ToArray();
+            var tokenFlagsEntries = new List<EnumEntry>();
+            foreach (var name in tokenFlagsNames)
+            {
+                var temp = Enum.Parse<TokenFlags>(name);
+                var value = Convert.ToUInt32(temp);
+                tokenFlagsEntries.Add(new EnumEntry(name, value));
+            }
+            var tokenFlagsDecl = new EnumDeclaration("TokenFlags", tokenFlagsEntries);
+            _enums[tokenFlagsDecl.Name] = tokenFlagsDecl;
         }
 
         private void Rewind(int steps = 1)
@@ -123,6 +135,11 @@ namespace Phantasma.Tomb.Compiler
                     return VarType.Find(VarKind.Struct, token.value);
                 }
 
+                if (_enums.ContainsKey(token.value))
+                {
+                    return VarType.Find(VarKind.Enum, token.value);
+                }
+
                 throw new CompilerException("expected type, got " + token.kind);
             }
 
@@ -147,6 +164,7 @@ namespace Phantasma.Tomb.Compiler
 
         private List<Module> _modules = new List<Module>();
         private Dictionary<string, StructDeclaration> _structs = new Dictionary<string, StructDeclaration>();
+        private Dictionary<string, EnumDeclaration> _enums = new Dictionary<string, EnumDeclaration>();
 
         private Module FindModule(string name)
         {
@@ -159,6 +177,12 @@ namespace Phantasma.Tomb.Compiler
             }
 
             return null;
+        }
+
+        public Module[] Process(string[] lines)
+        {
+            var sourceCode = string.Join('\n', lines);
+            return Process(sourceCode);
         }
 
         public Module[] Process(string sourceCode)
@@ -219,6 +243,65 @@ namespace Phantasma.Tomb.Compiler
 
                             break;
                         }
+
+                    case "enum":
+                        {
+                            module = null;
+
+                            var enumName = ExpectIdentifier();
+
+                            var entries = new List<EnumEntry>();
+
+                            ExpectToken("{");
+                            do
+                            {
+                                var next = FetchToken();
+                                if (next.value == "}")
+                                {
+                                    break;
+                                }
+
+                                Rewind();
+
+                                if (entries.Count > 0)
+                                {
+                                    ExpectToken(",");
+                                }
+
+                                var entryName = ExpectIdentifier();
+
+                                next = FetchToken();
+
+                                string enumValueStr;
+
+                                if (next.value == "=") {
+                                    enumValueStr = ExpectNumber();
+                                }
+                                else
+                                {
+                                    enumValueStr = entries.Count.ToString();
+                                    Rewind();
+                                }
+
+
+                                uint entryValue;
+                                if (!uint.TryParse(enumValueStr, out entryValue))
+                                {
+                                    throw new CompilerException($"Invalid enum value for {entryName} => {enumValueStr}");
+                                }
+
+                                entries.Add(new EnumEntry(entryName, entryValue));
+                            } while (true);
+
+
+                            var enumType = (EnumVarType)VarType.Find(VarKind.Enum, enumName);
+                            enumType.decl = new EnumDeclaration(enumName, entries);
+
+                            _enums[enumName] = enumType.decl;
+
+                            break;
+                        }
+
 
                     case "contract":
                     case "token":
@@ -1471,11 +1554,43 @@ namespace Phantasma.Tomb.Compiler
                                         if (libDecl != null)
                                         {
                                             implicitIsLiteral = false;
+
+                                            if (varDecl.Type.Kind == VarKind.Enum)
+                                            {
+                                                // Patch Enum methods to use proper type
+                                                foreach (var method in libDecl.methods.Values)
+                                                {
+                                                    foreach (var arg in method.Parameters)
+                                                    {
+                                                        if (arg.Type.Kind == VarKind.Enum)
+                                                        {
+                                                            arg.Type = varDecl.Type;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
                                             break;
                                         }
 
                                         throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
                                     }
+
+                            }
+                        }
+                        else
+                        if (_enums.ContainsKey(first.value))
+                        {
+                            var enumDecl = _enums[first.value];
+                            var entryName = ExpectIdentifier();
+                            if (enumDecl.entryNames.ContainsKey(entryName))
+                            {
+                                var enumValue = enumDecl.entryNames[entryName].ToString();
+                                return new LiteralExpression(scope, enumValue, VarType.Find(VarKind.Enum, first.value));
+                            }
+                            else
+                            {
+                                throw new CompilerException($"Enum {first.value} does not contain member {entryName}");
 
                             }
                         }

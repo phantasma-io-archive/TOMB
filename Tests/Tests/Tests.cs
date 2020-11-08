@@ -370,5 +370,68 @@ namespace Tests
 
         }
 
+        public enum MyEnum
+        {
+            A, 
+            B,
+            C,
+        }
+
+        [Test]
+        public void TestEnums()
+        {
+            string[] sourceCode = new string[] {
+                "enum MyEnum { A, B, C}",
+                "contract test{",
+                $"global state: MyEnum;",
+                "constructor(owner:address)	{" ,
+                "state := MyEnum.B;}" ,
+                "public getValue():MyEnum {" ,
+                "return state;}" ,
+                "public isSet(val:MyEnum):bool {" ,
+                "return state.isSet(val);}" ,
+                "}"
+            };
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call getVal
+            var getValue = contract.abi.FindMethod("getValue");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsEnum<MyEnum>();
+            var expectedVal = MyEnum.B;
+
+            Assert.IsTrue(newVal == expectedVal);
+        }
+
     }
 }

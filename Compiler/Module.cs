@@ -47,6 +47,7 @@ namespace Phantasma.Tomb.Compiler
 
             ImportLibrary("String");
             ImportLibrary("Decimal");
+            ImportLibrary("Enum");
         }
         public LibraryDeclaration FindLibrary(string name, bool required = true)
         {
@@ -109,6 +110,20 @@ namespace Phantasma.Tomb.Compiler
                             var reg = expr.arguments[0].GenerateCode(output);
                             output.AppendLine(expr, $"SIZE {reg} {reg}");
                             return reg;
+                        });
+                    return libDecl;
+
+                case "Enum":
+                    libDecl.AddMethod("isSet", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Enum), new MethodParameter("flag", VarKind.Enum) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var regA = expr.arguments[0].GenerateCode(output);
+                            var regB = expr.arguments[1].GenerateCode(output);
+
+                            output.AppendLine(expr, $"AND {regA} {regB} {regA}");
+
+                            Compiler.Instance.DeallocRegister(ref regB);
+                            return regA;
                         });
                     return libDecl;
 
@@ -177,7 +192,8 @@ namespace Phantasma.Tomb.Compiler
                 case "Token":
                     libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarKind.Number), new MethodParameter("script", VarKind.Bytes) });
                     libDecl.AddMethod("exists", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.TokenExists");
-                    libDecl.AddMethod("isFungible", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.TokenIsFungible");
+                    libDecl.AddMethod("hasFlag", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("flag", VarType.Find(VarKind.Enum, "TokenFlag")) }).SetAlias("Runtime.TokenHasFlag");
+                    libDecl.AddMethod("getFlags", MethodImplementationType.ExtCall, VarType.Find(VarKind.Enum, "TokenFlag"), new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetTokenFlags");
                     libDecl.AddMethod("transfer", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.TransferTokens");
                     libDecl.AddMethod("transferAll", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.TransferBalance");
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.MintTokens");

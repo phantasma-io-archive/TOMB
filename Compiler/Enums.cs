@@ -14,6 +14,7 @@ namespace Phantasma.Tomb.Compiler
         Address,
         Hash,
         Bytes,
+        Enum,
         Any,
         Method,
         Struct,
@@ -82,6 +83,10 @@ namespace Phantasma.Tomb.Compiler
                     result = new StructVarType((string)extra);
                     break;
 
+                case VarKind.Enum:
+                    result = new EnumVarType((string)extra);
+                    break;
+
                 case VarKind.Method:
                     result = new MethodVarType((string)extra);
                     break;
@@ -115,6 +120,23 @@ namespace Phantasma.Tomb.Compiler
         public StructDeclaration decl;
 
         public StructVarType(string name) : base(VarKind.Struct)
+        {
+            this.name = name;
+        }
+
+        public override string ToString()
+        {
+            return $"{Kind}<{name}>";
+        }
+    }
+
+    public class EnumVarType : VarType
+    {
+        public readonly string name;
+
+        public EnumDeclaration decl;
+
+        public EnumVarType(string name) : base(VarKind.Enum)
         {
             this.name = name;
         }

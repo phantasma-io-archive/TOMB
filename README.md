@@ -7,6 +7,7 @@ TOMB smart contract compiler for Phantasma platform
 - Smart contracts and Non-contract Scripts (eg: transactions, raw invokes)
 - Numbers, strings, bools, timestamps, addresses, hashes
 - Constants
+- Enums
 - Global and local variables
 - Bitshifting and logical operators
 - Contract constructors, methods and triggers
@@ -290,6 +291,30 @@ contract test {
 }
 ```
 
+## Enums
+There is compiler support for enumerated value types, that map directly to the Phantasma VM enum type.<br/>
+
+```c#
+// NOTE - like other custom types, it is declared outside the scope of a contract
+enum MyEnum { A = 0, B = 1, C = 2}
+// if the numbers are sequential, it is ok to ommit them, eg:
+//enum MyEnum { A, B, C}
+
+contract test {	
+	global state: MyEnum;
+	
+	constructor(owner:address) 
+	{
+		state := MyEnum.B;
+	}
+	
+	public getValue():MyEnum
+	{
+		return state;
+	}		
+}
+```
+
 ## Map support
 The compiler supports generic types, including maps.<br/>
 Maps are one of the few types that don't have to initialized in the constructor.<br/>
@@ -334,6 +359,30 @@ contract test {
 	}
 }
 ```
+
+## Token Flags
+There are also some builtin enums, like TokenFlags.<br/>
+
+```c#
+
+contract test {	
+	import Runtime;
+	import Token;
+			
+	public paySomething(from:address, amount:number, symbol:string)
+	{
+		Runtime.expect(Runtime.isWitness(from), "witness failed");
+		
+		local flags:TokenFlags := Token.getFlags(symbol);
+		
+		if (flags.isSet(TokenFlags.Fungible)) {
+			local thisAddr:address := $THIS_ADDRESS;
+			Token.transfer(from, thisAddr, "SOUL", price);
+		}
+	}
+}
+```
+
 
 ## Call method
 Showcases how a contract method can call other methods.<br/>

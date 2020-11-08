@@ -502,6 +502,11 @@ namespace Phantasma.Tomb.Compiler
                 val = this.value;
             }
 
+            if (this.type.Kind == VarKind.Enum)
+            {
+                val = $"{val} Enum";
+            }
+
             output.AppendLine(this, $"LOAD {reg} {val}");
 
             this.CallNecessaryConstructors(output, type, reg);
