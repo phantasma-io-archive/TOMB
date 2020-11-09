@@ -57,11 +57,53 @@ namespace Phantasma.Tomb.Compiler
             return false;
         }
 
+        private void ExpectMethodType(MethodDeclaration method, VarKind kind)
+        {
+            var returnType = method.@interface.ReturnType.Kind;
+
+            if (returnType != kind)
+            {
+                throw new CompilerException($"expected return with type {kind} for method, got {returnType} instead");
+            }
+        }
+
         public override ContractInterface GenerateCode(CodeGenerator output)
         {
             foreach (var evt in Events.Values)
             {
                 evt.Validate();
+            }
+
+            if (this.Kind == ModuleKind.Token)
+            {
+                bool hasName = false;
+
+                foreach (var method in this.Methods.Values)
+                {
+                    switch (method.Name)
+                    {
+                        case "name":
+                            hasName = true;
+                            ExpectMethodType(method, VarKind.String);
+                            break;
+
+                        case "maxSupply":
+                            ExpectMethodType(method, VarKind.Number);
+                            break;
+
+                        default:
+                            if (method.Name.StartsWith("is") && method.Name.Length > 2 && char.IsUpper(method.Name[2]))
+                            {
+                                ExpectMethodType(method, VarKind.Bool);
+                            }
+                            break;
+                    }
+                }
+
+                if (!hasName)
+                {
+                    throw new CompilerException($"token {this.Name} is missing property 'name'");
+                }
             }
 
             this.Scope.Enter(output);

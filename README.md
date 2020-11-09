@@ -639,11 +639,10 @@ struct nacho_ram
 	level:number;
 }
 
-token nacho {
+token NACHO {
 	global _owner: address;
 
 	property name: string = "Nachomen";	
-	property symbol: string = "NACHO";
 
 	property isBurnable: bool = true;
 	property isFungible: bool = false;
