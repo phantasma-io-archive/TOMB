@@ -101,7 +101,7 @@ namespace Phantasma.Tomb.Compiler
 
         public MethodInterface SetContract(string contract)
         {
-            this.Contract = contract.ToLower();
+            this.Contract = contract;
             return this;
         }
 

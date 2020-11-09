@@ -308,6 +308,21 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var contractName = ExpectIdentifier();
 
+                            if (firstToken.value == "token")
+                            {
+                                if (!ValidationUtils.IsValidTicker(firstToken.value))
+                                {
+                                    throw new CompilerException("token does not have a valid name: " + firstToken.value);
+                                }
+                            }
+                            else
+                            {
+                                if (!ValidationUtils.IsValidIdentifier(firstToken.value))
+                                {
+                                    throw new CompilerException("contract does not have a valid name: " + firstToken.value);
+                                }
+                            }
+
                             module = new Contract(contractName, firstToken.value == "token" ? ModuleKind.Token: ModuleKind.Contract);
                             ExpectToken("{");
                             ParseModule(module);
@@ -621,16 +636,21 @@ namespace Phantasma.Tomb.Compiler
                             if (contract != null)
                             {
                                 var line = this.CurrentLine;
-                                var name = ExpectIdentifier();
+                                var propertyName = ExpectIdentifier();
+
+                                if (contract.Kind == ModuleKind.Token && string.Equals(propertyName, "symbol", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    throw new CompilerException("symbol property not required, symbol is already defined by token contract name");
+                                }
 
                                 var parameters = new MethodParameter[0];
-                                var scope = new Scope(module.Scope, name, parameters);
+                                var scope = new Scope(module.Scope, propertyName, parameters);
 
                                 ExpectToken(":");
 
                                 var returnType = ExpectType();
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Property, returnType, parameters, scope);
+                                var method = contract.AddMethod(line, propertyName, true, MethodKind.Property, returnType, parameters, scope);
 
                                 var next = FetchToken();
                                 if (next.value == "=")
@@ -640,12 +660,12 @@ namespace Phantasma.Tomb.Compiler
 
                                     if (literal.ResultType != returnType)
                                     {
-                                        throw new CompilerException($"Expected expression of type {returnType} for property {name}, found {literal.ResultType} instead");
+                                        throw new CompilerException($"Expected expression of type {returnType} for property {propertyName}, found {literal.ResultType} instead");
                                     }
 
                                     var block = new StatementBlock(scope);
                                     block.Commands.Add(new ReturnStatement(method, literal));
-                                    contract.SetMethodBody(name, block);
+                                    contract.SetMethodBody(propertyName, block);
 
                                     ExpectToken(";");
                                 }
@@ -654,12 +674,12 @@ namespace Phantasma.Tomb.Compiler
                                     Rewind();
 
                                     ExpectToken("{");
-                                    contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                    contract.SetMethodBody(propertyName, ParseCommandBlock(scope, method));
                                     ExpectToken("}");
                                 }
 
 
-                                contract.library.AddMethod(name, MethodImplementationType.LocalCall, returnType, parameters);
+                                contract.library.AddMethod(propertyName, MethodImplementationType.LocalCall, returnType, parameters);
                                 break;
                             }
                             else
