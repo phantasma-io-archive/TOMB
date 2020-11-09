@@ -310,16 +310,16 @@ namespace Phantasma.Tomb.Compiler
 
                             if (firstToken.value == "token")
                             {
-                                if (!ValidationUtils.IsValidTicker(firstToken.value))
+                                if (!ValidationUtils.IsValidTicker(contractName))
                                 {
-                                    throw new CompilerException("token does not have a valid name: " + firstToken.value);
+                                    throw new CompilerException("token does not have a valid name: " + contractName);
                                 }
                             }
                             else
                             {
-                                if (!ValidationUtils.IsValidIdentifier(firstToken.value))
+                                if (!ValidationUtils.IsValidIdentifier(contractName))
                                 {
-                                    throw new CompilerException("contract does not have a valid name: " + firstToken.value);
+                                    throw new CompilerException("contract does not have a valid name: " + contractName);
                                 }
                             }
 
