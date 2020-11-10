@@ -63,7 +63,7 @@ namespace Phantasma.Tomb.Compiler
 
             if (returnType != kind)
             {
-                throw new CompilerException($"expected return with type {kind} for method, got {returnType} instead");
+                throw new CompilerException($"expected return with type {kind} for method {method.Name}, got {returnType} instead");
             }
         }
 
