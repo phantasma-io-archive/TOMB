@@ -914,7 +914,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("invalid decimals: " + decimals);
             }
 
-            return new DecimalVarType(decimals);
+            return (DecimalVarType) VarType.Find(VarKind.Decimal, decimals);
         }
 
         private MethodParameter[] ParseParameters(Scope scope)

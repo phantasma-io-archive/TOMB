@@ -28,6 +28,8 @@ namespace Phantasma.Tomb.Compiler
     {
         public readonly VarKind Kind;
 
+        public abstract string Key { get; }
+
         /*public readonly static VarType None = Find(VarKind.None);
         public readonly static VarType Address = Find(VarKind.Address);
         public readonly static VarType Bool = Find(VarKind.Bool);*/
@@ -35,6 +37,12 @@ namespace Phantasma.Tomb.Compiler
         protected VarType(VarKind kind)
         {
             Kind = kind;
+
+            var key = this.Key;
+            if (_cache.ContainsKey(key))
+            {
+                throw new CompilerException("internal error initializing type: " + key);
+            }
         }
 
         private static Dictionary<string, VarType> _cache = new Dictionary<string, VarType>();
@@ -102,6 +110,8 @@ namespace Phantasma.Tomb.Compiler
 
     public class PrimitiveVarType : VarType
     {
+        public override string Key => $"{Kind}";
+
         public PrimitiveVarType(VarKind kind) : base(kind)
         {
 
@@ -115,6 +125,8 @@ namespace Phantasma.Tomb.Compiler
 
     public class StructVarType : VarType
     {
+        public override string Key => $"{Kind}<{name}>";
+
         public readonly string name;
 
         public StructDeclaration decl;
@@ -132,6 +144,8 @@ namespace Phantasma.Tomb.Compiler
 
     public class EnumVarType : VarType
     {
+        public override string Key => $"{Kind}<{name}>";
+
         public readonly string name;
 
         public EnumDeclaration decl;
@@ -151,6 +165,7 @@ namespace Phantasma.Tomb.Compiler
     {
         public readonly int decimals;
 
+        public override string Key => $"{Kind}<{decimals}>";
         public DecimalVarType(int decimals) : base(VarKind.Decimal)
         {
             this.decimals = decimals;
@@ -166,6 +181,8 @@ namespace Phantasma.Tomb.Compiler
     public class MethodVarType : VarType
     {
         public readonly string name;
+
+        public override string Key => $"{Kind}<{name}>";
 
         public MethodVarType(string name) : base(VarKind.Method)
         {
