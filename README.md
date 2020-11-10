@@ -1,5 +1,14 @@
 # TOMB
 TOMB smart contract compiler for Phantasma platform
+  
+<p align="center">      
+  <a href="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master)">
+    <img src="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master">
+  </a>
+  <a href="https://github.com/phantasma-io/PhantasmaChain/blob/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+  </a>
+</p>
 
 
 ## Supported features
