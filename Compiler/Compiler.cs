@@ -1,11 +1,9 @@
-﻿using Phantasma.CodeGen.Core.Nodes;
-using Phantasma.Domain;
+﻿using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -1428,6 +1426,9 @@ namespace Phantasma.Tomb.Compiler
 
                 case "-":
                     return OperatorKind.Subtraction;
+
+                case "^":
+                    return OperatorKind.Power;
 
                 case "<<":
                     return OperatorKind.ShiftLeft;

@@ -177,8 +177,7 @@ namespace Phantasma.Tomb.Compiler
                 case '>':
                 case '!':
                 case ':':
-                case '|':
-                case '&':
+                //case '&': TODO offset of method
                 case '^':
                     return true;
 

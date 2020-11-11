@@ -218,6 +218,7 @@ namespace Phantasma.Tomb.Compiler
         Multiplication,
         Division,
         Modulus,
+        Power,
         ShiftRight,
         ShiftLeft,
         Or,
