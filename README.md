@@ -153,6 +153,7 @@ Note: Only available in description scripts
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Map.get(key:Generic) | Generic | TODO|
+| Map.has(key:Generic) | Bool | TODO|
 | Map.set(key:Generic, value:Generic) | None | TODO|
 | Map.remove(key:Generic) | None | TODO|
 | Map.count() | Number | TODO|

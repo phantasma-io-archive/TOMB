@@ -303,6 +303,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead);
+                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic)}).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     break;
 
                 case "List":
