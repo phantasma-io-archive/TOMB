@@ -189,6 +189,11 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("stopTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { });
                     break;
 
+                case "Random":
+                    libDecl.AddMethod("generate", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.Random");
+                    libDecl.AddMethod("seed", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("seed", VarKind.Number) }).SetAlias("Runtime.SetSeed");
+                    break;
+
                 case "Token":
                     libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarKind.Number), new MethodParameter("script", VarKind.Bytes) });
                     libDecl.AddMethod("exists", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.TokenExists");
