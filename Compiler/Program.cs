@@ -77,7 +77,7 @@ namespace Phantasma.Tomb.Compiler
 
                 if (module.script != null)
                 {
-                    File.WriteAllBytes(module.Name + ".script", module.script);
+                    File.WriteAllBytes(module.Name + ".pvm", module.script);
                 }
 
                 if (module.debugInfo != null)
