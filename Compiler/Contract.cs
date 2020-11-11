@@ -80,23 +80,30 @@ namespace Phantasma.Tomb.Compiler
 
                 foreach (var method in this.Methods.Values)
                 {
-                    switch (method.Name)
+                    string name;
+
+                    if (method.Name.StartsWith("get"))
                     {
-                        case "name":
-                            hasName = true;
-                            ExpectMethodType(method, VarKind.String);
-                            break;
+                        name = method.Name.Substring(3);
 
-                        case "maxSupply":
-                            ExpectMethodType(method, VarKind.Number);
-                            break;
+                        switch (name)
+                        {
+                            case "Name":
+                                hasName = true;
+                                ExpectMethodType(method, VarKind.String);
+                                break;
 
-                        default:
-                            if (method.Name.StartsWith("is") && method.Name.Length > 2 && char.IsUpper(method.Name[2]))
-                            {
-                                ExpectMethodType(method, VarKind.Bool);
-                            }
-                            break;
+                            case "MaxSupply":
+                                ExpectMethodType(method, VarKind.Number);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        if (method.Name.StartsWith("is") && method.Name.Length > 2 && char.IsUpper(method.Name[2]))
+                        {
+                            ExpectMethodType(method, VarKind.Bool);
+                        }
                     }
                 }
 
@@ -140,6 +147,12 @@ namespace Phantasma.Tomb.Compiler
             if (Methods.Count == 0)
             {
                 this.LineNumber = line;
+            }
+
+            var vmType = MethodInterface.ConvertType(returnType);
+            if (!ValidationUtils.IsValidMethod(name, vmType))
+            {
+                throw new CompilerException($"Invalid method definition: {name}:{returnType}");
             }
 
             var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, isPublic, kind, returnType, parameters);

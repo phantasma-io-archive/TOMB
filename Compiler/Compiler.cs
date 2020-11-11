@@ -650,6 +650,11 @@ namespace Phantasma.Tomb.Compiler
 
                                 var returnType = ExpectType();
 
+                                if (!propertyName.StartsWith("is") || char.IsLower(propertyName[2]))
+                                {
+                                    propertyName = "get" + char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+                                }
+
                                 var method = contract.AddMethod(line, propertyName, true, MethodKind.Property, returnType, parameters, scope);
 
                                 var next = FetchToken();
@@ -794,7 +799,6 @@ namespace Phantasma.Tomb.Compiler
                                 {
                                     if (allowedName.Equals(name, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        name = allowedName;
                                         isValid = true;
                                         break;
                                     }
@@ -809,14 +813,15 @@ namespace Phantasma.Tomb.Compiler
 
                                 switch (name)
                                 {
-                                    case "OnMint":
-                                    case "OnBurn":
-                                    case "OnSend":
-                                    case "OnReceive": // address, symbol, amount
+                                    case "onMint":
+                                    case "onBurn":
+                                    case "onSend":
+                                    case "onReceive": // address, symbol, amount
                                         CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address, VarKind.String, VarKind.Number });
                                         break;
 
-                                    case "OnWitness": // address
+                                    case "onWitness":
+                                    case "onUpgrade": // address
                                         CheckParameters(name, parameters, new[] { VarKind.Address });
                                         break;
 
