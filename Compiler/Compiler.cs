@@ -1435,13 +1435,13 @@ namespace Phantasma.Tomb.Compiler
                 case ">>":
                     return OperatorKind.ShiftRight;
 
-                case "|":
+                case "or":
                     return OperatorKind.Or;
 
-                case "&":
+                case "and":
                     return OperatorKind.And;
 
-                case "^":
+                case "xor":
                     return OperatorKind.Xor;
 
                 default:

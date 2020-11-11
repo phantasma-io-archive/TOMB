@@ -205,6 +205,25 @@ contract test {
 }
 ```
 
+## Conditions
+Like most programming languages, it is possible to do conditional branching use if statement.<br/>
+Logic operators supported include and, or and xor.<br/>
+
+```c#
+contract test {	
+	public isEvenAndPositive(n:number):bool
+	{
+		if (n>0 and n%2==0)
+		{
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+}
+```
+
 ## Simple Counter
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
 Note that any global variable that is not generic must be initialized in the contract constructor.<br/>

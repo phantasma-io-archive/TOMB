@@ -100,7 +100,7 @@ namespace Phantasma.Tomb.Compiler
                 this.kind = TokenKind.Selector;
             }
             else
-            if (value == ":=")
+            if (value == ":=" || value == "and" || value == "or" || value == "xor")
             {
                 this.kind = TokenKind.Operator;
             }
