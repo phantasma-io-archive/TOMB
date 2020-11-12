@@ -433,5 +433,56 @@ namespace Tests
             Assert.IsTrue(newVal == expectedVal);
         }
 
+        [Test]
+        public void TestProperties()
+        {
+            string[] sourceCode = new string[] {
+                "token TEST  {",
+                "property name:string = \"Unit test\";",
+                "   global _feesSymbol:string;",
+                $"  property feesSymbol:string = _feesSymbol;",
+                "   constructor(owner:address)	{" ,
+                "       _feesSymbol := \"KCAL\";" ,
+                "}}"
+            };
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call getFeesSymbol
+            var getValue = contract.abi.FindMethod("getFeesSymbol");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsString();
+            var expectedVal = "KCAL";
+
+            Assert.IsTrue(newVal == expectedVal);
+        }
+
     }
 }
