@@ -164,6 +164,8 @@ namespace Phantasma.Tomb.Compiler
             switch (kind)
             {
                 case VarKind.Address:
+                    return VMType.Object;
+
                 case VarKind.Bytes:
                 case VarKind.Hash:
                     return VMType.Bytes;
