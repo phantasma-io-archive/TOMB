@@ -162,6 +162,8 @@ namespace Phantasma.Tomb.Compiler
             decl.LineNumber = line;
             this.Methods[name] = decl;
 
+            scope.Method = decl;
+
             return method;
         }
 

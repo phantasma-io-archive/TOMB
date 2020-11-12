@@ -4,9 +4,16 @@ using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Phantasma.Tomb.Compiler
 {
+    public enum ExecutionResult
+    {
+        Break,
+        Yield,
+    }
+
     public class Compiler
     {
         private List<LexerToken> tokens;
@@ -26,15 +33,27 @@ namespace Phantasma.Tomb.Compiler
             Instance = this;
 
             // HACK put this in a better place latter
-            var tokenFlagsNames = Enum.GetNames(typeof(TokenFlags)).Cast<string>().ToArray();
+            CreateEnum<TokenFlags>("TokenFlags");
+            CreateEnum<TaskFrequencyMode>("TaskMode");
+            CreateEnum<ExecutionResult>("Execution");
+        }
+
+        private void CreateEnum<T>(string name)
+        {
+            CreateEnum(name, typeof(T));
+        }
+
+        private void CreateEnum(string enumName, Type enumType)
+        {
+            var tokenFlagsNames = Enum.GetNames(enumType).Cast<string>().ToArray();
             var tokenFlagsEntries = new List<EnumEntry>();
             foreach (var name in tokenFlagsNames)
             {
-                var temp = Enum.Parse<TokenFlags>(name);
+                var temp = Enum.Parse(enumType, name);
                 var value = Convert.ToUInt32(temp);
                 tokenFlagsEntries.Add(new EnumEntry(name, value));
             }
-            var tokenFlagsDecl = new EnumDeclaration("TokenFlags", tokenFlagsEntries);
+            var tokenFlagsDecl = new EnumDeclaration(enumName, tokenFlagsEntries);
             _enums[tokenFlagsDecl.Name] = tokenFlagsDecl;
         }
 
@@ -741,9 +760,10 @@ namespace Phantasma.Tomb.Compiler
                                 var name = ExpectIdentifier();
 
                                 var parameters = ParseParameters(module.Scope);
+
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarType.Find(VarKind.None), parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarType.Find(VarKind.Bool), parameters, scope);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -972,7 +992,7 @@ namespace Phantasma.Tomb.Compiler
 
                     case "emit":
                         {
-                            var contract = scope.Root as Contract;
+                            var contract = scope.Module as Contract;
                             if (contract != null)
                             {
                                 var eventName = ExpectIdentifier();
@@ -1189,7 +1209,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             ExpectToken(";");
 
-                            block.Commands.Add(new BreakStatement());
+                            block.Commands.Add(new BreakStatement(scope));
                             break;
                         }
 
@@ -1197,7 +1217,7 @@ namespace Phantasma.Tomb.Compiler
                         {
                             ExpectToken(";");
 
-                            block.Commands.Add(new ContinueStatement());
+                            block.Commands.Add(new ContinueStatement(scope));
                             break;
                         }
 
@@ -1245,7 +1265,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_Map:
                                             {
                                                 var mapDecl = (MapDeclaration)varDecl;
-                                                libDecl = scope.Root.FindLibrary("Map");
+                                                libDecl = scope.Module.FindLibrary("Map");
                                                 libDecl = libDecl.PatchMap(mapDecl);
                                                 break;
                                             }
@@ -1253,7 +1273,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_List:
                                             {
                                                 var listDecl = (ListDeclaration)varDecl;
-                                                libDecl = scope.Root.FindLibrary("List");
+                                                libDecl = scope.Module.FindLibrary("List");
                                                 libDecl = libDecl.PatchList(listDecl);
                                                 break;
                                             }
@@ -1261,7 +1281,7 @@ namespace Phantasma.Tomb.Compiler
                                         case VarKind.Storage_Set:
                                             {
                                                 var setDecl = (SetDeclaration)varDecl;
-                                                libDecl = scope.Root.FindLibrary("Set");
+                                                libDecl = scope.Module.FindLibrary("Set");
                                                 libDecl = libDecl.PatchSet(setDecl);
                                                 break;
                                             }
@@ -1272,7 +1292,7 @@ namespace Phantasma.Tomb.Compiler
                                 }
                                 else
                                 {
-                                    libDecl = scope.Root.FindLibrary(token.value);
+                                    libDecl = scope.Module.FindLibrary(token.value);
                                 }
 
                                 var methodCall = new MethodCallStatement();
@@ -1333,7 +1353,7 @@ namespace Phantasma.Tomb.Compiler
                                 return new VarExpression(scope, varDecl);
                             }
 
-                            var libDecl = scope.Root.FindLibrary(first.value, false);
+                            var libDecl = scope.Module.FindLibrary(first.value, false);
                             if (libDecl != null)
                             {
                                 throw new NotImplementedException();
@@ -1544,7 +1564,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_Map:
                                     {
                                         var mapDecl = (MapDeclaration)varDecl;
-                                        libDecl = scope.Root.FindLibrary("Map");
+                                        libDecl = scope.Module.FindLibrary("Map");
                                         libDecl = libDecl.PatchMap(mapDecl);
                                         break;
                                     }
@@ -1552,7 +1572,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_List:
                                     {
                                         var listDecl = (ListDeclaration)varDecl;
-                                        libDecl = scope.Root.FindLibrary("List");
+                                        libDecl = scope.Module.FindLibrary("List");
                                         libDecl = libDecl.PatchList(listDecl);
                                         break;
                                     }
@@ -1560,7 +1580,7 @@ namespace Phantasma.Tomb.Compiler
                                 case VarKind.Storage_Set:
                                     {
                                         var setDecl = (SetDeclaration)varDecl;
-                                        libDecl = scope.Root.FindLibrary("Set");
+                                        libDecl = scope.Module.FindLibrary("Set");
                                         libDecl = libDecl.PatchSet(setDecl);
                                         break;
                                     }
@@ -1576,7 +1596,7 @@ namespace Phantasma.Tomb.Compiler
                                 default:
                                     {
                                         var typeName = varDecl.Type.Kind.ToString();
-                                        libDecl = scope.Root.FindLibrary(typeName, false);
+                                        libDecl = scope.Module.FindLibrary(typeName, false);
                                         if (libDecl != null)
                                         {
                                             implicitIsLiteral = false;
@@ -1622,7 +1642,7 @@ namespace Phantasma.Tomb.Compiler
                         }
                         else
                         {
-                            libDecl = scope.Root.FindLibrary(first.value);
+                            libDecl = scope.Module.FindLibrary(first.value);
                         }
 
                         if (leftSide == null)

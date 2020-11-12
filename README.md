@@ -34,11 +34,11 @@ TOMB smart contract compiler for Phantasma platform
 - Structs
 - Import libraries (Runtime, Leaderboard, Token, etc)
 - Comments (single and multi line)
+- Contract tasks
 - ABI generation
 
 ## Planned features
 
-- Contract tasks
 - For.. Loops
 - Switch .. case
 - Try .. Catch
@@ -56,7 +56,7 @@ Different data types are recognized by the compiler.
 | Decimal<X>  | 0.123  | Where X is the number of maximum decimal places
 | Bool  | false  |
 | String  | "hello"  |
-| Timestamp  | no literal support, use either Runtime.time or Utils.unixTime  |
+| Timestamp  | no literal support, use either Time.now or Time.unix  |
 | Byte array  | 0xFAFAFA2423424 |
 | Address | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA or @null|
 | Hash  | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |
@@ -79,10 +79,14 @@ The following libraries can be imported into a contract.
 | Runtime.expect(condition:Bool, error:String) | None | TODO|
 | Runtime.isWitness(address:Address) | Bool | TODO|
 | Runtime.isTrigger() | Bool | TODO|
-| Runtime.time() | Timestamp | TODO|
 | Runtime.transactionHash() | Hash | TODO|
-| Runtime.startTask(from:Address, task:Method) | None | TODO|
-| Runtime.stopTask() | None | TODO|
+
+### Task
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Task.start(method:Method<>, from:Address, frequency:Number, mode:Enum<TaskMode>) | Task | TODO|
+| Task.stop(task:Address) | None | TODO|
+| Task.current() | Task | TODO|
 
 ### Token
 | Method | Return type | Description|
@@ -616,6 +620,43 @@ contract test {
 		}
 		
 		return;
+	}
+}
+```
+
+## Tasks
+A task allows a contract method to run periodically without user intervention.<br/>
+
+```c#
+contract test {
+	import Time;
+	import Task;
+
+	global victory:bool;
+	global deadline:time;
+	
+	constructor(addr:address) {
+		victory := false;
+		time := Time.now() + time.hours(2);
+	}
+
+	task checkResult()  {
+		if (victory) {
+			break;
+		}
+
+		local now: time := Time.now();
+		
+		if (time >= deadline) {
+			break;
+		}
+		
+		continue;
+	}
+	
+	public win(from:address) 
+	{
+		victory := true;
 	}
 }
 ```

@@ -15,6 +15,7 @@ namespace Phantasma.Tomb.Compiler
         Hash,
         Bytes,
         Enum,
+        Task,
         Any,
         Method,
         Struct,
@@ -73,6 +74,7 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Address:
                 case VarKind.Hash:
                 case VarKind.Bytes:
+                case VarKind.Task:
                 case VarKind.None:
                 case VarKind.Generic:
                 case VarKind.Any:

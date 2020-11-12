@@ -6,8 +6,10 @@ namespace Phantasma.Tomb.Compiler
     public sealed class Scope
     {
         public readonly Scope Parent;
-        public readonly Module Root;
+        public readonly Module Module;
         public readonly string Name;
+
+        public MethodDeclaration Method; // optional
 
         public int Level
         {
@@ -25,7 +27,8 @@ namespace Phantasma.Tomb.Compiler
         public Scope(Scope parent, string name, MethodParameter[] parameters)
         {
             this.Parent = parent;
-            this.Root = parent.Root;
+            this.Module = parent.Module;
+            this.Method = parent.Method;
             this.Name = name;
 
             foreach (var entry in parameters)
@@ -42,7 +45,8 @@ namespace Phantasma.Tomb.Compiler
         public Scope(Module module)
         {
             this.Parent = null;
-            this.Root = module;
+            this.Module = module;
+            this.Method = null;
             this.Name = module.Name;
         }
 

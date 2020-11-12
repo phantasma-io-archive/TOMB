@@ -84,7 +84,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] { 
             "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", 
-            "Map", "List", "String", FormatLibraryName };
+            "Task", "Map", "List", "String", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -185,8 +185,12 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
                     libDecl.AddMethod("time", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
                     libDecl.AddMethod("transactionHash", MethodImplementationType.ExtCall, VarKind.Hash, new MethodParameter[] { });
-                    libDecl.AddMethod("startTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("from", VarKind.Address), new MethodParameter("task", VarKind.Method) });
-                    libDecl.AddMethod("stopTask", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { });
+                    break;
+
+                case "Task":
+                    libDecl.AddMethod("start", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { new MethodParameter("method", VarKind.Method), new MethodParameter("from", VarKind.Address), new MethodParameter("frequency", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TaskMode")) }).SetAlias("Task.Start");
+                    libDecl.AddMethod("stop", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("task", VarKind.Address) }).SetAlias("Task.Stop");
+                    libDecl.AddMethod("current", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { }).SetAlias("Task.Current");
                     break;
 
                 case "Random":
@@ -347,7 +351,7 @@ namespace Phantasma.Tomb.Compiler
             if (insertContract)
             {
                 output.AppendLine(expression, $"PUSH {reg}");
-                output.AppendLine(expression, $"LOAD {reg} \"{scope.Root.Name}\" // contract name");
+                output.AppendLine(expression, $"LOAD {reg} \"{scope.Module.Name}\" // contract name");
             }
 
             return reg;

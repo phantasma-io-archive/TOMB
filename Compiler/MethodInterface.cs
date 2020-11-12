@@ -179,6 +179,7 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Method:
                 case VarKind.Number:
                 case VarKind.Decimal:
+                case VarKind.Task:
                     return VMType.Number;
 
                 case VarKind.String:

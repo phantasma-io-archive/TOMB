@@ -696,7 +696,7 @@ namespace Phantasma.Tomb.Compiler
                     output.AppendLine(this, $"LOAD {tempReg1} \"Data.Get\"");
 
                     tempReg2 = Compiler.Instance.AllocRegister(output, this, "contractName");
-                    output.AppendLine(this, $"LOAD {tempReg2} \"{this.scope.Root.Name}\"");
+                    output.AppendLine(this, $"LOAD {tempReg2} \"{this.scope.Module.Name}\"");
                 }
 
                 var reg = Compiler.Instance.AllocRegister(output, variable, variable.Name);

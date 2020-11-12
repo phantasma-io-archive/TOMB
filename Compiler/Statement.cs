@@ -378,8 +378,11 @@ namespace Phantasma.Tomb.Compiler
 
     public class BreakStatement : Statement
     {
-        public BreakStatement()
+        public readonly Scope scope;
+
+        public BreakStatement(Scope scope) : base()
         {
+            this.scope = scope;
         }
 
         public override bool IsNodeUsed(Node node)
@@ -396,6 +399,11 @@ namespace Phantasma.Tomb.Compiler
         {
             if (Compiler.Instance.CurrentLoop == null)
             {
+                if (this.scope.Method != null && this.scope.Method.@interface.Kind == MethodKind.Trigger)
+                {
+                    throw new CompilerException("trigger break not implemented");
+                }
+
                 throw new CompilerException("not inside a loop");
             }
 
@@ -405,8 +413,11 @@ namespace Phantasma.Tomb.Compiler
 
     public class ContinueStatement : Statement
     {
-        public ContinueStatement()
+        public readonly Scope scope;
+
+        public ContinueStatement(Scope scope) : base()
         {
+            this.scope = scope;
         }
 
         public override bool IsNodeUsed(Node node)
@@ -423,6 +434,11 @@ namespace Phantasma.Tomb.Compiler
         {
             if (Compiler.Instance.CurrentLoop == null)
             {
+                if (this.scope.Method != null && this.scope.Method.@interface.Kind == MethodKind.Trigger)
+                {
+                    throw new CompilerException("trigger continuenot implemented");
+                }
+
                 throw new CompilerException("not inside a loop");
             }
 

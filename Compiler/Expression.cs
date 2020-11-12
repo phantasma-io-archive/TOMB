@@ -563,7 +563,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 case "THIS_ADDRESS":
                     {
-                        var addr = SmartContract.GetAddressForName(scope.Root.Name);
+                        var addr = SmartContract.GetAddressForName(scope.Module.Name);
                         var hex = Base16.Encode(addr.ToByteArray());
                         return new LiteralExpression(scope, "0x"+hex, VarType.Find(VarKind.Address));
                     }
