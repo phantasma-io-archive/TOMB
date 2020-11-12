@@ -84,7 +84,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] { 
             "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", 
-            "Task", "Map", "List", "String", FormatLibraryName };
+            "Time", "Task", "Map", "List", "String", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -183,7 +183,6 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("log", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("message", VarKind.String) });
                     libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
                     libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
-                    libDecl.AddMethod("time", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { });
                     libDecl.AddMethod("transactionHash", MethodImplementationType.ExtCall, VarKind.Hash, new MethodParameter[] { });
                     break;
 
@@ -192,6 +191,27 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("stop", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("task", VarKind.Address) }).SetAlias("Task.Stop");
                     libDecl.AddMethod("current", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { }).SetAlias("Task.Current");
                     break;
+
+
+                case "Time":
+                    libDecl.AddMethod("now", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { }).SetAlias("Runtime.Time");
+                    libDecl.AddMethod("unix", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) }).SetPostCallback((output, scope, method, reg) =>
+                    {
+                        var nameExpr = method.arguments[0] as LiteralExpression;
+                        if (nameExpr != null && nameExpr.type.Kind == VarKind.Number)
+                        {
+                            var timestamp = uint.Parse(nameExpr.value);
+                            output.AppendLine(method, $"LOAD {reg} {timestamp}");
+                            method.CallNecessaryConstructors(output, VarKind.Timestamp, reg);
+                            return reg;
+                        }
+                        else
+                        {
+                            throw new Exception("Expected literal number expression");
+                        }
+                    });
+                    break;
+
 
                 case "Random":
                     libDecl.AddMethod("generate", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.Random");
@@ -240,22 +260,6 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Utils":
-                    libDecl.AddMethod("unixTime", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) }).SetPostCallback((output, scope, method, reg) =>
-                    {
-                        var nameExpr = method.arguments[0] as LiteralExpression;
-                        if (nameExpr != null && nameExpr.type.Kind == VarKind.Number)
-                        {
-                            var timestamp = uint.Parse(nameExpr.value);
-                            output.AppendLine(method, $"LOAD {reg} {timestamp}");
-                            method.CallNecessaryConstructors(output, VarKind.Timestamp, reg);
-                            return reg;
-                        }
-                        else
-                        {
-                            throw new Exception("Expected literal number expression");
-                        }
-                    });
-
                     libDecl.AddMethod("contractAddress", MethodImplementationType.Custom, VarKind.Address, new[] { new MethodParameter("name", VarKind.String) }).SetPostCallback((output, scope, method, reg) =>
                     {
                         var nameExpr = method.arguments[0] as LiteralExpression;

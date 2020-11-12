@@ -125,10 +125,15 @@ The following libraries can be imported into a contract.
 | Storage.write(field:String, value:Bytes) | None | TODO|
 | Storage.delete(field:String) | None | TODO|
 
+### Time
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Time.now() | Timestamp | TODO|
+| Time.unix(value:Number) | Timestamp | TODO|
+
 ### Utils
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Utils.unixTime(value:Number) | Timestamp | TODO|
 | Utils.contractAddress(name:String) | Address | TODO|
 
 ### Leaderboard
