@@ -187,7 +187,7 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case "Task":
-                    libDecl.AddMethod("start", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { new MethodParameter("method", VarKind.Method), new MethodParameter("from", VarKind.Address), new MethodParameter("frequency", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TaskMode")) }).SetAlias("Task.Start");
+                    libDecl.AddMethod("start", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { new MethodParameter("method", VarKind.Method), new MethodParameter("from", VarKind.Address), new MethodParameter("frequency", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TaskMode")), new MethodParameter("gasLimit", VarKind.Number) }).SetAlias("Task.Start");
                     libDecl.AddMethod("stop", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("task", VarKind.Address) }).SetAlias("Task.Stop");
                     libDecl.AddMethod("current", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { }).SetAlias("Task.Current");
                     break;

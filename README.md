@@ -641,9 +641,10 @@ contract test {
 	global victory:bool;
 	global deadline:time;
 	
-	constructor(addr:address) {
+	constructor(owner:address) {
 		victory := false;
 		time := Time.now() + time.hours(2);
+		Task.start(checkResult, owner, 0, TaskFrequency.Always, 999);
 	}
 
 	task checkResult()  {
