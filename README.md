@@ -631,6 +631,7 @@ contract test {
 
 ## Tasks
 A task allows a contract method to run periodically without user intervention.<br/>
+Tasks can't have parameters, however you can use Task.current() along with a global Map to associate custom user data to each task.<br/>
 
 ```c#
 contract test {

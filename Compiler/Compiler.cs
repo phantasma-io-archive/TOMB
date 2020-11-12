@@ -761,6 +761,11 @@ namespace Phantasma.Tomb.Compiler
 
                                 var parameters = ParseParameters(module.Scope);
 
+                                if (parameters.Length != 0)
+                                {
+                                    throw new CompilerException("task should not have parameters");
+                                }
+
                                 var scope = new Scope(module.Scope, name, parameters);
 
                                 var method = contract.AddMethod(line, name, true, MethodKind.Task, VarType.Find(VarKind.Bool), parameters, scope);
