@@ -372,7 +372,7 @@ namespace Tests
 
         public enum MyEnum
         {
-            A, 
+            A,
             B,
             C,
         }
@@ -515,6 +515,113 @@ namespace Tests
             Assert.IsTrue(result == ExecutionState.Halt);
 
             Assert.IsTrue(storage.Count == 1);
+        }
+
+        [Test]
+        public void TestUpdateMethod()
+        {
+            string[] sourceCode = new string[] {
+                "token TEST  {",
+                "property name:string = \"Unit test\";",
+                "   global _feesSymbol:string;",
+                $"  property feesSymbol:string = _feesSymbol;",
+                "   constructor(owner:address)	{" ,
+                "       _feesSymbol := \"KCAL\";" ,
+                "}",
+                "public updateFeesSymbol(feesSymbol:string) {",
+                "   _feesSymbol:= feesSymbol;",
+                "}",
+                "}"
+              };
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call updateFeesSymbol
+            var getValue = contract.abi.FindMethod("updateFeesSymbol");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject("SOUL"));
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsString();
+            var expectedVal = "SOUL";
+
+            Assert.IsTrue(newVal == expectedVal);
+        }
+
+        [Test]
+        public void TestQueryMethodAddress()
+        {
+            string[] sourceCode = new string[] {
+                "token TEST  {",
+                "property name:string = \"Unit test\";",
+                "   global _feesAddress:address;",
+                $"  property feesAddress:address = _feesAddress;",
+                "   constructor(owner:address)	{" ,
+                "       _feesAddress := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
+                "}}"
+            };
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call getFeesAddress
+            var getValue = contract.abi.FindMethod("getFeesAddress");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsString();
+            var expectedVal = "P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM";
+
+            Assert.IsTrue(newVal == expectedVal);
         }
 
     }
