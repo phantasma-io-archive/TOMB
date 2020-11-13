@@ -234,6 +234,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("transfer", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.TransferToken");
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("rom", VarKind.Any), new MethodParameter("ram", VarKind.Any) }).SetAlias("Runtime.MintToken");
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
+                    libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
                     break;
 
                 case "Organization":
