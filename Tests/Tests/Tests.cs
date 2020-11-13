@@ -560,16 +560,33 @@ namespace Tests
             Assert.IsTrue(storage.Count == 1);
 
             // call updateFeesSymbol
-            var getValue = contract.abi.FindMethod("updateFeesSymbol");
-            Assert.IsNotNull(getValue);
+            var updateValue = contract.abi.FindMethod("updateFeesSymbol");
+            Assert.IsNotNull(updateValue);
 
-            vm = new TestVM(contract, storage, getValue);
+            vm = new TestVM(contract, storage, updateValue);
             vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject("SOUL"));
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
             Assert.IsTrue(storage.Count == 1);
+
+            // call getFeesSymbol
+            var getValue = contract.abi.FindMethod("getFeesSymbol");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsString();
+            var expectedVal = "SOUL";
+
+            Assert.IsTrue(newVal == expectedVal);
         }
 
         [Test]
