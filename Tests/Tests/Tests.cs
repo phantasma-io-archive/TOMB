@@ -126,6 +126,11 @@ namespace Tests
                 var type_obj = vm.Stack.Pop();
                 var vmType = type_obj.AsEnum<VMType>();
 
+                if (vmType == VMType.Object)
+                {
+                    vmType = VMType.Bytes;
+                }
+
                 var value_bytes = this.storage.ContainsKey(key) ? this.storage[key] : new byte[0];
                 var val = new VMObject();
                 val.SetValue(value_bytes, vmType);
@@ -565,12 +570,6 @@ namespace Tests
             Assert.IsTrue(result == ExecutionState.Halt);
 
             Assert.IsTrue(storage.Count == 1);
-
-            var obj = vm.Stack.Pop();
-            var newVal = obj.AsString();
-            var expectedVal = "SOUL";
-
-            Assert.IsTrue(newVal == expectedVal);
         }
 
         [Test]
