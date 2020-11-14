@@ -19,9 +19,8 @@ jobs:
         dotnet-version: 3.1.301
     - name: Get PhantasmaChain
       run: |
-        echo ::set-output has_token=false
-        apt-get update
-        apt-get -y install git libicu-dev
+        sudo apt-get update
+        sudo apt-get -y install git libicu-dev
         git clone https://github.com/phantasma-io/PhantasmaChain.git ../PhantasmaChain
         cd ../PhantasmaChain
         git checkout development
