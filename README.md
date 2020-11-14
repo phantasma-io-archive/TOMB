@@ -75,35 +75,36 @@ The following libraries can be imported into a contract.
 ### Runtime
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Runtime.log(message:String) | None | TODO|
 | Runtime.expect(condition:Bool, error:String) | None | TODO|
+| Runtime.log(message:String) | None | TODO|
 | Runtime.isWitness(address:Address) | Bool | TODO|
 | Runtime.isTrigger() | Bool | TODO|
 | Runtime.transactionHash() | Hash | TODO|
-
-### Task
-| Method | Return type | Description|
-| ------------- | ------------- |------------- |
-| Task.start(method:Method<>, from:Address, frequency:Number, mode:Enum<TaskMode>) | Task | TODO|
-| Task.stop(task:Address) | None | TODO|
-| Task.current() | Task | TODO|
+| Runtime.deployContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
+| Runtime.upgradeContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
 
 ### Token
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | None | TODO|
+| Token.exists(symbol:String) | Bool | TODO|
+| Token.getDecimals(symbol:String) | Number | TODO|
+| Token.getFlags(symbol:String) | Enum<TokenFlag> | TODO|
 | Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
 | Token.transferAll(from:Address, to:Address, symbol:String) | None | TODO|
 | Token.mint(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
 | Token.burn(from:Address, symbol:String, amount:Number) | None | TODO|
+| Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number) | None | TODO|
 | Token.getBalance(from:Address, symbol:String) | Number | TODO|
+| Token.isMinter(address:Address, symbol:String) | Bool | TODO|
 
 ### NFT
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | NFT.transfer(from:Address, to:Address, symbol:String, id:Number) | None | TODO|
 | NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any) | None | TODO|
-| NFT.burn(from:Address, symbol:String, amount:Number) | None | TODO|
+| NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
+| NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
 
 ### Organization
 | Method | Return type | Description|
@@ -121,15 +122,9 @@ The following libraries can be imported into a contract.
 ### Storage
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Storage.read(contract:String, field:String, type:Number) | Bytes | TODO|
-| Storage.write(field:String, value:Bytes) | None | TODO|
+| Storage.read(contract:String, field:String, type:Number) | Any | TODO|
+| Storage.write(field:String, value:Any) | None | TODO|
 | Storage.delete(field:String) | None | TODO|
-
-### Time
-| Method | Return type | Description|
-| ------------- | ------------- |------------- |
-| Time.now() | Timestamp | TODO|
-| Time.unix(value:Number) | Timestamp | TODO|
 
 ### Utils
 | Method | Return type | Description|
@@ -147,26 +142,28 @@ The following libraries can be imported into a contract.
 | Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | None | TODO|
 | Leaderboard.reset(from:Address, boardName:String) | None | TODO|
 
-### Output
-Note: Only available in description scripts
+### Time
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Output.decimals(value:Number, symbol:String) | None | TODO|
-| Output.symbol(symbol:String) | None | TODO|
-| Output.account(address:Address) | None | TODO|
+| Time.now() | Timestamp | TODO|
+| Time.unix(value:Number) | Timestamp | TODO|
 
-
-## Available generic types
+### Task
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Task.start(method:Method<>, from:Address, frequency:Number, mode:Enum<TaskMode>, gasLimit:Number) | Task | TODO|
+| Task.stop(task:Address) | None | TODO|
+| Task.current() | Task | TODO|
 
 ### Map
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Map.get(key:Generic) | Generic | TODO|
-| Map.has(key:Generic) | Bool | TODO|
 | Map.set(key:Generic, value:Generic) | None | TODO|
 | Map.remove(key:Generic) | None | TODO|
-| Map.count() | Number | TODO|
 | Map.clear() | None | TODO|
+| Map.count() | Number | TODO|
+| Map.has(key:Generic) | Bool | TODO|
 
 ### List
 | Method | Return type | Description|
@@ -178,7 +175,17 @@ Note: Only available in description scripts
 | List.count() | Number | TODO|
 | List.clear() | None | TODO|
 
+### String
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| String.length(target:String) | Number | TODO|
 
+### Format
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Format.decimals(value:Number, symbol:String) | String | TODO|
+| Format.symbol(symbol:String) | String | TODO|
+| Format.account(address:Address) | String | TODO|
 
 ### Available macros
 
