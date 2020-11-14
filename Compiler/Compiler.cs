@@ -347,23 +347,6 @@ namespace Phantasma.Tomb.Compiler
                             break;
                         }
 
-                    case "nft":
-                        {
-                            var nftName = ExpectIdentifier();
-
-                            ExpectToken("<");
-                            var romType = ExpectType();
-                            ExpectToken(",");
-                            var ramType = ExpectType();
-                            ExpectToken(">");
-
-                            module = new NFT(nftName, romType, ramType);
-                            ExpectToken("{");
-                            ParseModule(module);
-                            ExpectToken("}");
-                            break;
-                        }
-
                     case "script":
                     case "description":
                         {
@@ -907,6 +890,32 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 throw new CompilerException("unexpected token: " + token.value);
                             }
+                        }
+
+                    case "nft":
+                        {
+                            if (module.Kind != ModuleKind.Token)
+                            {
+
+                                throw new CompilerException("unexpected token: " + token.value);
+                            }
+
+                            var nftName = ExpectIdentifier();
+
+                            ExpectToken("<");
+                            var romType = ExpectType();
+                            ExpectToken(",");
+                            var ramType = ExpectType();
+                            ExpectToken(">");
+
+                            var subModule = new NFT(nftName, romType, ramType, module);
+                            ExpectToken("{");
+                            ParseModule(subModule);
+                            ExpectToken("}");
+
+                            module.AddSubModule(subModule);
+
+                            break;
                         }
 
 

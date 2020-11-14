@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Phantasma.Tomb.Compiler
@@ -681,6 +682,11 @@ namespace Phantasma.Tomb.Compiler
             {
                 if (variable.Storage != VarStorage.Global)
                 {
+                    if (variable.Storage == VarStorage.NFT && this.scope.Module.Kind != ModuleKind.NFT)
+                    {
+                        throw new CompilerException($"implicit variable '{variable.Name}' not allowed in {this.scope.Module.Kind}");
+                    }
+
                     continue;
                 }
 
@@ -722,6 +728,45 @@ namespace Phantasma.Tomb.Compiler
                 variable.CallNecessaryConstructors(output, variable.Type, reg);
             }
 
+            var implicits = new VarDeclaration[0];
+
+            if (this.scope.Module.Kind == ModuleKind.NFT)
+            {
+                var idReg = Compiler.Instance.AllocRegister(output, this);
+                output.AppendLine(this, $"POP {idReg} // get nft tokenID from stack");
+                implicits = this.scope.Parent.Variables.Values.Where(x => x.Storage == VarStorage.NFT && this.IsNodeUsed(x)).ToArray();
+
+                if (implicits.Length > 0)
+                {
+                    var fieldStr = string.Join(',', implicits.Select(x => x.Name));
+                    output.AppendLine(this, $"// reading nft data");
+                    output.AppendLine(this, $"LOAD r0 \""+ fieldStr + "\"");
+                    output.AppendLine(this, $"PUSH r0 // fields");
+                    output.AppendLine(this, $"PUSH {idReg} // tokenID");
+                    output.AppendLine(this, $"LOAD r0 \""+this.scope.Module.Parent.Name+"\"");
+                    output.AppendLine(this, $"PUSH r0 // symbol");
+                    output.AppendLine(this, $"LOAD r0 \"Runtime.ReadToken\"");
+                    output.AppendLine(this, $"EXTCALL r0");
+
+                    var dataReg = Compiler.Instance.AllocRegister(output, this);
+                    output.AppendLine(this, $"POP {dataReg}");
+
+                    foreach (var variable in implicits)
+                    {
+                        var fieldName = variable.Name.Substring(1);
+
+                        var reg = Compiler.Instance.AllocRegister(output, variable, variable.Name);
+                        variable.Register = reg;
+
+                        output.AppendLine(this, $"LOAD r0 \"{fieldName}\"");
+                        output.AppendLine(this, $"GET {dataReg} {reg} r0");
+                    }
+
+                    Compiler.Instance.DeallocRegister(ref dataReg);
+                }
+                Compiler.Instance.DeallocRegister(ref idReg);
+            }
+
             Compiler.Instance.DeallocRegister(ref tempReg1);
             Compiler.Instance.DeallocRegister(ref tempReg2);
 
@@ -751,6 +796,11 @@ namespace Phantasma.Tomb.Compiler
                 Compiler.Instance.DeallocRegister(ref variable.Register);
             }
 
+            foreach (var variable in implicits)
+            {
+                Compiler.Instance.DeallocRegister(ref variable.Register);
+            }
+
             // NOTE we don't need to dealloc anything here besides the global vars
             foreach (var variable in this.scope.Parent.Variables.Values)
             {
@@ -763,7 +813,7 @@ namespace Phantasma.Tomb.Compiler
                 {                    
                     if (isConstructor && !variable.Type.IsStorageBound)
                     {
-                        throw new CompilerException("global variable not assigned in constructor: " + variable.Name);
+                        throw new CompilerException($"global variable '{variable.Name}' not assigned in constructor of {this.scope.Module.Name}");
                     }
 
                     continue; // if we hit this, means it went unused 

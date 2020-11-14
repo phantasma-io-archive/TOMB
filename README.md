@@ -762,25 +762,28 @@ token NACHO {
 		local thisAddr:address := $THIS_ADDRESS;
 		Token.transfer(thisAddr, owner, "SOUL", MINT_COST);
 	}			
-}
-
-nft luchador<nacho_rom, nacho_ram> {
 	
-	property name: string {
-		return rom.name;
-	}
+	nft luchador<nacho_rom, nacho_ram> {
+		
+		import Token;
+		
+		property name: string {
+			return _ROM.name;
+		}
 
-	property description: string {
-		return "Luchador with level " + ram.level;
-	}
+		property description: string {
+			return "Luchador with level " + _RAM.level;
+		}
 
-	property imageURL: string {
-		return "https://nacho.men/api/nft_img/"+id;
-	}
+		property imageURL: string {
+			return "https://nacho.men/api/nft_img/"+ _TokenID;
+		}
 
-	property infoURL: string {
-		return "https://nacho.men/api/nft_info/"+id;
-	}
+		property infoURL: string {
+			return "https://nacho.men/api/nft_info/"+ _TokenID;
+		}
+	}	
 }
+
 ```
 

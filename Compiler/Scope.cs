@@ -71,7 +71,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("duplicated declaration: " + decl.Name);
             }
 
-            if (decl.Name == decl.Name.ToUpper())
+            if (decl.Name == decl.Name.ToUpper() && decl.Storage != VarStorage.NFT)
             {
                 throw new CompilerException("invalid variable name: " + decl.Name);
             }
@@ -150,12 +150,12 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var variable in this.Variables.Values)
             {
-                if (variable.Storage == VarStorage.Global)
+                if (variable.Storage == VarStorage.Global || variable.Storage == VarStorage.NFT)
                 {
                     continue;
                 }
 
-                if (variable.Register == null)
+                if (variable.Register == null) 
                 {
                     throw new CompilerException("unused variable: " + variable.Name);
                 }

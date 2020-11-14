@@ -203,6 +203,7 @@ namespace Phantasma.Tomb.Compiler
         Global,
         Local,
         Argument,
+        NFT,
     }
 
     public enum OperatorKind

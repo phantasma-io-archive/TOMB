@@ -45,6 +45,29 @@ namespace Phantasma.Tomb.Compiler
             File.WriteAllText("libs.txt", sb.ToString());
         }
 
+        static void ExportModule(Module module)
+        {
+            if (module.asm != null)
+            {
+                File.WriteAllText(module.Name + ".asm", module.asm);
+            }
+
+            if (module.script != null)
+            {
+                File.WriteAllBytes(module.Name + ".pvm", module.script);
+            }
+
+            if (module.debugInfo != null)
+            {
+                File.WriteAllText(module.Name + ".debug", module.debugInfo.ToJSON());
+            }
+
+            if (module.abi != null)
+            {
+                File.WriteAllBytes(module.Name + ".abi", module.abi.ToByteArray());
+            }
+        }
+
         static void Main(string[] args)
         {
             ExportLibraryInfo();
@@ -70,26 +93,12 @@ namespace Phantasma.Tomb.Compiler
                     continue;
                 }*/
 
-                if (module.asm != null)
-                {
-                    File.WriteAllText(module.Name + ".asm", module.asm);
-                }
+                ExportModule(module);
 
-                if (module.script != null)
+                foreach (var subModule in module.SubModules)
                 {
-                    File.WriteAllBytes(module.Name + ".pvm", module.script);
+                    ExportModule(subModule);
                 }
-
-                if (module.debugInfo != null)
-                {
-                    File.WriteAllText(module.Name + ".debug", module.debugInfo.ToJSON());
-                }
-
-                if (module.abi != null)
-                {
-                    File.WriteAllBytes(module.Name + ".abi", module.abi.ToByteArray());
-                }
-
             }
 
             Console.WriteLine("Success!");

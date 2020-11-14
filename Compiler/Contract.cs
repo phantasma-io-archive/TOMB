@@ -12,7 +12,7 @@ namespace Phantasma.Tomb.Compiler
         public readonly Dictionary<string, EventDeclaration> Events = new Dictionary<string, EventDeclaration>();
 
 
-        public Contract(string name, ModuleKind kind) : base(name, kind)
+        public Contract(string name, ModuleKind kind, Module parent = null) : base(name, kind, parent)
         {
         }
 

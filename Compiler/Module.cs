@@ -27,6 +27,8 @@ namespace Phantasma.Tomb.Compiler
         public readonly ModuleKind Kind;
         public Scope Scope { get; }
 
+        public readonly Module Parent;
+
         public readonly Dictionary<string, LibraryDeclaration> Libraries = new Dictionary<string, LibraryDeclaration>();
 
         public readonly LibraryDeclaration library;
@@ -37,10 +39,14 @@ namespace Phantasma.Tomb.Compiler
         public ContractInterface abi { get; private set; }
         public DebugInfo debugInfo { get; private set; }
 
-        public Module(string name, ModuleKind kind)
+        private List<Module> _subModules = new List<Module>();
+        public IEnumerable<Module> SubModules => _subModules;
+
+        public Module(string name, ModuleKind kind, Module parent = null)
         {
             this.Name = name;
             this.Kind = kind;
+            this.Parent = parent;
             this.Scope = new Scope(this);
             this.library = new LibraryDeclaration(Scope, "this");
             this.Libraries[library.Name] = library;
@@ -49,6 +55,12 @@ namespace Phantasma.Tomb.Compiler
             ImportLibrary("Decimal");
             ImportLibrary("Enum");
         }
+
+        public void AddSubModule(Module subModule)
+        {
+            _subModules.Add(subModule);
+        }
+
         public LibraryDeclaration FindLibrary(string name, bool required = true)
         {
             if (name != name.UppercaseFirst() && name != "this")
@@ -408,6 +420,11 @@ namespace Phantasma.Tomb.Compiler
             ProcessABI(abi, this.debugInfo);
 
             asm = string.Join('\n', lines);
+
+            foreach (var subModule in this.SubModules)
+            {
+                subModule.Compile();
+            }
         }
     }
 }
