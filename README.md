@@ -865,6 +865,7 @@ token NACHO {
 	property name: string = "Nachomen";	
 
 	property isBurnable: bool = true;
+	property isFinite: bool = true;
 	property isFungible: bool = false;
 	property maxSupply: number = LUCHADOR_SUPPLY + ITEM_SUPPLY;
 	
