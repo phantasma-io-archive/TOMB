@@ -856,21 +856,22 @@ struct item_ram
 token NACHO {
 	global _owner: address;
 
-	property name: string = "Nachomen";	
-
-	property isBurnable: bool = true;
-	property isFungible: bool = false;
-	property maxSupply: number = 1000000;
-	
 	const LUCHADOR_SERIES: number = 1;
 	const LUCHADOR_SUPPLY: number = 100000;
 
 	const ITEM_SERIES: number = 2;
 	const ITEM_SUPPLY: number = 500000;
 
+	property name: string = "Nachomen";	
+
+	property isBurnable: bool = true;
+	property isFungible: bool = false;
+	property maxSupply: number = LUCHADOR_SUPPLY + ITEM_SUPPLY;
+	
 	constructor (addr:address) {
 		_owner := addr;
 		// at least one token series must exist, here we create 2 series
+		// they don't have to be created in the constructor though, can be created later
 		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, luchador);
 		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, item);
 	}
