@@ -69,8 +69,9 @@ The following libraries can be imported into a contract.
 ### Call
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Call.interop(interopName:string, ...) | ... | TODO|
-| Call.contract(contractName:string, contractMethod:string, ...) | ... | TODO|
+| Call.interop(...:Generic) | Any | TODO|
+| Call.contract(method:String, ...:Generic) | Any | TODO|
+| Call.method(...:Generic) | Any | TODO|
 
 ### Runtime
 | Method | Return type | Description|
@@ -106,6 +107,7 @@ The following libraries can be imported into a contract.
 | NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any) | None | TODO|
 | NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
 | NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
+| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, nft:Module) | None | TODO|
 
 ### Organization
 | Method | Return type | Description|
@@ -152,7 +154,7 @@ The following libraries can be imported into a contract.
 ### Task
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Task.start(method:Method<>, from:Address, frequency:Number, mode:Enum<TaskMode>, gasLimit:Number) | Task | TODO|
+| Task.start(method:Method, from:Address, frequency:Number, mode:Enum<TaskMode>, gasLimit:Number) | Task | TODO|
 | Task.stop(task:Address) | None | TODO|
 | Task.current() | Task | TODO|
 
@@ -199,6 +201,12 @@ The following libraries can be imported into a contract.
 | Address.isSystem(target:Address) | Bool | TODO|
 | Address.isInterop(target:Address) | Bool | TODO|
 
+### Module
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Module.script(target:Module) | Bytes | TODO|
+| Module.abi(target:Module) | Bytes | TODO|
+
 ### Format
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
@@ -211,6 +219,7 @@ The following libraries can be imported into a contract.
 | Macro  | Description |
 | ------------- | ------------- |
 | $THIS_ADDRESS  | The address of the current contract  |
+| $THIS_SYMBOL  | The symbol of the current token  |
 
 ## Exception support
 
@@ -673,6 +682,55 @@ contract test {
 }
 ```
 
+## Method variables
+It is possible to use methods as variables.<br/>
+
+```c#
+contract test {
+	
+	import Runtime;
+	import Map;
+	
+	global _counter:number;
+	
+	global _callMap: storage_map<address, method<address>>;
+	
+	constructor(owner:address) 
+	{
+		_counter := 0;
+	}
+
+	public registerUser(from:address, amount:number) 
+	{
+		local target: method<address>;
+		
+		if (amount > 10) {
+			target := incCounter;
+		}
+		else {
+			target := decCounter;
+		}
+		
+		_callMap.set(from, target);
+	}
+	
+	public callUser(from:address) {
+		local target: method<address> := _callMap.get(from);
+		
+		Call.method(target, from);
+	}
+	
+	private incCounter(target:address) {
+		_counter += 1;
+	}
+
+	private subCounter(target:address) {
+		_counter -= 1;
+	}
+	
+}
+```
+
 ## Tasks
 A task allows a contract method to run periodically without user intervention.<br/>
 Tasks can't have parameters, however you can use Task.current() along with a global Map to associate custom user data to each task.<br/>
@@ -768,18 +826,30 @@ contract test {
 
 
 ## NFTs
-Showcases how to implement an NFT that holds a certain asset when minted, and releases it when burned (Enjin-style).
+Showcases how to implement an NFT, showcasing all details including ROM, RAM and token series.
 
 ```c#
-struct nacho_rom
+struct luchador_rom
 {
 	genes:bytes;
 	name:string;
 }
 
-struct nacho_ram
+struct luchador_ram
 {
 	experience:number;
+	level:number;
+}
+
+struct item_rom
+{
+	kind:number;
+	quality:number;
+}
+
+struct item_ram
+{
+	power:number;
 	level:number;
 }
 
@@ -792,25 +862,21 @@ token NACHO {
 	property isFungible: bool = false;
 	property maxSupply: number = 1000000;
 	
-	const MINT_COST: number = 90000;
+	const LUCHADOR_SERIES: number = 1;
+	const LUCHADOR_SUPPLY: number = 100000;
 
-	trigger OnMint(from:address; amount:number) {
-		Runtime.expect(from == _owner, "must be owner");
+	const ITEM_SERIES: number = 2;
+	const ITEM_SUPPLY: number = 500000;
 
-		local thisAddr:address := $THIS_ADDRESS;
-		Token.transfer(owner, thisAddr, "SOUL", MINT_COST);
+	constructor (addr:address) {
+		_owner := addr;
+		// at least one token series must exist, here we create 2 series
+		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, luchador);
+		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, item);
 	}
 	
-	trigger onBurn(from:address) 
-	{
-		local thisAddr:address := $THIS_ADDRESS;
-		Token.transfer(thisAddr, owner, "SOUL", MINT_COST);
-	}			
-	
-	nft luchador<nacho_rom, nacho_ram> {
-		
-		import Token;
-		
+	nft luchador<luchador_rom, luchador_ram> {
+				
 		property name: string {
 			return _ROM.name;
 		}
@@ -820,11 +886,35 @@ token NACHO {
 		}
 
 		property imageURL: string {
-			return "https://nacho.men/api/nft_img/"+ _TokenID;
+			return "https://nacho.men/img/luchador/"+ _TokenID;
 		}
 
 		property infoURL: string {
-			return "https://nacho.men/api/nft_info/"+ _TokenID;
+			return "https://nacho.men/api/luchador/"+ _TokenID;
+		}
+	}	
+	
+	nft item<item_rom, item_ram> {
+		
+		property name: string {
+			switch (_ROM.kind)
+			{
+				case 1: return "Potion";
+				case 2: return "Gloves";
+				default: return "Item #" + _ROM.kind;
+			}
+		}
+
+		property description: string {
+			return "Item level " + _RAM.level;
+		}
+
+		property imageURL: string {
+			return "https://nacho.men/img/item/"+ _TokenID;
+		}
+
+		property infoURL: string {
+			return "https://nacho.men/api/item/"+ _TokenID;
 		}
 	}	
 }

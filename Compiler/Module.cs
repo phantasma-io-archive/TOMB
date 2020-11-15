@@ -56,9 +56,24 @@ namespace Phantasma.Tomb.Compiler
             ImportLibrary("Enum");
         }
 
+        public abstract MethodDeclaration FindMethod(string name);
+
         public void AddSubModule(Module subModule)
         {
             _subModules.Add(subModule);
+        }
+
+        public Module FindModule(string name)
+        {
+            foreach (var module in _subModules)
+            {
+                if (module.Name == name)
+                {
+                    return module;
+                }
+            }
+
+            return null;
         }
 
         public LibraryDeclaration FindLibrary(string name, bool required = true)
@@ -96,7 +111,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] { 
             "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", 
-            "Time", "Task", "Map", "List", "String", "Decimal", "Enum", "Address", FormatLibraryName };
+            "Time", "Task", "Map", "List", "String", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -112,6 +127,12 @@ namespace Phantasma.Tomb.Compiler
 
             switch (name)
             {
+                case "Module":
+                    // TODO implementations of those
+                    libDecl.AddMethod("script", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) });
+                    libDecl.AddMethod("abi", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) });
+                    return libDecl;
+
                 case "Struct":
                     return libDecl;
 
@@ -180,8 +201,9 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Call":
-                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
-                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarKind.Any, new[] { new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarKind.Any, new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Generic) });
                     break;
 
                 case "Chain":
@@ -272,6 +294,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("rom", VarKind.Any), new MethodParameter("ram", VarKind.Any) }).SetAlias("Runtime.MintToken");
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
+                    libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("nft", VarKind.Module) }).SetAlias("Nexus.CreateTokenSeries");
                     break;
 
                 case "Organization":

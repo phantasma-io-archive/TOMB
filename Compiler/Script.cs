@@ -16,6 +16,11 @@ namespace Phantasma.Tomb.Compiler
 
         }
 
+        public override MethodDeclaration FindMethod(string name)
+        {
+            return null;
+        }
+
         public override bool IsNodeUsed(Node node)
         {
             if (node == this)

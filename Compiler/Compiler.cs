@@ -1373,6 +1373,18 @@ namespace Phantasma.Tomb.Compiler
                                 throw new NotImplementedException();
                             }
 
+                            var method = scope.Module.FindMethod(first.value);
+                            if (method != null)
+                            {
+                                return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Method, method));
+                            }
+
+                            var module = scope.Module.FindModule(first.value);
+                            if (module != null)
+                            {
+                                return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Module, method));
+                            }
+
                             throw new CompilerException("unknown identifier: " + first.value);
                         }
                     }

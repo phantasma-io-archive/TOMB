@@ -16,6 +16,16 @@ namespace Phantasma.Tomb.Compiler
         {
         }
 
+        public override MethodDeclaration FindMethod(string name)
+        {
+            if (Methods.ContainsKey(name))
+            {
+                return Methods[name];
+            }
+
+            return null;
+        }
+
         public override void Visit(Action<Node> callback)
         {
             foreach (var lib in Libraries.Values)
