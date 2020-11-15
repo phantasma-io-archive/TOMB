@@ -565,7 +565,24 @@ namespace Phantasma.Tomb.Compiler
                     {
                         var addr = SmartContract.GetAddressForName(scope.Module.Name);
                         var hex = Base16.Encode(addr.ToByteArray());
-                        return new LiteralExpression(scope, "0x"+hex, VarType.Find(VarKind.Address));
+                        return new LiteralExpression(scope, "0x" + hex, VarType.Find(VarKind.Address));
+                    }
+
+                case "THIS_TOKEN":
+                    {
+                        var module = scope.Module;
+
+                        while (module.Kind != ModuleKind.Token && module.Parent != null)
+                        {
+                            module = module.Parent;
+                        }
+
+                        if (module.Kind == ModuleKind.Token)
+                        {
+                            return new LiteralExpression(scope, module.Name, VarType.Find(VarKind.String));
+                        }
+
+                        throw new CompilerException($"macro {value} is not available here");
                     }
 
                 default:
