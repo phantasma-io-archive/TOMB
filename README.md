@@ -82,6 +82,7 @@ The following libraries can be imported into a contract.
 | Runtime.transactionHash() | Hash | TODO|
 | Runtime.deployContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
 | Runtime.upgradeContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
+| Runtime.gasTarget() | Address | TODO|
 
 ### Token
 | Method | Return type | Description|
@@ -179,6 +180,24 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | String.length(target:String) | Number | TODO|
+
+### Decimal
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Decimal.decimals(target:Any) | Number | TODO|
+
+### Enum
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Enum.isSet(target:Enum<>, flag:Enum<>) | Bool | TODO|
+
+### Address
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Address.isNull(target:Address) | Bool | TODO|
+| Address.isUser(target:Address) | Bool | TODO|
+| Address.isSystem(target:Address) | Bool | TODO|
+| Address.isInterop(target:Address) | Bool | TODO|
 
 ### Format
 | Method | Return type | Description|
@@ -451,6 +470,24 @@ contract test {
 }
 ```
 
+## Validation
+Runtime.Expect offers a clean way to validate conditions.<br/>
+The developer of a smart contract must be very careful to ensure that no exploits are possible due to missing validations.<br/>
+
+```c#
+contract test {
+	import Runtime;
+
+	public doSomething(from:address)  {
+		Runtime.expect(from.isUser(), "expected user address"); // makes sure the address is of 'user' type
+		Runtime.expect(Runtime.isWitness(from), "invalid witness"); // makes sure the transaction was signed by 'from' address
+		Runtime.expect(Runtime.gasTarget() == $THIS_ADDRESS, "invalid donation"); // makes sure the transaction fees are donated to this contract
+		
+		// actually do something after passing all validation
+	}
+	
+}
+```
 
 ## Call method
 Showcases how a contract method can call other methods.<br/>

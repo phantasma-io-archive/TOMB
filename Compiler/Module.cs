@@ -96,7 +96,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] { 
             "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", 
-            "Time", "Task", "Map", "List", "String", FormatLibraryName };
+            "Time", "Task", "Map", "List", "String", "Decimal", "Enum", "Address", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -151,6 +151,13 @@ namespace Phantasma.Tomb.Compiler
                         });
                     return libDecl;
 
+                case "Address":
+                    // TODO implementations of those
+                    libDecl.AddMethod("isNull", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
+                    libDecl.AddMethod("isUser", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
+                    libDecl.AddMethod("isSystem", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
+                    libDecl.AddMethod("isInterop", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
+                    return libDecl;
             }
 
             if (moduleKind == ModuleKind.Description)
@@ -211,6 +218,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("transactionHash", MethodImplementationType.ExtCall, VarKind.Hash, new MethodParameter[] { });
                     libDecl.AddMethod("deployContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi", VarKind.Bytes) });
                     libDecl.AddMethod("upgradeContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi", VarKind.Bytes) });
+                    libDecl.AddMethod("gasTarget", MethodImplementationType.ExtCall, VarKind.Address, new MethodParameter[] {  }).SetAlias("Runtime.GasTarget");
                     break;
 
                 case "Task":
