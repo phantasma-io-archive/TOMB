@@ -19,7 +19,7 @@ namespace Phantasma.Tomb.Compiler
 
         public virtual string AsStringLiteral()
         {
-            throw new CompilerException(this, "Expression can't be converted to string");
+            throw new CompilerException(this, $"{this.GetType()} can't be converted to string");
         }
 
         public abstract Register GenerateCode(CodeGenerator output);

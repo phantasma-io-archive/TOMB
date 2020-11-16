@@ -226,10 +226,10 @@ namespace Phantasma.Tomb.Compiler
                             var reg = expr.arguments[0].GenerateCode(output);
                             output.AppendLine(expr, $"JMPIF {reg} @expect_{expr.NodeID}");
 
-                            var msg = expr.arguments[1].AsStringLiteral();
+                            var reg2 = expr.arguments[1].GenerateCode(output);
+                            output.AppendLine(expr, $"THROW {reg2}");
 
-                            output.AppendLine(expr, $"LOAD r0 {msg}");
-                            output.AppendLine(expr, $"THROW r0");
+                            Compiler.Instance.DeallocRegister(ref reg2);
 
                             output.AppendLine(expr, $"@expect_{expr.NodeID}: NOP");
                             return reg;
