@@ -873,8 +873,8 @@ token NACHO {
 		_owner := addr;
 		// at least one token series must exist, here we create 2 series
 		// they don't have to be created in the constructor though, can be created later
-		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, luchador);
-		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, item);
+		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, TokenSeries.Unique, luchador);
+		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, TokenSeries.Unique, item);
 	}
 	
 	nft luchador<luchador_rom, luchador_ram> {

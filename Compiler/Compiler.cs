@@ -35,7 +35,7 @@ namespace Phantasma.Tomb.Compiler
             // HACK put this in a better place latter
             CreateEnum<TokenFlags>("TokenFlags");
             CreateEnum<TaskFrequencyMode>("TaskMode");
-            CreateEnum<ExecutionResult>("Execution");
+            CreateEnum<TokenSeriesMode>("TokenSeries");
         }
 
         private void CreateEnum<T>(string name)
