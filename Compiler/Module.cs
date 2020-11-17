@@ -111,7 +111,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] { 
             "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", 
-            "Time", "Task", "Map", "List", "String", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
+            "Time", "Task", "UID", "Map", "List", "String", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -134,6 +134,8 @@ namespace Phantasma.Tomb.Compiler
                     return libDecl;
 
                 case "Struct":
+                    libDecl.AddMethod("toBytes", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Struct) });
+                    libDecl.AddMethod("fromBytes", MethodImplementationType.Custom, VarKind.Struct, new[] { new MethodParameter("source", VarKind.Bytes) });
                     return libDecl;
 
                 case "String":
@@ -268,6 +270,12 @@ namespace Phantasma.Tomb.Compiler
                         }
                     });
                     break;
+
+                case "UID":
+                    {
+                        libDecl.AddMethod("generate", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.GenerateUID");
+                        break;
+                    }
 
 
                 case "Random":

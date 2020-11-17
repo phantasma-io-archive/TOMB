@@ -158,6 +158,11 @@ The following libraries can be imported into a contract.
 | Task.stop(task:Address) | None | TODO|
 | Task.current() | Task | TODO|
 
+### UID
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| UID.generate() | Number | TODO|
+
 ### Map
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
