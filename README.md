@@ -1,6 +1,6 @@
 # TOMB
 TOMB smart contract compiler for Phantasma platform
-  
+
 <p align="center">      
   <a href="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master)">
     <img src="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master">
@@ -241,7 +241,7 @@ throw "something happened";
 Simple contract that sums two numbers and returns the result
 
 ```c#
-contract test {	
+contract test {
 	public sum(a:number, b:number):number
 	{
 		return a + b;
@@ -254,7 +254,7 @@ Like most programming languages, it is possible to do conditional branching use 
 Logic operators supported include and, or and xor.<br/>
 
 ```c#
-contract test {	
+contract test {
 	public isEvenAndPositive(n:number):bool
 	{
 		if (n>0 and n%2==0)
@@ -275,12 +275,12 @@ Note that any global variable that is not generic must be initialized in the con
 ```c#
 contract test {
 	global counter: number;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		counter:= 0;
 	}
-	
+
 	public increment()
 	{
 		if (counter < 0){
@@ -299,9 +299,9 @@ Showcases how to validate that a transaction was done by user possessing private
 contract test {
 	import Runtime;
 	import Map;
-	
+
 	global counters: storage_map<address, number>;
-		
+
 	public increment(from:address)
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
@@ -319,13 +319,13 @@ Simple contract that shows how to use strings and builtin type methods, string.l
 ```c#
 contract test {
 	global val: string;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		val := "hello";
 		val += " world";
 	}
-	
+
 	public getLength():number
 	{
 		return val.length();
@@ -340,27 +340,27 @@ Note that internally those are converted to Number types in fixed point format.
 ```c#
 contract test {
 	global val: decimal<4>; // the number between <> is the number of decimal places
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		val := 2.1425;
 	}
-	
+
 	public getValue():number
 	{
 		return val; // this will return 21425, which is the previous value in fixed point format
 	}
-	
+
 	public getDecimals():number
 	{
 		return val.decimals(); // this returns 4 as result
-	}	
-	
+	}
+
 	public sum(other:decimal<4>):number
 	{
 		return val + other;
 	}
-	
+
 }
 ```
 
@@ -373,14 +373,14 @@ enum MyEnum { A = 0, B = 1, C = 2}
 // if the numbers are sequential, it is ok to ommit them, eg:
 //enum MyEnum { A, B, C}
 
-contract test {	
+contract test {
 	global state: MyEnum;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		state := MyEnum.B;
 	}
-	
+
 	public getValue():MyEnum
 	{
 		return state;
@@ -395,12 +395,12 @@ Maps are one of the few types that don't have to initialized in the constructor.
 ```c#
 contract test {
 	global my_state: storage_map<address, number>;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		my_state.set(owner, 42);
 	}
-	
+
 	public getState(target:address):number
 	{
 		return my_state.get(target);
@@ -415,15 +415,15 @@ If a seed is not specified, then the current transaction hash will be used as se
 ```c#
 contract test {
 	import Random;
-	
+
 	global my_state: number;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		Random.seed(16676869); // optionally we can specify a seed, this will make the next sequence of random numbers to be deterministic
-		my_state := mutateState(); 
+		my_state := mutateState();
 	}
-	
+
 	public mutateState():number
 	{
 		my_state := Random.generate() % 1024; // Use modulus operator to constrain the random number to a specific range
@@ -440,18 +440,18 @@ Showcases how to transfer tokens and how to use macro $THIS_ADDRESS to obtain ad
 contract test {
 	import Runtime;
 	import Token;
-			
+
 	public paySomething(from:address, quantity:number)
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
-		
+
 		local price: number := 10;
 		price *= quantity;
-		
+
 		local thisAddr:address := $THIS_ADDRESS;
 		Token.transfer(from, thisAddr, "SOUL", price);
 
-		// TODO after payment give something to 'from' address 
+		// TODO after payment give something to 'from' address
 	}
 }
 ```
@@ -461,16 +461,16 @@ There are also some builtin enums, like TokenFlags.<br/>
 
 ```c#
 
-contract test {	
+contract test {
 	import Runtime;
 	import Token;
-			
+
 	public paySomething(from:address, amount:number, symbol:string)
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
-		
+
 		local flags:TokenFlags := Token.getFlags(symbol);
-		
+
 		if (flags.isSet(TokenFlags.Fungible)) {
 			local thisAddr:address := $THIS_ADDRESS;
 			Token.transfer(from, thisAddr, "SOUL", price);
@@ -491,10 +491,10 @@ contract test {
 		Runtime.expect(from.isUser(), "expected user address"); // makes sure the address is of 'user' type
 		Runtime.expect(Runtime.isWitness(from), "invalid witness"); // makes sure the transaction was signed by 'from' address
 		Runtime.expect(Runtime.gasTarget() == $THIS_ADDRESS, "invalid donation"); // makes sure the transaction fees are donated to this contract
-		
+
 		// actually do something after passing all validation
 	}
-	
+
 }
 ```
 
@@ -507,12 +507,12 @@ contract test {
 	private sum(a:number, b:number) {
 		return a + b;
 	}
-			
+
 	public calculatePrice(x:number): number
 	{		
 		local price: number := 10;
 		price := this.sum(price, x); // here we use 'this' for calling another method
-		
+
 		return price;
 	}
 }
@@ -528,7 +528,7 @@ Note that for scripts with arguments, for them to run properly you will have to 
 script startup {
 
 	import Call;
-	
+
 	code(target:address) {
 		local temp:number := 50000;
 		Call.contract("Stake", "Unstake", target, temp);
@@ -548,7 +548,7 @@ struct my_rom_data {
 script token_minter {
 
 	import Token;
-	
+
 	code(source:address, target:address) {
 		local rom_data:my_rom_data := Struct.my_rom_data("hello", 123);
 		NFT.mint(source, target, "LOL", rom_data, "ram_can_be_anything");
@@ -564,7 +564,7 @@ This feature is useful as an workaround for missing features in the compiler.
 script startup {
 
 	import Call;
-	
+
 	code() {
 		local temp:string;
 		asm {
@@ -580,7 +580,7 @@ Showcases how a contract can declare and emit custom events.
 ```c#
 contract test {
 	event MyPayment:number = "{address} paid {data}"; // here we use a short-form description
-	
+
 	public paySomething(from:address, x:number)
 	{		
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
@@ -588,7 +588,7 @@ contract test {
 		local price: number := 10;
 		local thisAddr:address := $THIS_ADDRESS;
 		Token.transfer(from, thisAddr, "SOUL", price);
-		
+
 		emit MyPayment(from, price);
 	}
 }
@@ -652,13 +652,13 @@ In this example, this account will only accept transfers of KCAL and reject anyt
 
 ```c#
 contract test {
-	
-	trigger onReceive(from:address, symbol:string, amount:number) 
+
+	trigger onReceive(from:address, symbol:string, amount:number)
 	{
 		if (symbol != "KCAL") {
 			throw "can't receive asset: " + symbol;
 		}
-		
+
 		return;
 	}
 }
@@ -670,13 +670,13 @@ In this example, any asset sent to this account will be auto-converted into SOUL
 
 ```c#
 contract test {
-	
-	trigger onReceive(from:address, symbol:string, amount:number) 
+
+	trigger onReceive(from:address, symbol:string, amount:number)
 	{
 		if (symbol != "SOUL") {
 			Call.contract("Swap", "SwapTokens", from, symbol, "SOUL", amount);
 		}
-		
+
 		return;
 	}
 }
@@ -687,39 +687,39 @@ It is possible to use methods as variables.<br/>
 
 ```c#
 contract test {
-	
+
 	import Runtime;
 	import Map;
-	
+
 	global _counter:number;
-	
+
 	global _callMap: storage_map<address, method<address>>;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		_counter := 0;
 	}
 
-	public registerUser(from:address, amount:number) 
+	public registerUser(from:address, amount:number)
 	{
 		local target: method<address>;
-		
+
 		if (amount > 10) {
 			target := incCounter;
 		}
 		else {
 			target := decCounter;
 		}
-		
+
 		_callMap.set(from, target);
 	}
-	
+
 	public callUser(from:address) {
 		local target: method<address> := _callMap.get(from);
-		
+
 		Call.method(target, from);
 	}
-	
+
 	private incCounter(target:address) {
 		_counter += 1;
 	}
@@ -727,7 +727,7 @@ contract test {
 	private subCounter(target:address) {
 		_counter -= 1;
 	}
-	
+
 }
 ```
 
@@ -741,8 +741,8 @@ contract test {
 	import Task;
 
 	global victory:bool;
-	global deadline:time;
-	
+	global deadline:timestamp;
+
 	constructor(owner:address) {
 		victory := false;
 		time := Time.now() + time.hours(2);
@@ -754,16 +754,16 @@ contract test {
 			break;
 		}
 
-		local now: time := Time.now();
-		
+		local now: timestamp := Time.now();
+
 		if (time >= deadline) {
 			break;
 		}
-		
+
 		continue;
 	}
-	
-	public win(from:address) 
+
+	public win(from:address)
 	{
 		victory := true;
 	}
@@ -778,16 +778,16 @@ In this example, a multi-signature account is implemented.
 contract test {
 
 	global owners: storage_list<address>;
-	
-	constructor(owner:address) 
+
+	constructor(owner:address)
 	{
 		owners.add(owner);
 	}
-	
+
 	private validateSignatures() {
 		local index:number := 0;
 		local count:number := owners.count();
-		
+
 		while (index < count) {
 			local addr:address := owners.get(index);
 			if (!Runtime.isWitness(addr)) {
@@ -795,28 +795,28 @@ contract test {
 			}
 		}
 	}
-	
+
 	public isOwner(target:address):bool {
 		local index:number := 0;
 		local count:number := owners.count();
-		
+
 		while (index < count) {
 			local addr:address := owners.get(index);
 			if (addr == target) {
 				return true;
 			}
 		}
-	
+
 		return false;
 	}
-	
+
 	public addOwner(target:address) {
 		Runtime.expect(!isOwner(target), "already is owner");
 		validateSignatures();
 		owners.add(target);
 	}
-	
-	trigger onSend(from:address, symbol:string, amount:number) 
+
+	trigger onSend(from:address, symbol:string, amount:number)
 	{
 		validateSignatures();
 	}
@@ -862,15 +862,15 @@ token NACHO {
 	const ITEM_SERIES: number = 2;
 	const ITEM_SUPPLY: number = 500000;
 
-	property name: string = "Nachomen";	
+	property name: string = "Nachomen";
 
 	property isBurnable: bool = true;
 	property isFinite: bool = true;
 	property isFungible: bool = false;
 	property maxSupply: number = LUCHADOR_SUPPLY + ITEM_SUPPLY;
-	
+
 	nft luchador<luchador_rom, luchador_ram> {
-				
+
 		property name: string {
 			return _ROM.name;
 		}
@@ -886,10 +886,10 @@ token NACHO {
 		property infoURL: string {
 			return "https://nacho.men/api/luchador/"+ _TokenID;
 		}
-	}	
-	
+	}
+
 	nft item<item_rom, item_ram> {
-		
+
 		property name: string {
 			switch (_ROM.kind)
 			{
@@ -911,14 +911,14 @@ token NACHO {
 			return "https://nacho.men/api/item/"+ _TokenID;
 		}
 	}	
-	
+
 	constructor (addr:address) {
 		_owner := addr;
 		// at least one token series must exist, here we create 2 series
 		// they don't have to be created in the constructor though, can be created later
-		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, TokenSeries.Unique, luchador);
-		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, TokenSeries.Unique, item);
-	}	
+		NFT.createSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, TokenSeries.Unique, luchador);
+		NFT.createSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, TokenSeries.Unique, item);
+	}
 }
 
 ```
