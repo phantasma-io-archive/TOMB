@@ -869,14 +869,6 @@ token NACHO {
 	property isFungible: bool = false;
 	property maxSupply: number = LUCHADOR_SUPPLY + ITEM_SUPPLY;
 	
-	constructor (addr:address) {
-		_owner := addr;
-		// at least one token series must exist, here we create 2 series
-		// they don't have to be created in the constructor though, can be created later
-		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, TokenSeries.Unique, luchador);
-		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, TokenSeries.Unique, item);
-	}
-	
 	nft luchador<luchador_rom, luchador_ram> {
 				
 		property name: string {
@@ -918,6 +910,14 @@ token NACHO {
 		property infoURL: string {
 			return "https://nacho.men/api/item/"+ _TokenID;
 		}
+	}	
+	
+	constructor (addr:address) {
+		_owner := addr;
+		// at least one token series must exist, here we create 2 series
+		// they don't have to be created in the constructor though, can be created later
+		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, TokenSeries.Unique, luchador);
+		NFT.CreateTokenSeries(_owner, $THIS_SYMBOL, ITEM_SERIES, ITEM_SUPPLY, TokenSeries.Unique, item);
 	}	
 }
 
