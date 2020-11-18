@@ -31,8 +31,11 @@ namespace Phantasma.Tomb.Compiler
         public Compiler()
         {
             Instance = this;
+        }
 
-            // HACK put this in a better place latter
+        private void InitEnums()
+        {
+            _enums.Clear();
             CreateEnum<TokenFlags>("TokenFlags");
             CreateEnum<TaskFrequencyMode>("TaskMode");
             CreateEnum<TokenSeriesMode>("TokenSeries");
@@ -55,6 +58,30 @@ namespace Phantasma.Tomb.Compiler
             }
             var tokenFlagsDecl = new EnumDeclaration(enumName, tokenFlagsEntries);
             _enums[tokenFlagsDecl.Name] = tokenFlagsDecl;
+        }
+
+        private void InitStructs()
+        {
+            _structs.Clear();
+
+            CreateStruct("NFT", new[]
+            {
+                new StructField("Chain", VarKind.Address),
+                new StructField("Owner", VarKind.Address),
+                new StructField("Creator", VarKind.Address),
+                new StructField("ROM", VarKind.Bytes),
+                new StructField("RAM", VarKind.Bytes),
+                new StructField("SeriesID", VarKind.Number),
+                new StructField("MintID", VarKind.Number),
+            });
+        }
+
+        private void CreateStruct(string structName, IEnumerable<StructField> fields)
+        {
+            var structType = (StructVarType)VarType.Find(VarKind.Struct, structName);
+            structType.decl = new StructDeclaration(structName, fields);
+
+            _structs[structName] = structType.decl;
         }
 
         private void Rewind(int steps = 1)
@@ -214,7 +241,9 @@ namespace Phantasma.Tomb.Compiler
             this.lines = sourceCode.Replace("\r", "").Split('\n');
 
             _modules.Clear();
-            _structs.Clear();
+
+            InitEnums();
+            InitStructs();
 
             while (HasTokens())
             {
@@ -252,12 +281,7 @@ namespace Phantasma.Tomb.Compiler
                                 fields.Add(new StructField(fieldName, fieldType));
                             } while (true);
 
-
-                            var structType = (StructVarType)VarType.Find(VarKind.Struct, structName);
-                            structType.decl = new StructDeclaration(structName, fields);                            
-
-                            _structs[structName] = structType.decl;
-
+                            CreateStruct(structName, fields);
                             break;
                         }
 

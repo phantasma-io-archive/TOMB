@@ -107,7 +107,8 @@ The following libraries can be imported into a contract.
 | NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any) | None | TODO|
 | NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
 | NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
-| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, nft:Module) | None | TODO|
+| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | TODO|
+| NFT.read(symbol:String, id:Number) | Struct<NFT> | TODO|
 
 ### Organization
 | Method | Return type | Description|
