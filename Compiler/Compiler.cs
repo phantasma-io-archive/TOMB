@@ -121,13 +121,13 @@ namespace Phantasma.Tomb.Compiler
             return token;
         }
 
-        private void ExpectToken(string val)
+        private void ExpectToken(string val, string msg = null)
         {
             var token = FetchToken();
 
             if (token.value != val)
             {
-                throw new CompilerException("expected " + val);
+                throw new CompilerException(msg != null ? msg : ("expected " + val));
             }
         }
 
@@ -1799,7 +1799,7 @@ namespace Phantasma.Tomb.Compiler
                 {
                     if (i > firstIndex)
                     {
-                        ExpectToken(",");
+                        ExpectToken(",", $"missing arguments for {expr.method.Library.Name}.{methodName}(), got {expr.arguments.Count} but expected {paramCount}");
                     }
 
                     Expression arg;
