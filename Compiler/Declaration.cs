@@ -580,7 +580,7 @@ namespace Phantasma.Tomb.Compiler
 
             public override IToken FetchToken(string symbol)
             {
-                return new Blockchain.Tokens.TokenInfo(symbol, symbol, Address.FromHash("test"), 0, 8, TokenFlags.Fungible, new byte[] { (byte)Opcode.RET}, ContractInterface.Empty);
+                return new Blockchain.Tokens.TokenInfo(symbol, symbol, Address.FromHash("test"), 0, 8, TokenFlags.Fungible | TokenFlags.Divisible, new byte[] { (byte)Opcode.RET}, ContractInterface.Empty);
             }
 
             public override string OutputAddress(Address address)
