@@ -244,6 +244,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("deployContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi", VarKind.Bytes) });
                     libDecl.AddMethod("upgradeContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi", VarKind.Bytes) });
                     libDecl.AddMethod("gasTarget", MethodImplementationType.ExtCall, VarKind.Address, new MethodParameter[] {  }).SetAlias("Runtime.GasTarget");
+                    libDecl.AddMethod("context", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.Context");
                     break;
 
                 case "Task":

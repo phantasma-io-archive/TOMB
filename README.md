@@ -84,6 +84,7 @@ The following libraries can be imported into a contract.
 | Runtime.deployContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
 | Runtime.upgradeContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
 | Runtime.gasTarget() | Address | TODO|
+| Runtime.context() | String | TODO|
 
 ### Token
 | Method | Return type | Description|
