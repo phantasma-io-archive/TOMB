@@ -1,4 +1,5 @@
 ﻿using Phantasma.Blockchain.Contracts;
+using Phantasma.Blockchain.Tokens;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
 using Phantasma.Numerics;
@@ -300,10 +301,38 @@ namespace Phantasma.Tomb.Compiler
                 case "NFT":
                     libDecl.AddMethod("transfer", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.TransferToken");
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("rom", VarKind.Any), new MethodParameter("ram", VarKind.Any), new MethodParameter("seriesID", VarKind.Any) }).SetAlias("Runtime.MintToken");
+                    libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadToken");
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
-                    libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).SetAlias("Nexus.CreateTokenSeries");
-                    libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number)}).SetAlias("Runtime.ReadToken");
+                    libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).SetAlias("Nexus.CreateTokenSeries").
+                        SetParameterCallback("nft", (output, scope, expression) =>
+                        {
+                            var nftExpression = expression as LiteralExpression;
+                            if (nftExpression == null)
+                            {
+                                throw new CompilerException("nft argument is not a literal value");
+                            }
+
+                            var nftModule = scope.Module.FindModule(nftExpression.value);
+
+                            var nftStandard = NFTUtils.GetNFTStandard();
+                            if (!nftModule.abi.Implements(nftStandard))
+                            {
+                                throw new CompilerException($"nft {nftExpression.value} not does implement NFT standard");
+                            }
+
+                            var reg = Compiler.Instance.AllocRegister(output, expression);
+
+                            var abiBytes = nftModule.abi.ToByteArray();
+
+                            output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(abiBytes)} // abi");
+                            output.AppendLine(expression, $"PUSH {reg}");
+
+                            output.AppendLine(expression, $"LOAD {reg} 0x{nftModule.script} // abi");
+                            output.AppendLine(expression, $"PUSH {reg}");
+
+                            return reg;
+                        });
                     break;
 
                 case "Organization":
@@ -441,6 +470,11 @@ namespace Phantasma.Tomb.Compiler
 
         public void Compile()
         {
+            foreach (var subModule in this.SubModules)
+            {
+                subModule.Compile();
+            }
+
             var sb = new CodeGenerator();
             abi = this.GenerateCode(sb);
 
@@ -460,11 +494,6 @@ namespace Phantasma.Tomb.Compiler
             ProcessABI(abi, this.debugInfo);
 
             asm = string.Join('\n', lines);
-
-            foreach (var subModule in this.SubModules)
-            {
-                subModule.Compile();
-            }
         }
     }
 }
