@@ -452,7 +452,30 @@ namespace Phantasma.Tomb.Compiler
             var nftModule = scope.Module.FindModule(nftExpression.value);
 
             var nftStandard = NFTUtils.GetNFTStandard();
-            if (!nftModule.abi.Implements(nftStandard))
+
+            var abi = nftModule.abi;
+
+            if (nftModule.Kind == ModuleKind.NFT)
+            {
+                // convert ABI parameters
+                var methods = new List<ContractMethod>();
+                foreach (var method in abi.Methods)
+                {
+                    if (nftStandard.HasMethod(method.name))
+                    {
+                        var convertedMethod = new ContractMethod(method.name, method.returnType, method.offset, new[] { new ContractParameter("tokenID", VMType.Number) });
+                        methods.Add(convertedMethod);
+                    }
+                    else
+                    {
+                        methods.Add(method);
+                    }
+                }
+
+                abi = new ContractInterface(methods, abi.Events);
+            }
+
+            if (!abi.Implements(nftStandard))
             {
                 throw new CompilerException($"nft {nftExpression.value} not does implement NFT standard");
             }
@@ -464,7 +487,7 @@ namespace Phantasma.Tomb.Compiler
             output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(abiBytes)} // abi");
             output.AppendLine(expression, $"PUSH {reg}");
 
-            output.AppendLine(expression, $"LOAD {reg} 0x{nftModule.script} // abi");
+            output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(nftModule.script)} // script");
             output.AppendLine(expression, $"PUSH {reg}");
 
             return reg;
