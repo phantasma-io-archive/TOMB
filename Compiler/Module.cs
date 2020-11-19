@@ -215,6 +215,13 @@ namespace Phantasma.Tomb.Compiler
                         break;
                     }
 
+                case "Cryptography":
+                    {
+                        libDecl.AddMethod("AESDecrypt", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("data", VarKind.Bytes), new MethodParameter("key", VarKind.Bytes) }).SetAlias("Runtime.AESDecrypt");
+                        libDecl.AddMethod("AESEncrypt", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("data", VarKind.Bytes), new MethodParameter("key", VarKind.Bytes) }).SetAlias("Runtime.AESEncrypt");
+                        break;
+                    }
+
                 case "Platform":
                     {
                         libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("source", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("externalAddress", VarKind.String), new MethodParameter("interopAddress", VarKind.Address), new MethodParameter("symbol", VarKind.String) }).SetAlias("Nexus.CreatePlatform");
