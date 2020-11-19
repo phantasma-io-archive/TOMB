@@ -125,6 +125,17 @@ namespace Phantasma.Tomb.Compiler
 
             var libDecl = new LibraryDeclaration(scope, name);
 
+            VarKind libType;
+            if (Enum.TryParse<VarKind>(name, out libType) && libType != VarKind.Bytes)
+            {
+                libDecl.AddMethod("toBytes", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", libType) }).
+                SetPreCallback((output, scope, expr) =>
+                {
+                    var reg = expr.arguments[0].GenerateCode(output);
+                    output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.Bytes.ToString()}");
+                    return reg;
+                });
+            }
 
             switch (name)
             {
@@ -135,7 +146,6 @@ namespace Phantasma.Tomb.Compiler
                     return libDecl;
 
                 case "Struct":
-                    libDecl.AddMethod("toBytes", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Struct) });
                     libDecl.AddMethod("fromBytes", MethodImplementationType.Custom, VarKind.Struct, new[] { new MethodParameter("source", VarKind.Bytes) });
                     return libDecl;
 
