@@ -19,6 +19,7 @@ namespace Phantasma.Tomb.Compiler
         Account,
         Organization,
         NFT,
+        Test,
     }
 
     public abstract class Module: Node
@@ -125,10 +126,19 @@ namespace Phantasma.Tomb.Compiler
 
             var libDecl = new LibraryDeclaration(scope, name);
 
-            VarKind libType;
-            if (Enum.TryParse<VarKind>(name, out libType) && libType != VarKind.Bytes)
+            VarKind libKind;
+            if (Enum.TryParse<VarKind>(name, out libKind) && libKind != VarKind.Bytes && libKind != VarKind.Method && libKind != VarKind.Task)
             {
-                libDecl.AddMethod("toBytes", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", libType) }).
+                switch (libKind)
+                {
+                    case VarKind.Decimal:
+                    case VarKind.Struct:
+                    case VarKind.Module:
+                        libKind = VarKind.Any;
+                        break;
+                }
+
+                libDecl.AddMethod("toBytes", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", libKind) }).
                 SetPreCallback((output, scope, expr) =>
                 {
                     var reg = expr.arguments[0].GenerateCode(output);

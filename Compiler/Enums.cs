@@ -80,6 +80,7 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case VarKind.Decimal:
+                    Throw.IfNull(extra, kind + " type requires extra data for initialization");
                     result = new DecimalVarType((int) extra);
                     break;
 
@@ -151,6 +152,11 @@ namespace Phantasma.Tomb.Compiler
 
         public override string ToString()
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                return Kind.ToString();
+            }
+
             return $"{Kind}<{name}>";
         }
     }
