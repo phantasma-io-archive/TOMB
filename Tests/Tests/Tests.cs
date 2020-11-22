@@ -788,7 +788,7 @@ namespace Tests
                     "}\n" +
                 	"public doStuff(from:address)\n" +
                 	"{\n" +
-                		"local rom: someStruct := Struct.someStruct(Time.now(), address, 1, \"somestring\", \"desc\", \"imgURL\", \"info\", \"att1\", \"att1\", \"att2\", \"att2\", \"att3\", \"att3\");\n" +
+                		"local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, \"somestring\", \"desc\", \"imgURL\", \"info\", \"att1\", \"att1\", \"att2\", \"att2\", \"att3\", \"att3\");\n" +
                 	"}\n"+
                 "}\n";
 
@@ -810,6 +810,7 @@ namespace Tests
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
                     EndScript());
+            simulator.EndBlock();
         }
 
         [Test]
@@ -860,7 +861,8 @@ namespace Tests
                     CallInterop("Runtime.UpgradeContract", keys.Address, "test", contract.script, contract.abi.ToByteArray()).
                     SpendGas(keys.Address).
                     EndScript());
-            simulator.EndBlock();
+            var ex = Assert.Throws<ChainException>(() => simulator.EndBlock());
+            Assert.That(ex.Message, Is.EqualTo("add block @ main failed, reason: OnUpgrade trigger failed @ Runtime_UpgradeContract"));
 
         }
     }
