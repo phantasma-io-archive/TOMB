@@ -522,7 +522,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestUpdateMethod()
+        public void TestUpdateStringMethod()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -584,6 +584,69 @@ namespace Tests
             var obj = vm.Stack.Pop();
             var newVal = obj.AsString();
             var expectedVal = "SOUL";
+
+            Assert.IsTrue(newVal == expectedVal);
+        }
+
+        [Test]
+        public void TestUpdateNumberMethod()
+        {
+            string[] sourceCode = new string[] {
+                "token GHOST {",
+                "	global _infuseMultiplier:number;",
+                "	property name:string = \"test\";",
+                "	property infuseMultiplier:number = _infuseMultiplier;",
+                "	constructor (owner:address) { _infuseMultiplier := 1;	}",
+                "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier := infuseMultiplier;	}",
+                "}"
+            };
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var constructor = contract.abi.FindMethod(SmartContract.ConstructorName);
+            Assert.IsNotNull(constructor);
+
+            var keys = PhantasmaKeys.Generate();
+
+            vm = new TestVM(contract, storage, constructor);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(keys.Address));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call updateInfuseMultiplier
+            var updateValue = contract.abi.FindMethod("updateInfuseMultiplier");
+            Assert.IsNotNull(updateValue);
+
+            vm = new TestVM(contract, storage, updateValue);
+            vm.ThrowOnFault = true;
+            vm.Stack.Push(VMObject.FromObject(new BigInteger(4)));
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 1);
+
+            // call getInfuseMultiplier
+            var getValue = contract.abi.FindMethod("getInfuseMultiplier");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            vm.ThrowOnFault = true;
+            result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsNumber();
+            var expectedVal = 4;
 
             Assert.IsTrue(newVal == expectedVal);
         }
