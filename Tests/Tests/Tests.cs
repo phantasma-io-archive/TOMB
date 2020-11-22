@@ -5,6 +5,7 @@ using Phantasma.Core.Utils;
 using Phantasma.Cryptography;
 using Phantasma.Domain;
 using Phantasma.Numerics;
+using Phantasma.Simulator;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
 using Phantasma.VM.Utils;
@@ -169,8 +170,6 @@ namespace Tests
 
                 return ExecutionState.Running;
             }
-
-
         }
 
         [Test]
@@ -640,5 +639,55 @@ namespace Tests
             Assert.IsTrue(newVal == expectedVal);
         }
 
+        [Test]
+        public void TestIsWitness()
+        {
+            var valStr = "2.4587";
+            var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+            Console.WriteLine("keys: " + keys.Address);
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                	"import Runtime;\n" +
+                    "global _address:address;" +
+                    "global _owner:address;" +
+                    "constructor(owner:address)	{\n" +
+                    "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                    "_owner:= owner;\n" +
+                    "}\n" +
+                	"public doStuff(from:address)\n" +
+                	"{\n" +
+                		"Runtime.expect(Runtime.isWitness(_address), \"witness failed\");\n" +
+                	"}\n"+
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "doStuff", keys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+
+            var ex = Assert.Throws<ChainException>(() => simulator.EndBlock());
+            Assert.That(ex.Message, Is.EqualTo("add block @ main failed, reason: witness failed"));
+        }
     }
 }
