@@ -705,11 +705,8 @@ namespace Tests
         [Test]
         public void TestIsWitness()
         {
-            var valStr = "2.4587";
-            var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
-            Console.WriteLine("keys: " + keys.Address);
 
             var nexus = new Nexus("simnet", null, null);
             nexus.SetOracleReader(new OracleSimulator(nexus));
@@ -751,6 +748,120 @@ namespace Tests
 
             var ex = Assert.Throws<ChainException>(() => simulator.EndBlock());
             Assert.That(ex.Message, Is.EqualTo("add block @ main failed, reason: witness failed"));
+        }
+
+        [Test]
+        public void TestNFT()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                @"struct someStruct 
+                {
+                    created:timestamp;
+                    creator:address;
+                    royalties:number;
+                    name:string;
+                    description:string;
+                    imageURL:string;
+                    infoURL:string;
+                    attributeType1:string;
+                    attributeValue1:string;
+                    attributeType2:string;
+                    attributeValue2:string;
+                    attributeType3:string;
+                    attributeValue3:string;
+                }" +
+                "contract test {\n" +
+                	"import Runtime;\n" +
+                	"import Time;\n" +
+                    "global _address:address;" +
+                    "global _owner:address;" +
+                    "constructor(owner:address)	{\n" +
+                    "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                    "_owner:= owner;\n" +
+                    "}\n" +
+                	"public doStuff(from:address)\n" +
+                	"{\n" +
+                		"local rom: someStruct := Struct.someStruct(Time.now(), address, 1, \"somestring\", \"desc\", \"imgURL\", \"info\", \"att1\", \"att1\", \"att2\", \"att2\", \"att3\", \"att3\");\n" +
+                	"}\n"+
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "doStuff", keys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+        }
+
+        [Test]
+        public void TestTriggers()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                	"import Runtime;\n" +
+                	"import Time;\n" +
+                    "global _address:address;" +
+                    "global _owner:address;" +
+                    "constructor(owner:address)	{\n" +
+                    "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                    "_owner:= owner;\n" +
+                    "}\n" +
+                	"public doStuff(from:address)\n" +
+                	"{\n" +
+                	"}\n"+
+	                "trigger onUpgrade(from:address)\n" +
+                    "{\n" +
+                    "    Runtime.expect(from == _address, \"invalid owner address\"\n);" +
+	                "	 Runtime.expect(Runtime.isWitness(from), \"invalid witness\"\n);" +
+                    "}\n" +
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallInterop("Runtime.UpgradeContract", keys.Address, "test", contract.script, contract.abi.ToByteArray()).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
         }
     }
 }
