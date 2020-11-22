@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\PhantasmaChain\Phantasma.CodeGen\Phantasma.CodeGen.csproj" />
-    <ProjectReference Include="..\..\..\PhantasmaChain\Phantasma.Simulator\Phantasma.Simulator.csproj" />
     <ProjectReference Include="..\..\Compiler\TombCompiler.csproj" />
   </ItemGroup>
 

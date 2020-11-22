@@ -627,7 +627,7 @@ namespace Tests
 
             vm = new TestVM(contract, storage, updateValue);
             vm.ThrowOnFault = true;
-            vm.Stack.Push(VMObject.FromObject(new BigInteger(4)));
+            vm.Stack.Push(VMObject.FromObject("4"));
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 

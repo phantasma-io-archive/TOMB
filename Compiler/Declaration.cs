@@ -779,6 +779,15 @@ namespace Phantasma.Tomb.Compiler
 
                 variable.Register = Compiler.Instance.AllocRegister(output, variable, variable.Name);
                 output.AppendLine(this, $"POP {variable.Register}");
+
+                switch (variable.Type.Kind)
+                {
+                    // TODO this fixes numbers passed as strings, but maybe other types would benefit from this...
+                    case VarKind.Number:
+                        output.AppendLine(this, $"CAST {variable.Register} {variable.Register} #Number");
+                        break;
+                }
+
                 variable.CallNecessaryConstructors(output, variable.Type, variable.Register);
             }
 
