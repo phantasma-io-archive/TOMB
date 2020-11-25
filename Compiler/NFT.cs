@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Phantasma.Blockchain.Tokens;
+using Phantasma.Domain;
+using Phantasma.VM;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,6 +28,31 @@ namespace Phantasma.Tomb.Compiler
             this.Scope.AddVariable(new VarDeclaration(this.Scope, "_MintID", VarType.Find(VarKind.Number), VarStorage.NFT));
             this.Scope.AddVariable(new VarDeclaration(this.Scope, "_ROM", romType, VarStorage.NFT));
             this.Scope.AddVariable(new VarDeclaration(this.Scope, "_RAM", ramType, VarStorage.NFT));
+        }
+
+        public override ContractInterface GenerateCode(CodeGenerator output)
+        {
+            var abi = base.GenerateCode(output);
+
+            var nftStandard = NFTUtils.GetNFTStandard();
+
+            // convert ABI parameters
+            var methods = new List<ContractMethod>();
+            foreach (var method in abi.Methods)
+            {
+                if (nftStandard.HasMethod(method.name))
+                {
+                    var convertedMethod = new ContractMethod(method.name, method.returnType, method.offset, new[] { new ContractParameter("tokenID", VMType.Number) });
+                    methods.Add(convertedMethod);
+                }
+                else
+                {
+                    methods.Add(method);
+                }
+            }
+
+            abi = new ContractInterface(methods, abi.Events);
+            return abi;
         }
     }
 }

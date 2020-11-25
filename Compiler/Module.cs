@@ -471,52 +471,34 @@ namespace Phantasma.Tomb.Compiler
 
         private static Register ConvertFieldToContract(CodeGenerator output, Scope scope, Expression expression)
         {
-            var nftExpression = expression as LiteralExpression;
-            if (nftExpression == null)
+            var literal = expression as LiteralExpression;
+            if (literal == null)
             {
                 throw new CompilerException("nft argument is not a literal value");
             }
 
-            var nftModule = scope.Module.FindModule(nftExpression.value);
+            var module = scope.Module.FindModule(literal.value);
 
-            var nftStandard = NFTUtils.GetNFTStandard();
+            var abi = module.abi;
 
-            var abi = nftModule.abi;
-
-            if (nftModule.Kind == ModuleKind.NFT)
+            if (module.Kind == ModuleKind.NFT)
             {
-                // convert ABI parameters
-                var methods = new List<ContractMethod>();
-                foreach (var method in abi.Methods)
+                var nftStandard = NFTUtils.GetNFTStandard();
+                if (!abi.Implements(nftStandard))
                 {
-                    if (nftStandard.HasMethod(method.name))
-                    {
-                        var convertedMethod = new ContractMethod(method.name, method.returnType, method.offset, new[] { new ContractParameter("tokenID", VMType.Number) });
-                        methods.Add(convertedMethod);
-                    }
-                    else
-                    {
-                        methods.Add(method);
-                    }
+                    throw new CompilerException($"nft {literal.value} not does implement NFT standard");
                 }
-
-                abi = new ContractInterface(methods, abi.Events);
-            }
-
-            if (!abi.Implements(nftStandard))
-            {
-                throw new CompilerException($"nft {nftExpression.value} not does implement NFT standard");
             }
 
             var reg = Compiler.Instance.AllocRegister(output, expression);
 
-            var abiBytes = nftModule.abi.ToByteArray();
+            var abiBytes = module.abi.ToByteArray();
 
             output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(abiBytes)} // abi");
             output.AppendLine(expression, $"PUSH {reg}");
 
-            output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(nftModule.script)} // script");
-            output.AppendLine(expression, $"PUSH {reg}");
+            output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(module.script)} // script");
+//            output.AppendLine(expression, $"PUSH {reg}");
 
             return reg;
         }
