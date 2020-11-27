@@ -147,6 +147,14 @@ The following libraries can be imported into a contract.
 | Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | None | TODO|
 | Leaderboard.reset(from:Address, boardName:String) | None | TODO|
 
+### Market
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Market.sell(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endDate:Timestamp) | None | TODO|
+| Market.buy(from:Address, symbol:String, tokenID:Number) | None | TODO|
+| Market.cancel(symbol:String, tokenID:Number) | None | TODO|
+| Market.hasAuction(symbol:String, tokenID:Number) | Bool | TODO|
+
 ### Time
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |

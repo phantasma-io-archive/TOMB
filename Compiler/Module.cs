@@ -112,7 +112,7 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard",
+            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market",
             "Time", "Task", "UID", "Map", "List", "String", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
@@ -388,6 +388,16 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("getSize", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String) }).SetContract(contract).SetAlias(nameof(RankingContract.GetSize));
                         libDecl.AddMethod("insert", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("score", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.InsertScore));
                         libDecl.AddMethod("reset", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String) }).SetContract(contract).SetAlias(nameof(RankingContract.ResetLeaderboard));
+                        break;
+                    }
+
+                case "Market":
+                    {
+                        var contract = NativeContractKind.Market.ToString().ToLower();
+                        libDecl.AddMethod("sell", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("baseSymbol", VarKind.String), new MethodParameter("quoteSymbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number), new MethodParameter("price", VarKind.Number), new MethodParameter("endDate", VarKind.Timestamp) }).SetContract(contract).SetAlias(nameof(MarketContract.SellToken));
+                        libDecl.AddMethod("buy", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number) }).SetContract(contract).SetAlias(nameof(MarketContract.BuyToken));
+                        libDecl.AddMethod("cancel", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number) }).SetContract(contract).SetAlias(nameof(MarketContract.CancelSale));
+                        libDecl.AddMethod("hasAuction", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number) }).SetContract(contract).SetAlias(nameof(MarketContract.HasAuction));
                         break;
                     }
 
