@@ -738,7 +738,7 @@ namespace Phantasma.Tomb.Compiler
 
                 if (implicits.Length > 0)
                 {
-                    var fieldStr = string.Join(',', implicits.Select(x => x.Name));
+                    var fieldStr = string.Join(',', implicits.Select(x => x.Name.Substring(1)));
                     output.AppendLine(this, $"// reading nft data");
                     output.AppendLine(this, $"LOAD r0 \""+ fieldStr + "\"");
                     output.AppendLine(this, $"PUSH r0 // fields");
