@@ -750,6 +750,7 @@ namespace Phantasma.Tomb.Compiler
 
                     var dataReg = Compiler.Instance.AllocRegister(output, this);
                     output.AppendLine(this, $"POP {dataReg}");
+                    output.AppendLine(this, $"UNPACK {dataReg} {dataReg}");
 
                     foreach (var variable in implicits)
                     {
