@@ -732,7 +732,7 @@ namespace Tests
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                 () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
@@ -895,7 +895,7 @@ namespace Tests
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                 () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
