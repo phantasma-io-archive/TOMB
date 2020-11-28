@@ -6,6 +6,7 @@ using Phantasma.Cryptography;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.Simulator;
+using Phantasma.Storage;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
 using Phantasma.VM.Utils;
@@ -760,6 +761,9 @@ namespace Tests
             nexus.SetOracleReader(new OracleSimulator(nexus));
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
+            string symbol = "TEST";
+            string name = "Test";
+
             var sourceCode =
                 @"struct someStruct 
                 {
@@ -770,47 +774,76 @@ namespace Tests
                     description:string;
                     imageURL:string;
                     infoURL:string;
-                    attributeType1:string;
-                    attributeValue1:string;
-                    attributeType2:string;
-                    attributeValue2:string;
-                    attributeType3:string;
-                    attributeValue3:string;
-                }" +
-                "contract test {\n" +
-                	"import Runtime;\n" +
-                	"import Time;\n" +
-                    "global _address:address;" +
-                    "global _owner:address;" +
-                    "constructor(owner:address)	{\n" +
-                    "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                    "_owner:= owner;\n" +
-                    "}\n" +
-                	"public doStuff(from:address)\n" +
-                	"{\n" +
-                		"local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, \"somestring\", \"desc\", \"imgURL\", \"info\", \"att1\", \"att1\", \"att2\", \"att2\", \"att3\", \"att3\");\n" +
-                	"}\n"+
-                "}\n";
+                }
+                token " + symbol + @" {
+                    import Runtime;
+                    import Time;
+                    import NFT;
+                    global _address:address;
+                    global _owner:address;
+
+                    property name:string = """+ name + @""";
+
+                    nft myNFT<someStruct, number> {
+                        property name:string {
+                            return _ROM.name;
+                        }
+
+                        property description:string {
+                            return _ROM.description;
+                        }
+
+                        property imageURL:string {
+                            return _ROM.imageURL;
+                        }
+
+                        property infoURL:string {
+                            return _ROM.infoURL;
+                        }
+                    }
+
+                    constructor(owner:address)	{
+                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner:= owner;
+                        NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
+                    }
+
+                    public mint(dest:address):number {
+                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        return NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                    }
+
+                    public read(from:address, nftID:number): string {
+                        local nftInfo:someStruct := NFT.read($THIS_SYMBOL, nftID); 
+                        return nftInfo.name;
+                    }
+                }";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                 () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+            var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
                 ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
-                    CallContract("test", "doStuff", keys.Address).
+                    CallContract(symbol, "mint", keys.Address).
                     SpendGas(keys.Address).
                     EndScript());
-            simulator.EndBlock();
+            var block = simulator.EndBlock().First();
+
+            var result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            var obj = VMObject.FromBytes(result);
+            var nftID = obj.AsNumber();
+            Assert.IsTrue(nftID > 0);
         }
 
         [Test]
