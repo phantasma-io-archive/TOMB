@@ -865,6 +865,25 @@ namespace Phantasma.Tomb.Compiler
 
             output.AppendLine(this, "RET");
             this.@interface.EndAsmLine = output.LineCount;
+
+            var returnType = this.@interface.ReturnType.Kind;
+            if (returnType != VarKind.None)
+            {
+                // TODO validate if all possible paths have a return 
+                bool hasReturn = false;
+                this.body.Visit((node) =>
+                {
+                    if (node is ReturnStatement)
+                    {
+                        hasReturn = true;
+                    }
+                });
+
+                if (!hasReturn)
+                {
+                    throw new CompilerException($"not all paths return a value of type {returnType}");
+                }
+            }
         }
 
         internal string GetEntryLabel()
