@@ -579,7 +579,7 @@ namespace Phantasma.Tomb.Compiler
 
                         if (module.Kind == ModuleKind.Token)
                         {
-                            return new LiteralExpression(scope, module.Name, VarType.Find(VarKind.String));
+                            return new LiteralExpression(scope, '\"' + module.Name + '\"', VarType.Find(VarKind.String));
                         }
 
                         throw new CompilerException($"macro {value} is not available here");
