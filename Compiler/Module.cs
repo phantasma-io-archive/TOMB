@@ -54,6 +54,7 @@ namespace Phantasma.Tomb.Compiler
             this.Libraries[library.Name] = library;
 
             ImportLibrary("String");
+            ImportLibrary("Bytes");
             ImportLibrary("Decimal");
             ImportLibrary("Enum");
         }
@@ -113,7 +114,7 @@ namespace Phantasma.Tomb.Compiler
 
         public static string[] AvailableLibraries = new[] {
             "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market",
-            "Time", "Task", "UID", "Map", "List", "String", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
+            "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -165,6 +166,15 @@ namespace Phantasma.Tomb.Compiler
                         {
                             var reg = expr.arguments[0].GenerateCode(output);
                             output.AppendLine(expr, $"SIZE {reg} {reg}");
+                            return reg;
+                        });
+                    return libDecl;
+                case "Bytes":
+                    libDecl.AddMethod("toString", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.Bytes) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.String}");
                             return reg;
                         });
                     return libDecl;
