@@ -228,16 +228,13 @@ namespace Phantasma.Tomb.Compiler
 
         public MethodInterface AddMethod(string name, MethodImplementationType convention, VarType returnType, MethodParameter[] parameters, string alias = null)
         {
-            /*if (name != name.ToLower())
+            if (!returnType.IsWeird && Compiler.Instance != null)
             {
-                throw new CompilerException(parser, "invalid method name: " + name);
-            }*/
+                var vmType = MethodInterface.ConvertType(returnType);
 
-            foreach (var entry in parameters)
-            {
-                if (entry.Type.Kind == VarKind.Auto)
+                if (!ValidationUtils.IsValidMethod(name, vmType))
                 {
-                    IsAuto = true;
+                    throw new CompilerException("invalid method name: " + name);
                 }
             }
 
