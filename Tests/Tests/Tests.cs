@@ -903,7 +903,7 @@ namespace Tests
             simulator.EndBlock();
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
                 ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallInterop("Runtime.UpgradeContract", keys.Address, "test", contract.script, contract.abi.ToByteArray()).
@@ -943,10 +943,9 @@ namespace Tests
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
-            Console.WriteLine("contract: " + contract.asm);
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None,
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                 () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
@@ -954,15 +953,64 @@ namespace Tests
             simulator.EndBlock();
 
             simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
                 ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
                     EndScript());
             simulator.EndBlock();
+        }
 
-            //TODO get event and check string
+        [Test]
+        public void TestAES()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                	"import Runtime;\n" +
+                	"import Cryptography;\n" +
+                    "global someString: string;\n" +
+                    "global someSecret: string;\n" +
+                    "global result: string;\n" +
+                    "constructor(owner:address)	{\n" +
+                    "someString := \"somestring\";\n" +
+                    "someSecret := \"somesecret123456somesecret123456\";\n" +
+                    "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
+                    "local decrypted: bytes := Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
+                    "result := decrypted.toString();\n" +
+                    "}\n" +
+                	"public doStuff(from:address)\n" +
+                	"{\n" +
+                	" Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
+                	"}\n"+
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "doStuff", keys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
         }
     }
 }
