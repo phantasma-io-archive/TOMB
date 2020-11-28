@@ -8,6 +8,7 @@ namespace Phantasma.Tomb.Compiler
         None,
         Unknown,
         Generic,
+        Auto, // TODO remove this,  replace this functionality with generic instead
         Number,
         Bool,
         String,
@@ -44,6 +45,11 @@ namespace Phantasma.Tomb.Compiler
 
         public bool IsStorageBound => Kind == VarKind.Storage_Map || Kind == VarKind.Storage_List || Kind == VarKind.Storage_Set;
 
+        public static VarType Generic(int index)
+        {
+            return Find(VarKind.Generic, index);
+        }
+
         public static VarType Find(VarKind kind, object extra = null)
         {
             var key = kind.ToString();
@@ -70,8 +76,8 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Bytes:
                 case VarKind.Task:
                 case VarKind.None:
-                case VarKind.Generic:
                 case VarKind.Any:
+                case VarKind.Auto:
                 case VarKind.Storage_List:
                 case VarKind.Storage_Map:
                 case VarKind.Storage_Set:
@@ -98,6 +104,10 @@ namespace Phantasma.Tomb.Compiler
 
                 case VarKind.Module:
                     result = new ModuleVarType((Module)extra);
+                    break;
+
+                case VarKind.Generic:
+                    result = new GenericVarType((int)extra);
                     break;
 
                 default:
@@ -176,6 +186,20 @@ namespace Phantasma.Tomb.Compiler
         }
     }
 
+    public class GenericVarType : VarType
+    {
+        public readonly int index;
+
+        public GenericVarType(int decimals) : base(VarKind.Generic)
+        {
+            this.index = decimals;
+        }
+
+        public override string ToString()
+        {
+            return $"{Kind}<{index}>";
+        }
+    }
 
     public class MethodVarType : VarType
     {

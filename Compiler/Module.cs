@@ -224,9 +224,9 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Call":
-                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Generic) });
-                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Generic) });
-                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarKind.Any, new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Generic) });
+                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarKind.Any, new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Any) });
                     break;
 
                 case "Chain":
@@ -330,7 +330,8 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("transfer", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.TransferToken");
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("rom", VarKind.Any), new MethodParameter("ram", VarKind.Any), new MethodParameter("seriesID", VarKind.Any) })
                         .SetParameterCallback("rom", ConvertFieldToBytes).SetParameterCallback("ram", ConvertFieldToBytes).SetAlias("Runtime.MintToken");
-                    libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadToken");
+                    libDecl.AddMethod("readROM", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadTokenROM").SetPostCallback(ConvertGenericResult);
+                    libDecl.AddMethod("readRAM", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadTokenRAM").SetPostCallback(ConvertGenericResult);
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
                     libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).
@@ -402,7 +403,7 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Map":
-                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Generic, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
+                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Auto, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
                         .SetPreCallback((output, scope, expr) =>
                         {
                             var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
@@ -418,17 +419,17 @@ namespace Phantasma.Tomb.Compiler
                             expr.CallNecessaryConstructors(output, expr.method.ReturnType, reg);
                             return reg;
                         });
-                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic), new MethodParameter("value", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
-                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto), new MethodParameter("value", VarKind.Auto) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead);
-                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Generic)}).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto)}).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     break;
 
                 case "List":
-                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Generic, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Generic) });
-                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Generic) });
+                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Auto, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
+                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Auto) });
+                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Auto) });
                     libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
                     libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
                     libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
@@ -513,8 +514,32 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
-        public abstract ContractInterface GenerateCode(CodeGenerator output);
+        private static Register ConvertGenericResult(CodeGenerator output, Scope scope, MethodExpression method, Register reg) 
+        {
+            switch (method.ResultType.Kind)
+            {
+                case VarKind.Generic:
+                case VarKind.Auto:
+                case VarKind.Any:
+                case VarKind.Unknown:
+                    throw new CompilerException($"possible compiler bug detected on call to method {method.method.Name}");
 
+                case VarKind.Bytes:
+                    break;
+
+                case VarKind.Struct:
+                    output.AppendLine(method, $"UNPACK {reg} {reg}");
+                    break;
+
+                default:
+                    method.CallNecessaryConstructors(output, method.ResultType, reg);
+                    break;
+            }
+
+            return reg;
+        }
+
+        public abstract ContractInterface GenerateCode(CodeGenerator output);
 
         protected virtual void ProcessABI(ContractInterface abi, DebugInfo debugInfo)
         {

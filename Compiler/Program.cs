@@ -24,7 +24,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         index++;
 
-                        if (library.IsGeneric && index == 0)
+                        if (library.IsAuto && index == 0)
                         {
                             continue;
                         }

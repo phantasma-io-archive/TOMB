@@ -310,6 +310,8 @@ namespace Phantasma.Tomb.Compiler
         public MethodInterface method;
         public List<Expression> arguments = new List<Expression>();
 
+        public List<VarType> generics = new List<VarType>();
+
         public override VarType ResultType => method.ReturnType;
 
         public MethodExpression(Scope parentScope) : base(parentScope)
@@ -343,6 +345,61 @@ namespace Phantasma.Tomb.Compiler
             }
 
             return false;
+        }
+
+        public void PatchGenerics()
+        {
+            int requiredGenerics = 0;
+
+            this.method = this.method.Clone(this.method.Library);
+
+            if (ResultType.Kind == VarKind.Generic)
+            {
+                var generic = (GenericVarType)ResultType;
+
+                if (generic.index < 0)
+                {
+                    throw new CompilerException($"weird generic index for return type of method {this.method.Name}, compiler bug?");
+                }
+
+                if (generic.index >= this.generics.Count)
+                {
+                    throw new CompilerException($"missing generic declaration with index {generic.index} when calling method {this.method.Name}");
+                }
+
+                requiredGenerics = Math.Max(requiredGenerics, generic.index + 1);
+
+                this.method.ReturnType = this.generics[generic.index];
+            }
+
+            for (int paramIndex = 0; paramIndex < this.method.Parameters.Length; paramIndex++)
+            {
+                var parameter = this.method.Parameters[paramIndex];
+                if (parameter.Type.Kind == VarKind.Generic)
+                {
+                    var generic = (GenericVarType)parameter.Type;
+
+                    if (generic.index < 0)
+                    {
+                        throw new CompilerException($"weird generic index for parameter {parameter.Name} of method {this.method.Name}, compiler bug?");
+                    }
+
+                    if (generic.index >= this.generics.Count)
+                    {
+                        throw new CompilerException($"missing generic declaration with index {generic.index} when calling method {this.method.Name}");
+                    }
+
+                    requiredGenerics = Math.Max(requiredGenerics, generic.index + 1);
+
+                    this.method.Parameters[paramIndex] = new MethodParameter(parameter.Name, this.generics[generic.index]);
+                }
+            }
+
+
+            if (requiredGenerics != generics.Count)
+            {
+                throw new CompilerException($"call to method {this.method.Name} expected {requiredGenerics} generics, got {generics.Count} instead");
+            }
         }
 
         public override Register GenerateCode(CodeGenerator output)

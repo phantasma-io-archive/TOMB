@@ -761,7 +761,7 @@ namespace Tests
             nexus.SetOracleReader(new OracleSimulator(nexus));
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
-            string symbol = "TEST";
+            string symbol = "ATEST";
             string name = "Test";
 
             var sourceCode =
@@ -813,8 +813,8 @@ namespace Tests
                         return NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                     }
 
-                    public read(from:address, nftID:number): string {
-                        local nftInfo:someStruct := NFT.read($THIS_SYMBOL, nftID); 
+                    public read(nftID:number): string {
+                        local nftInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID); 
                         return nftInfo.name;
                     }
                 }";
@@ -844,6 +844,21 @@ namespace Tests
             var obj = VMObject.FromBytes(result);
             var nftID = obj.AsNumber();
             Assert.IsTrue(nftID > 0);
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "read",nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var nftName = obj.AsString();
+            Assert.IsTrue(nftName == "hello");
         }
 
         [Test]

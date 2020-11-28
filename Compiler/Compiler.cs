@@ -561,7 +561,7 @@ namespace Phantasma.Tomb.Compiler
                                 var eventType = ExpectType();
                                 ExpectToken("=");
 
-                                if (eventType.Kind == VarKind.None || eventType.Kind == VarKind.Unknown || eventType.Kind == VarKind.Generic || eventType.Kind == VarKind.Any)
+                                if (eventType.Kind == VarKind.None || eventType.Kind == VarKind.Unknown || eventType.Kind == VarKind.Generic || eventType.Kind == VarKind.Auto || eventType.Kind == VarKind.Any)
                                 {
                                     throw new CompilerException("invalid event type: " + eventType);
                                 }
@@ -1751,6 +1751,39 @@ namespace Phantasma.Tomb.Compiler
             var methodName = ExpectIdentifier();
 
             expr.method = library.FindMethod(methodName);
+
+            var next = FetchToken();
+
+            if (next.value == "<")
+            {
+                do
+                {
+                    next = FetchToken();
+                    if (next.value == ">")
+                    {
+                        break;
+                    }
+
+                    Rewind();
+
+                    var genType = ExpectType();
+
+                    // TODO some kinds are missing here
+                    if (genType.Kind == VarKind.Auto || genType.Kind == VarKind.Generic || genType.Kind == VarKind.Unknown)
+                    {
+                        throw new CompilerException($"{genType} can't be used as generic type");
+                    }
+
+                    expr.generics.Add(genType);
+                } while (true);
+            }
+            else
+            {
+                Rewind();
+            }
+
+            expr.PatchGenerics();
+
             ExpectToken("(");
 
             var firstIndex = implicitArg != null ? 1 : 0;
@@ -1762,7 +1795,7 @@ namespace Phantasma.Tomb.Compiler
                 int i = 0;
                 do
                 {
-                    var next = FetchToken();
+                    next = FetchToken();
                     if (next.value == ")")
                     {
                         break;

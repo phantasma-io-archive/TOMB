@@ -22,7 +22,8 @@ TOMB smart contract compiler for Phantasma platform
 - Contract constructors, methods and triggers
 - Contract public methods
 - Return values
-- Generics (Maps and lists)
+- Collections (Maps and lists)
+- Generic types
 - If ... Else
 - While ... and Do ... While loops
 - Break and Continue
@@ -109,7 +110,8 @@ The following libraries can be imported into a contract.
 | NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
 | NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | TODO|
-| NFT.read(symbol:String, id:Number) | Struct<NFT> | TODO|
+| NFT.readROM<T>(symbol:String, id:Number) | T | TODO|
+| NFT.readRAM<T>(symbol:String, id:Number) | T | TODO|
 
 ### Organization
 | Method | Return type | Description|

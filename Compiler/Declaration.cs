@@ -209,11 +209,11 @@ namespace Phantasma.Tomb.Compiler
     {
         public Dictionary<string, MethodInterface> methods = new Dictionary<string, MethodInterface>();
 
-        public bool IsGeneric { get; private set; }
+        public bool IsAuto { get; private set; }
 
         public LibraryDeclaration(Scope parentScope, string name) : base(parentScope, name)
         {
-            IsGeneric = false;
+            IsAuto = false;
         }
 
         public void GenerateCode(CodeGenerator output)
@@ -235,9 +235,9 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var entry in parameters)
             {
-                if (entry.Type.Kind == VarKind.Generic)
+                if (entry.Type.Kind == VarKind.Auto)
                 {
-                    IsGeneric = true;
+                    IsAuto = true;
                 }
             }
 
@@ -287,20 +287,7 @@ namespace Phantasma.Tomb.Compiler
             var result = new LibraryDeclaration(this.ParentScope, name);
             foreach (var method in this.methods.Values)
             {
-                var parameters = new List<MethodParameter>();
-                
-                foreach (var parameter in method.Parameters)
-                {
-                    var entry = new MethodParameter(parameter.Name, parameter.Type);
-                    entry.Callback = parameter.Callback;
-                    parameters.Add(entry);
-                }
-
-                var newMethod = new MethodInterface(result, method.Implementation, method.Name, method.IsPublic, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
-                newMethod.Contract = method.Contract;
-                newMethod.PreCallback = method.PreCallback;
-                newMethod.PostCallback = method.PostCallback;
-
+                var newMethod = method.Clone(result);
                 result.methods[method.Name] = newMethod;
             }
 

@@ -1,5 +1,6 @@
 ﻿using Phantasma.VM;
 using System;
+using System.Collections.Generic;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -94,6 +95,26 @@ namespace Phantasma.Tomb.Compiler
             }            
         }
 
+        public MethodInterface Clone(LibraryDeclaration targetLibrary)
+        {
+            var method = this;
+            var parameters = new List<MethodParameter>();
+
+            foreach (var parameter in method.Parameters)
+            {
+                var entry = new MethodParameter(parameter.Name, parameter.Type);
+                entry.Callback = parameter.Callback;
+                parameters.Add(entry);
+            }
+
+            var newMethod = new MethodInterface(targetLibrary, method.Implementation, method.Name, method.IsPublic, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
+            newMethod.Contract = method.Contract;
+            newMethod.PreCallback = method.PreCallback;
+            newMethod.PostCallback = method.PostCallback;
+
+            return newMethod;
+        }
+
         public override string ToString()
         {
             return $"method {Name}:{ReturnType}";
@@ -143,9 +164,9 @@ namespace Phantasma.Tomb.Compiler
             {
                 if (arg.Name == name)
                 {
-                    if (arg.Type.Kind != VarKind.Generic)
+                    if (arg.Type.Kind != VarKind.Auto)
                     {
-                        throw new Exception($"Expected parameter {arg.Name} to be patchable as generic");
+                        throw new Exception($"Expected parameter {arg.Name} to be patchable");
                     }
 
                     arg.Type = kind;
