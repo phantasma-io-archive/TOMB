@@ -568,7 +568,7 @@ namespace Phantasma.Tomb.Compiler
                         return new LiteralExpression(scope, "0x" + hex, VarType.Find(VarKind.Address));
                     }
 
-                case "THIS_TOKEN":
+                case "THIS_SYMBOL":
                     {
                         var module = scope.Module;
 
