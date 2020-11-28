@@ -561,7 +561,7 @@ namespace Phantasma.Tomb.Compiler
                                 var eventType = ExpectType();
                                 ExpectToken("=");
 
-                                if (eventType.Kind == VarKind.None || eventType.Kind == VarKind.Unknown || eventType.Kind == VarKind.Generic || eventType.Kind == VarKind.Auto || eventType.Kind == VarKind.Any)
+                                if (eventType.IsWeird)
                                 {
                                     throw new CompilerException("invalid event type: " + eventType);
                                 }
@@ -1768,8 +1768,7 @@ namespace Phantasma.Tomb.Compiler
 
                     var genType = ExpectType();
 
-                    // TODO some kinds are missing here
-                    if (genType.Kind == VarKind.Auto || genType.Kind == VarKind.Generic || genType.Kind == VarKind.Unknown)
+                    if (genType.IsStorageBound || genType.IsWeird)
                     {
                         throw new CompilerException($"{genType} can't be used as generic type");
                     }

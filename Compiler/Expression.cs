@@ -353,6 +353,19 @@ namespace Phantasma.Tomb.Compiler
 
             this.method = this.method.Clone(this.method.Library);
 
+            // auto patch storage methods
+            if (this.generics.Count == 0)
+            {
+                var genericLib = this.method.Library as GenericLibraryDeclaration;
+                if (genericLib != null)
+                {
+                    foreach (var type in genericLib.Generics)
+                    {
+                        this.generics.Add(type);
+                    }
+                }
+            }
+
             if (ResultType.Kind == VarKind.Generic)
             {
                 var generic = (GenericVarType)ResultType;
@@ -396,7 +409,7 @@ namespace Phantasma.Tomb.Compiler
             }
 
 
-            if (requiredGenerics != generics.Count)
+            if (requiredGenerics > generics.Count)
             {
                 throw new CompilerException($"call to method {this.method.Name} expected {requiredGenerics} generics, got {generics.Count} instead");
             }

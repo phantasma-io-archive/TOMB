@@ -24,11 +24,6 @@ namespace Phantasma.Tomb.Compiler
                     {
                         index++;
 
-                        if (library.IsAuto && index == 0)
-                        {
-                            continue;
-                        }
-
                         if (parameters.Length > 0)
                         {
                             parameters.Append(", ");

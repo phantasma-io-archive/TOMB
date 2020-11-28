@@ -8,7 +8,6 @@ namespace Phantasma.Tomb.Compiler
         None,
         Unknown,
         Generic,
-        Auto, // TODO remove this,  replace this functionality with generic instead
         Number,
         Bool,
         String,
@@ -45,6 +44,8 @@ namespace Phantasma.Tomb.Compiler
 
         public bool IsStorageBound => Kind == VarKind.Storage_Map || Kind == VarKind.Storage_List || Kind == VarKind.Storage_Set;
 
+        public bool IsWeird => Kind == VarKind.None || Kind == VarKind.Unknown || Kind == VarKind.Generic || Kind == VarKind.Any;
+
         public static VarType Generic(int index)
         {
             return Find(VarKind.Generic, index);
@@ -77,7 +78,6 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Task:
                 case VarKind.None:
                 case VarKind.Any:
-                case VarKind.Auto:
                 case VarKind.Storage_List:
                 case VarKind.Storage_Map:
                 case VarKind.Storage_Set:

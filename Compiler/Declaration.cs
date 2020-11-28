@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Phantasma.Tomb.Compiler
@@ -209,11 +208,8 @@ namespace Phantasma.Tomb.Compiler
     {
         public Dictionary<string, MethodInterface> methods = new Dictionary<string, MethodInterface>();
 
-        public bool IsAuto { get; private set; }
-
         public LibraryDeclaration(Scope parentScope, string name) : base(parentScope, name)
         {
-            IsAuto = false;
         }
 
         public void GenerateCode(CodeGenerator output)
@@ -279,79 +275,57 @@ namespace Phantasma.Tomb.Compiler
             return node == this;
         }
 
-        public LibraryDeclaration Clone(string name)
+        public GenericLibraryDeclaration MakeGenericLib(string key, string name, IEnumerable<VarType> generics)
         {
-            var result = new LibraryDeclaration(this.ParentScope, name);
+            key = $"{this.Name}<{key}>";
+
+            if (_genericCache.ContainsKey(key))
+            {
+                return _genericCache[key];
+            }
+            
+            var result = new GenericLibraryDeclaration(this.ParentScope, name, generics);
             foreach (var method in this.methods.Values)
             {
                 var newMethod = method.Clone(result);
                 result.methods[method.Name] = newMethod;
             }
 
+            _genericCache[key] = result;
             return result;
         }
 
-        public void PatchParam(string name, VarType kind)
-        {
-            foreach (var method in methods.Values)
-            {
-                method.PatchParam(name, kind);
-            }
-        }
-
-        private Dictionary<string, LibraryDeclaration> _genericCache = new Dictionary<string, LibraryDeclaration>();
+        private Dictionary<string, GenericLibraryDeclaration> _genericCache = new Dictionary<string, GenericLibraryDeclaration>();
 
         public LibraryDeclaration PatchMap(MapDeclaration mapDecl)
         {
-            var key = $"<{mapDecl.KeyKind},{mapDecl.ValueKind}>m";
-            if (_genericCache.ContainsKey(key))
-            {
-                return _genericCache[key];
-            }
-
-            var lib = this.Clone(this.Name+key);
-            lib.PatchParam("key", mapDecl.KeyKind);
-            lib.PatchParam("value", mapDecl.ValueKind);
-            lib.FindMethod("get").ReturnType = mapDecl.ValueKind;
-            
-            _genericCache[key] = lib;
-            return lib;
+            var key = $"{mapDecl.KeyKind},{mapDecl.ValueKind}";
+            return this.MakeGenericLib(key, this.Name, new[] { mapDecl.KeyKind, mapDecl.ValueKind });           
         }
 
         public LibraryDeclaration PatchList(ListDeclaration listDecl)
         {
-            var key = $"<{listDecl.ValueKind}>l";
-            if (_genericCache.ContainsKey(key))
-            {
-                return _genericCache[key];
-            }
-
-            var lib = this.Clone(this.Name + key);
-
-            lib.PatchParam("value", listDecl.ValueKind);
-            lib.FindMethod("get").ReturnType = listDecl.ValueKind;
-            
-            _genericCache[key] = lib;
-            return lib;
+            var key = listDecl.ValueKind.ToString();
+            return this.MakeGenericLib(key, this.Name, new[] { listDecl.ValueKind });
         }
 
         public LibraryDeclaration PatchSet(SetDeclaration setDecl)
         {
-            var key = $"<{setDecl.ValueKind}>s";
-            if (_genericCache.ContainsKey(key))
-            {
-                return _genericCache[key];
-            }
-
-            var lib = this.Clone(this.Name + key);
-
-            lib.PatchParam("value", setDecl.ValueKind);
-            lib.FindMethod("get").ReturnType = setDecl.ValueKind;
-
-            _genericCache[key] = lib;
-            return lib;
+            var key = setDecl.ValueKind.ToString();
+            return this.MakeGenericLib(key, this.Name, new[] { setDecl.ValueKind });
         }
     }
+
+    public class GenericLibraryDeclaration : LibraryDeclaration
+    {
+        public readonly VarType[] Generics;
+
+        public GenericLibraryDeclaration(Scope parentScope, string name, IEnumerable<VarType> generics) : base(parentScope, name)
+        {
+            this.Generics = generics.ToArray();
+        }
+    }
+
 
     public class EventDeclaration : Declaration
     {

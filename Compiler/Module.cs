@@ -403,7 +403,7 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                 case "Map":
-                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarKind.Auto, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
+                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarType.Generic(1), new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
                         .SetPreCallback((output, scope, expr) =>
                         {
                             var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
@@ -414,22 +414,18 @@ namespace Phantasma.Tomb.Compiler
 
                             return reg;
                         })
-                        .SetPostCallback((output, scope, expr, reg) =>
-                        {
-                            expr.CallNecessaryConstructors(output, expr.method.ReturnType, reg);
-                            return reg;
-                        });
-                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto), new MethodParameter("value", VarKind.Auto) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
-                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                        .SetPostCallback(ConvertGenericResult);
+                    libDecl.AddMethod("set", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)), new MethodParameter("value", VarType.Generic(1)) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead);
-                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarKind.Auto)}).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     break;
 
                 case "List":
-                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarKind.Auto, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarKind.Auto) });
-                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarKind.Auto) });
+                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
+                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarType.Generic(0)) });
+                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
                     libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
                     libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
                     libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
@@ -516,14 +512,13 @@ namespace Phantasma.Tomb.Compiler
 
         private static Register ConvertGenericResult(CodeGenerator output, Scope scope, MethodExpression method, Register reg) 
         {
+            if (method.ResultType.IsWeird)
+            {
+                throw new CompilerException($"possible compiler bug detected on call to method {method.method.Name}");
+            }
+
             switch (method.ResultType.Kind)
             {
-                case VarKind.Generic:
-                case VarKind.Auto:
-                case VarKind.Any:
-                case VarKind.Unknown:
-                    throw new CompilerException($"possible compiler bug detected on call to method {method.method.Name}");
-
                 case VarKind.Bytes:
                     break;
 

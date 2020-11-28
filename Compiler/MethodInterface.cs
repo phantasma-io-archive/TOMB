@@ -158,23 +158,6 @@ namespace Phantasma.Tomb.Compiler
             throw new Exception($"method {this.Library.Name}.{this.Name} contains no parameter called {name}");
         }
 
-        public void PatchParam(string name, VarType kind)
-        {
-            foreach (var arg in Parameters)
-            {
-                if (arg.Name == name)
-                {
-                    if (arg.Type.Kind != VarKind.Auto)
-                    {
-                        throw new Exception($"Expected parameter {arg.Name} to be patchable");
-                    }
-
-                    arg.Type = kind;
-                    break;
-                }
-            }
-        }
-
         public static VMType ConvertType(VarType type)
         {
             return ConvertType(type.Kind);
