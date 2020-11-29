@@ -17,13 +17,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.VM", "..\Phantasm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Blockchain", "..\PhantasmaChain\Phantasma.Blockchain\Phantasma.Blockchain.csproj", "{B503EA99-7209-45AE-995D-23D00412DDC3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{19D170D2-1152-4745-9169-AA2000D3C7C0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Storage", "..\PhantasmaChain\Phantasma.Storage\Phantasma.Storage.csproj", "{BFB560CD-C6D8-4FFE-96A5-F24DF683E9CA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TombCompiler", "Compiler\TombCompiler.csproj", "{A669C9C4-AA5E-4BBD-9A8A-569B6B50A5D4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Simulator", "..\PhantasmaChain\Phantasma.Simulator\Phantasma.Simulator.csproj", "{21CDBEA9-1367-4ECD-8958-9E6E5F20E50E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{EF3836A5-FC50-4DCC-BA89-EBF129B87171}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,10 +59,6 @@ Global
 		{B503EA99-7209-45AE-995D-23D00412DDC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B503EA99-7209-45AE-995D-23D00412DDC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B503EA99-7209-45AE-995D-23D00412DDC3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{19D170D2-1152-4745-9169-AA2000D3C7C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19D170D2-1152-4745-9169-AA2000D3C7C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19D170D2-1152-4745-9169-AA2000D3C7C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19D170D2-1152-4745-9169-AA2000D3C7C0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BFB560CD-C6D8-4FFE-96A5-F24DF683E9CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BFB560CD-C6D8-4FFE-96A5-F24DF683E9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFB560CD-C6D8-4FFE-96A5-F24DF683E9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,6 +71,10 @@ Global
 		{21CDBEA9-1367-4ECD-8958-9E6E5F20E50E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21CDBEA9-1367-4ECD-8958-9E6E5F20E50E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21CDBEA9-1367-4ECD-8958-9E6E5F20E50E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

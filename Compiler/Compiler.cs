@@ -65,13 +65,13 @@ namespace Phantasma.Tomb.Compiler
 
             CreateStruct("NFT", new[]
             {
-                new StructField("Chain", VarKind.Address),
-                new StructField("Owner", VarKind.Address),
-                new StructField("Creator", VarKind.Address),
+                new StructField("chain", VarKind.Address),
+                new StructField("owner", VarKind.Address),
+                new StructField("creator", VarKind.Address),
                 new StructField("ROM", VarKind.Bytes),
                 new StructField("RAM", VarKind.Bytes),
-                new StructField("SeriesID", VarKind.Number),
-                new StructField("MintID", VarKind.Number),
+                new StructField("seriesID", VarKind.Number),
+                new StructField("mintID", VarKind.Number),
             });
         }
 

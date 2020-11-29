@@ -346,6 +346,24 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
                     libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).
                         SetAlias("Nexus.CreateTokenSeries").SetParameterCallback("nft", ConvertFieldToContract);
+                    libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadToken")
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var nftStruct = VarType.Find(VarKind.Struct, "NFT") as StructVarType;
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            var fields = '\"' + string.Join(',', nftStruct.decl.fields.Select(x => x.name)) + '\"';
+
+                            output.AppendLine(expr, $"LOAD {reg} {fields} // field list");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback((output, scope, method, reg) =>
+                        {
+                            output.AppendLine(method, $"UNPACK {reg} {reg}");
+                            return reg;
+                        });
                     break;
 
                 case "Organization":

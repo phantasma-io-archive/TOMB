@@ -813,9 +813,14 @@ namespace Tests
                         return NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                     }
 
-                    public read(nftID:number): string {
-                        local nftInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
-                        return nftInfo.name;
+                    public readName(nftID:number): string {
+                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        return romInfo.name;
+                    }
+
+                    public readOwner(nftID:number): address {
+                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        return nftInfo.owner;
                     }
                 }";
 
@@ -830,11 +835,13 @@ namespace Tests
                     .EndScript());
             simulator.EndBlock();
 
+            var otherKeys = PhantasmaKeys.Generate();
+
             simulator.BeginBlock();
             var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
                 ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
-                    CallContract(symbol, "mint", keys.Address).
+                    CallContract(symbol, "mint", otherKeys.Address).
                     SpendGas(keys.Address).
                     EndScript());
             var block = simulator.EndBlock().First();
@@ -849,7 +856,7 @@ namespace Tests
             tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
                 ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
-                    CallContract(symbol, "read",nftID).
+                    CallContract(symbol, "readName",nftID).
                     SpendGas(keys.Address).
                     EndScript());
             block = simulator.EndBlock().First();
@@ -859,6 +866,21 @@ namespace Tests
             obj = VMObject.FromBytes(result);
             var nftName = obj.AsString();
             Assert.IsTrue(nftName == "hello");
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readOwner", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var nftOwner = obj.AsAddress();
+            Assert.IsTrue(nftOwner == otherKeys.Address);
         }
 
         [Test]
