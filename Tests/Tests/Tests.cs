@@ -1068,5 +1068,53 @@ namespace Tests
                     EndScript());
             simulator.EndBlock();
         }
+
+        [Test]
+        public void TestStorageMapHas()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                	"import Runtime;\n" +
+                	"import Time;\n" +
+                	"import Map;\n" +
+                    "global _storageMap: storage_map<number, string>;\n" +
+                    "constructor(owner:address)	{\n" +
+                    "_storageMap.set(5, \"test1\");\n"+
+                    "}\n" +
+                	"public doStuff(from:address)\n" +
+                	"{\n" +
+                	" local test:string := _storageMap.has(5);\n" +
+                	" Runtime.log(\"this log: \");\n" +
+                	" Runtime.log(test);\n" +
+                	"}\n"+
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "doStuff", keys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+        }
     }
 }
