@@ -765,7 +765,7 @@ namespace Tests
             string name = "Test";
 
             var sourceCode =
-                @"struct someStruct 
+                @"struct someStruct
                 {
                     created:timestamp;
                     creator:address;
@@ -814,7 +814,7 @@ namespace Tests
                     }
 
                     public read(nftID:number): string {
-                        local nftInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID); 
+                        local nftInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
                         return nftInfo.name;
                     }
                 }";
@@ -990,6 +990,62 @@ namespace Tests
                 	"{\n" +
                 	" Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
                 	"}\n"+
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "doStuff", keys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+        }
+
+        [Test]
+        public void TestAESAndStorageMap()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                  "import Runtime;\n" +
+                  "import Storage;\n" +
+                  "import Map;\n" +
+                  "import Cryptography;\n" +
+                    "global someString: string;\n" +
+                    "global someSecret: string;\n" +
+                    "global result: string;\n" +
+                    "global _lockedStorageMap: storage_map<number, bytes>;\n" +
+                    "constructor(owner:address)	{\n" +
+                    "someString := \"qwerty\";\n" +
+                    "someSecret := \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
+                    "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
+                    "_lockedStorageMap.set(10, encrypted);\n" +
+                    "local encryptedContentBytes:bytes := _lockedStorageMap.get(10);\n" +
+                    "local decrypted: bytes := Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
+                    "result := decrypted.toString();\n" +
+                    "}\n" +
+                  "public doStuff(from:address)\n" +
+                  "{\n" +
+                  " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
+                  "}\n"+
                 "}\n";
 
             var parser = new Compiler();
