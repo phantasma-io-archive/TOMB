@@ -429,7 +429,17 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("remove", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("map", VarKind.String) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead);
-                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("has", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        });
                     break;
 
                 case "List":

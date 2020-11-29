@@ -1082,7 +1082,6 @@ namespace Tests
             var sourceCode =
                 "contract test {\n" +
                 	"import Runtime;\n" +
-                	"import Time;\n" +
                 	"import Map;\n" +
                     "global _storageMap: storage_map<number, string>;\n" +
                     "constructor(owner:address)	{\n" +
@@ -1090,14 +1089,15 @@ namespace Tests
                     "}\n" +
                 	"public doStuff(from:address)\n" +
                 	"{\n" +
-                	" local test:string := _storageMap.has(5);\n" +
-                	" Runtime.log(\"this log: \");\n" +
-                	" Runtime.log(test);\n" +
+                	" local test: bool := _storageMap.has(5);\n" +
+                	" Runtime.expect(test, \"key 5 doesn't exist! \");\n" +
+                	" local test2: bool := _storageMap.has(6);\n" +
+                	" Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
                 	"}\n"+
                 "}\n";
-
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
+            Console.WriteLine("contract asm: " + contract.asm);
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
