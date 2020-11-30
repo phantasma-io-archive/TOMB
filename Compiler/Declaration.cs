@@ -719,6 +719,11 @@ namespace Phantasma.Tomb.Compiler
 
                         output.AppendLine(this, $"LOAD r0 \"{fieldName}\"");
                         output.AppendLine(this, $"GET {dataReg} {reg} r0");
+
+                        if (variable.Type.Kind == VarKind.Struct)
+                        {
+                            output.AppendLine(this, $"UNPACK {reg} {reg}");
+                        }
                     }
 
                     Compiler.Instance.DeallocRegister(ref dataReg);
