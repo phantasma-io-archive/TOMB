@@ -1,6 +1,10 @@
 using NUnit.Framework;
+using NUnit.Framework.Internal;
+using Phantasma.API;
 using Phantasma.Blockchain;
 using Phantasma.CodeGen.Assembler;
+using Phantasma.Core.Log;
+using Phantasma.Core.Types;
 using Phantasma.Core.Utils;
 using Phantasma.Cryptography;
 using Phantasma.Domain;
@@ -177,15 +181,15 @@ namespace Tests
         public void TestCounter()
         {
             var sourceCode =
-            "contract test{\n" +
-            "global counter: number;\n" +
-            "constructor(owner:address)	{\n" +
-            "counter:= 0;}\n" +
-            "public increment(){\n" +
-            "if (counter < 0){\n" +
-            "throw \"invalid state\";}\n" +
-            "counter += 1;\n" +
-            "}}\n";
+                "contract test{\n" +
+                "global counter: number;\n" +
+                "constructor(owner:address)	{\n" +
+                "counter:= 0;}\n" +
+                "public increment(){\n" +
+                "if (counter < 0){\n" +
+                "throw \"invalid state\";}\n" +
+                "counter += 1;\n" +
+                "}}\n";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -225,13 +229,13 @@ namespace Tests
             var str = "hello";
 
             var sourceCode =
-            "contract test{\n" +
-            "global name: string;\n" +
-            "constructor(owner:address)	{\n" +
-            "name:= \"" + str + "\";\n}" +
-            "public getLength():number {\n" +
-            "return name.length();\n" +
-            "}}\n";
+                "contract test{\n" +
+                "global name: string;\n" +
+                "constructor(owner:address)	{\n" +
+                "name:= \"" + str + "\";\n}" +
+                "public getLength():number {\n" +
+                "return name.length();\n" +
+                "}}\n";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -281,15 +285,15 @@ namespace Tests
             var decimals = 8;
 
             var sourceCode =
-            "contract test{\n" +
-            $"global amount: decimal<{decimals}>;\n" +
-            "constructor(owner:address)	{\n" +
-            "amount := "+valStr+";\n}" +
-            "public getValue():number {\n" +
-            "return amount;\n}" +
-            "public getLength():number {\n" +
-            "return amount.decimals();\n}" +
-            "}\n";
+                "contract test{\n" +
+                $"global amount: decimal<{decimals}>;\n" +
+                "constructor(owner:address)	{\n" +
+                "amount := "+valStr+";\n}" +
+                "public getValue():number {\n" +
+                "return amount;\n}" +
+                "public getLength():number {\n" +
+                "return amount.decimals();\n}" +
+                "}\n";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -355,11 +359,11 @@ namespace Tests
             var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
 
             var sourceCode =
-            "contract test{\n" +
-            $"global amount: decimal<3>;\n" +
-            "constructor(owner:address)	{\n" +
-            "amount := " + valStr + ";\n}" +
-            "}\n";
+                "contract test{\n" +
+                $"global amount: decimal<3>;\n" +
+                "constructor(owner:address)	{\n" +
+                "amount := " + valStr + ";\n}" +
+                "}\n";
 
             var parser = new Compiler();
 
@@ -443,12 +447,12 @@ namespace Tests
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
-                "property name:string = \"Unit test\";",
-                "   global _feesSymbol:string;",
-                $"  property feesSymbol:string = _feesSymbol;",
-                "   constructor(owner:address)	{" ,
-                "       _feesSymbol := \"KCAL\";" ,
-                "}}"
+                    "property name:string = \"Unit test\";",
+                    "   global _feesSymbol:string;",
+                    $"  property feesSymbol:string = _feesSymbol;",
+                    "   constructor(owner:address)	{" ,
+                    "       _feesSymbol := \"KCAL\";" ,
+                    "}}"
             };
 
             var parser = new Compiler();
@@ -494,11 +498,11 @@ namespace Tests
         {
             string[] sourceCode = new string[] {
                 "token TEST {",
-                "global _contractPaused:bool;",
-                "property name: string = \"Ghost\";	",
-                "   constructor(owner:address)	{" ,
-                "       _contractPaused:= false;" ,
-                "}}"
+                    "global _contractPaused:bool;",
+                    "property name: string = \"Ghost\";	",
+                    "   constructor(owner:address)	{" ,
+                    "       _contractPaused:= false;" ,
+                    "}}"
             };
 
             var parser = new Compiler();
@@ -527,17 +531,17 @@ namespace Tests
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
-                "property name:string = \"Unit test\";",
-                "   global _feesSymbol:string;",
-                $"  property feesSymbol:string = _feesSymbol;",
-                "   constructor(owner:address)	{" ,
-                "       _feesSymbol := \"KCAL\";" ,
-                "}",
-                "public updateFeesSymbol(feesSymbol:string) {",
-                "   _feesSymbol:= feesSymbol;",
-                "}",
-                "}"
-              };
+                    "property name:string = \"Unit test\";",
+                    "   global _feesSymbol:string;",
+                    $"  property feesSymbol:string = _feesSymbol;",
+                    "   constructor(owner:address)	{" ,
+                    "       _feesSymbol := \"KCAL\";" ,
+                    "}",
+                    "public updateFeesSymbol(feesSymbol:string) {",
+                    "   _feesSymbol:= feesSymbol;",
+                    "}",
+                    "}"
+            };
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -594,12 +598,12 @@ namespace Tests
         {
             string[] sourceCode = new string[] {
                 "token GHOST {",
-                "	global _infuseMultiplier:number;",
-                "	property name:string = \"test\";",
-                "	property infuseMultiplier:number = _infuseMultiplier;",
-                "	constructor (owner:address) { _infuseMultiplier := 1;	}",
-                "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier := infuseMultiplier;	}",
-                "}"
+                    "	global _infuseMultiplier:number;",
+                    "	property name:string = \"test\";",
+                    "	property infuseMultiplier:number = _infuseMultiplier;",
+                    "	constructor (owner:address) { _infuseMultiplier := 1;	}",
+                    "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier := infuseMultiplier;	}",
+                    "}"
             };
 
             var parser = new Compiler();
@@ -657,12 +661,12 @@ namespace Tests
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
-                "property name:string = \"Unit test\";",
-                "   global _feesAddress:address;",
-                $"  property feesAddress:address = _feesAddress;",
-                "   constructor(owner:address)	{" ,
-                "       _feesAddress := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
-                "}}"
+                    "property name:string = \"Unit test\";",
+                    "   global _feesAddress:address;",
+                    $"  property feesAddress:address = _feesAddress;",
+                    "   constructor(owner:address)	{" ,
+                    "       _feesAddress := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
+                    "}}"
             };
 
             var parser = new Compiler();
@@ -715,17 +719,17 @@ namespace Tests
 
             var sourceCode =
                 "contract test {\n" +
-                	"import Runtime;\n" +
-                    "global _address:address;" +
-                    "global _owner:address;" +
-                    "constructor(owner:address)	{\n" +
-                    "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                    "_owner:= owner;\n" +
-                    "}\n" +
-                	"public doStuff(from:address)\n" +
-                	"{\n" +
-                		"Runtime.expect(Runtime.isWitness(_address), \"witness failed\");\n" +
-                	"}\n"+
+                "import Runtime;\n" +
+                "global _address:address;" +
+                "global _owner:address;" +
+                "constructor(owner:address)	{\n" +
+                "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                "_owner:= owner;\n" +
+                "}\n" +
+                "public doStuff(from:address)\n" +
+                "{\n" +
+                "Runtime.expect(Runtime.isWitness(_address), \"witness failed\");\n" +
+                "}\n"+
                 "}\n";
 
             var parser = new Compiler();
@@ -733,7 +737,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -741,7 +745,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
@@ -767,50 +771,34 @@ namespace Tests
             var sourceCode =
                 @"struct someStruct
                 {
-                    created:timestamp;
-                    creator:address;
-                    royalties:number;
-                    name:string;
-                    description:string;
-                    imageURL:string;
-                    infoURL:string;
+created:timestamp;
+creator:address;
+royalties:number;
+name:string;
+description:string;
+imageURL:string;
+infoURL:string;
                 }
-                token " + symbol + @" {
-                    import Runtime;
-                    import Time;
-                    import NFT;
-                    global _address:address;
-                    global _owner:address;
+            token " + symbol + @" {
+                import Runtime;
+                import Time;
+                import NFT;
+                global _address:address;
+                global _owner:address;
 
-                    property name:string = """+ name + @""";
+                property name:string = """+ name + @""";
 
-                    nft myNFT<someStruct, number> {
-                        property name:string {
-                            return _ROM.name;
-                        }
-
-                        property description:string {
-                            return _ROM.description;
-                        }
-
-                        property imageURL:string {
-                            return _ROM.imageURL;
-                        }
-
-                        property infoURL:string {
-                            return _ROM.infoURL;
-                        }
+                nft myNFT<someStruct, number> {
+                    property name:string {
+                        return _ROM.name;
                     }
 
-                    constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
-                        NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
+                    property description:string {
+                        return _ROM.description;
                     }
 
-                    public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        return NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                    property imageURL:string {
+                        return _ROM.imageURL;
                     }
 
                     public readName(nftID:number): string {
@@ -822,14 +810,31 @@ namespace Tests
                         local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
                         return nftInfo.owner;
                     }
-                }";
+                }
+
+                constructor(owner:address)	{
+_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+_owner:= owner;
+       NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
+                }
+
+                public mint(dest:address):number {
+                    local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                    return NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                }
+
+                public read(nftID:number): string {
+                    local nftInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                    return nftInfo.name;
+                }
+            }";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -839,7 +844,7 @@ namespace Tests
 
             simulator.BeginBlock();
             var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract(symbol, "mint", otherKeys.Address).
                     SpendGas(keys.Address).
@@ -854,7 +859,7 @@ namespace Tests
 
             simulator.BeginBlock();
             tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract(symbol, "readName",nftID).
                     SpendGas(keys.Address).
@@ -895,22 +900,22 @@ namespace Tests
 
             var sourceCode =
                 "contract test {\n" +
-                	"import Runtime;\n" +
-                	"import Time;\n" +
-                    "global _address:address;" +
-                    "global _owner:address;" +
-                    "constructor(owner:address)	{\n" +
-                    "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                    "_owner:= owner;\n" +
-                    "}\n" +
-                	"public doStuff(from:address)\n" +
-                	"{\n" +
-                	"}\n"+
-	                "trigger onUpgrade(from:address)\n" +
-                    "{\n" +
-                    "    Runtime.expect(from == _address, \"invalid owner address\"\n);" +
-	                "	 Runtime.expect(Runtime.isWitness(from), \"invalid witness\"\n);" +
-                    "}\n" +
+                "import Runtime;\n" +
+                "import Time;\n" +
+                "global _address:address;" +
+                "global _owner:address;" +
+                "constructor(owner:address)	{\n" +
+                "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                "_owner:= owner;\n" +
+                "}\n" +
+                "public doStuff(from:address)\n" +
+                "{\n" +
+                "}\n"+
+                "trigger onUpgrade(from:address)\n" +
+                "{\n" +
+                "    Runtime.expect(from == _address, \"invalid owner address\"\n);" +
+                "	 Runtime.expect(Runtime.isWitness(from), \"invalid witness\"\n);" +
+                "}\n" +
                 "}\n";
 
             var parser = new Compiler();
@@ -918,7 +923,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -926,7 +931,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallInterop("Runtime.UpgradeContract", keys.Address, "test", contract.script, contract.abi.ToByteArray()).
                     SpendGas(keys.Address).
@@ -948,19 +953,19 @@ namespace Tests
 
             var sourceCode =
                 "contract test {\n" +
-                	"import Runtime;\n" +
-                	"import Time;\n" +
-                	"import Map;\n" +
-                    "global _storageMap: storage_map<number, string>;\n" +
-                    "constructor(owner:address)	{\n" +
-                    "_storageMap.set(5, \"test1\");\n"+
-                    "}\n" +
-                	"public doStuff(from:address)\n" +
-                	"{\n" +
-                	" local test:string := _storageMap.get(5);\n" +
-                	" Runtime.log(\"this log: \");\n" +
-                	" Runtime.log(test);\n" +
-                	"}\n"+
+                "import Runtime;\n" +
+                "import Time;\n" +
+                "import Map;\n" +
+                "global _storageMap: storage_map<number, string>;\n" +
+                "constructor(owner:address)	{\n" +
+                "_storageMap.set(5, \"test1\");\n"+
+                "}\n" +
+                "public doStuff(from:address)\n" +
+                "{\n" +
+                " local test:string := _storageMap.get(5);\n" +
+                " Runtime.log(\"this log: \");\n" +
+                " Runtime.log(test);\n" +
+                "}\n"+
                 "}\n";
 
             var parser = new Compiler();
@@ -968,7 +973,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -976,7 +981,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
@@ -996,22 +1001,22 @@ namespace Tests
 
             var sourceCode =
                 "contract test {\n" +
-                	"import Runtime;\n" +
-                	"import Cryptography;\n" +
-                    "global someString: string;\n" +
-                    "global someSecret: string;\n" +
-                    "global result: string;\n" +
-                    "constructor(owner:address)	{\n" +
-                    "someString := \"somestring\";\n" +
-                    "someSecret := \"somesecret123456somesecret123456\";\n" +
-                    "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
-                    "local decrypted: bytes := Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
-                    "result := decrypted.toString();\n" +
-                    "}\n" +
-                	"public doStuff(from:address)\n" +
-                	"{\n" +
-                	" Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
-                	"}\n"+
+                "import Runtime;\n" +
+                "import Cryptography;\n" +
+                "global someString: string;\n" +
+                "global someSecret: string;\n" +
+                "global result: string;\n" +
+                "constructor(owner:address)	{\n" +
+                "someString := \"somestring\";\n" +
+                "someSecret := \"somesecret123456somesecret123456\";\n" +
+                "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
+                "local decrypted: bytes := Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
+                "result := decrypted.toString();\n" +
+                "}\n" +
+                "public doStuff(from:address)\n" +
+                "{\n" +
+                " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
+                "}\n"+
                 "}\n";
 
             var parser = new Compiler();
@@ -1019,7 +1024,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -1027,7 +1032,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
@@ -1047,27 +1052,27 @@ namespace Tests
 
             var sourceCode =
                 "contract test {\n" +
-                  "import Runtime;\n" +
-                  "import Storage;\n" +
-                  "import Map;\n" +
-                  "import Cryptography;\n" +
-                    "global someString: string;\n" +
-                    "global someSecret: string;\n" +
-                    "global result: string;\n" +
-                    "global _lockedStorageMap: storage_map<number, bytes>;\n" +
-                    "constructor(owner:address)	{\n" +
-                    "someString := \"qwerty\";\n" +
-                    "someSecret := \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
-                    "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
-                    "_lockedStorageMap.set(10, encrypted);\n" +
-                    "local encryptedContentBytes:bytes := _lockedStorageMap.get(10);\n" +
-                    "local decrypted: bytes := Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
-                    "result := decrypted.toString();\n" +
-                    "}\n" +
-                  "public doStuff(from:address)\n" +
-                  "{\n" +
-                  " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
-                  "}\n"+
+                "import Runtime;\n" +
+                "import Storage;\n" +
+                "import Map;\n" +
+                "import Cryptography;\n" +
+                "global someString: string;\n" +
+                "global someSecret: string;\n" +
+                "global result: string;\n" +
+                "global _lockedStorageMap: storage_map<number, bytes>;\n" +
+                "constructor(owner:address)	{\n" +
+                "someString := \"qwerty\";\n" +
+                "someSecret := \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
+                "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
+                "_lockedStorageMap.set(10, encrypted);\n" +
+                "local encryptedContentBytes:bytes := _lockedStorageMap.get(10);\n" +
+                "local decrypted: bytes := Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
+                "result := decrypted.toString();\n" +
+                "}\n" +
+                "public doStuff(from:address)\n" +
+                "{\n" +
+                " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
+                "}\n"+
                 "}\n";
 
             var parser = new Compiler();
@@ -1075,7 +1080,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -1083,7 +1088,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
@@ -1103,19 +1108,19 @@ namespace Tests
 
             var sourceCode =
                 "contract test {\n" +
-                	"import Runtime;\n" +
-                	"import Map;\n" +
-                    "global _storageMap: storage_map<number, string>;\n" +
-                    "constructor(owner:address)	{\n" +
-                    "_storageMap.set(5, \"test1\");\n"+
-                    "}\n" +
-                	"public doStuff(from:address)\n" +
-                	"{\n" +
-                	" local test: bool := _storageMap.has(5);\n" +
-                	" Runtime.expect(test, \"key 5 doesn't exist! \");\n" +
-                	" local test2: bool := _storageMap.has(6);\n" +
-                	" Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
-                	"}\n"+
+                "import Runtime;\n" +
+                "import Map;\n" +
+                "global _storageMap: storage_map<number, string>;\n" +
+                "constructor(owner:address)	{\n" +
+                "_storageMap.set(5, \"test1\");\n"+
+                "}\n" +
+                "public doStuff(from:address)\n" +
+                "{\n" +
+                " local test: bool := _storageMap.has(5);\n" +
+                " Runtime.expect(test, \"key 5 doesn't exist! \");\n" +
+                " local test2: bool := _storageMap.has(6);\n" +
+                " Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
+                "}\n"+
                 "}\n";
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -1123,7 +1128,7 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
@@ -1131,12 +1136,93 @@ namespace Tests
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                ScriptUtils.BeginScript().
+                    ScriptUtils.BeginScript().
                     AllowGas(keys.Address, Address.Null, 1, 9999).
                     CallContract("test", "doStuff", keys.Address).
                     SpendGas(keys.Address).
                     EndScript());
             simulator.EndBlock();
+        }
+
+        [Test]
+        public void TestGHOST()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+            var mempool = new Mempool(simulator.Nexus, 2, 1, System.Text.Encoding.UTF8.GetBytes("TEST"), 0, new DummyLogger());
+            mempool?.SetKeys(keys);
+
+            var api = new NexusAPI(simulator.Nexus);
+            api.Mempool = mempool;
+            mempool.Start();
+            var sourceCode = System.IO.File.ReadAllLines("/home/merl/source/phantasma/GhostMarketContractPhantasma/GHOST.tomb");
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            Console.WriteLine("contract asm: " + contract.abi);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Nexus.CreateToken", keys.Address, "GHOST", "GHOST", new BigInteger(10000), new BigInteger(0),
+                        TokenFlags.Transferable|TokenFlags.Burnable|TokenFlags.Finite, contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            var token = (TokenResult)api.GetToken("GHOST");
+            Console.WriteLine("id: " + token.ToString());
+            Console.WriteLine("address: " + token.address);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.FromText(token.address), 1, 9999)
+                    .CallContract("GHOST", "mintToken", 0, 1, 1,
+                        keys.Address, 0, "GHOST", 1, "testnft", "desc1234567890", 1,
+                        "0", "0", "", "", "", "", "", "", "", 0, "", new Timestamp(1), "", 0)
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            var nft = (TokenDataResult)api.GetNFT("GHOST", "80807712912753409015029052615541912663228133032695758696669246580757047529373", true);
+            Console.WriteLine("nft series: " + nft.series);
+        }
+
+        [Test]
+        public void TestCROWN()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+            var mempool = new Mempool(simulator.Nexus, 2, 1, System.Text.Encoding.UTF8.GetBytes("TEST"), 0, new DummyLogger());
+            mempool?.SetKeys(keys);
+
+            var api = new NexusAPI(simulator.Nexus);
+            api.Mempool = mempool;
+            mempool.Start();
+
+            var token = (TokenResult)api.GetToken("CROWN");
+            Console.WriteLine("id: " + token.ToString());
+            Console.WriteLine("address: " + token.address);
+
+            simulator.TimeSkipDays(200);
+            Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            var nft = (TokenDataResult)api.GetNFT("CROWN", "64648043722874601761586352284082823113174122931185981250820896676646424691598", true);
+            Console.WriteLine("nft series: " + nft.properties.ToString());
+            foreach (var a in nft.properties)
+            {
+                Console.WriteLine($"res {a.Key}:{a.Value}");
+
+            }
+
+            throw new Exception();
         }
     }
 }

@@ -141,12 +141,12 @@ namespace Phantasma.Tomb.Compiler
             previousScope = CodeGenerator.currentScope;
             CodeGenerator.currentScope = this;
 
-            Console.WriteLine("entering " + this.Name);
+            //Console.WriteLine("entering " + this.Name);
         }
 
         public void Leave(CodeGenerator output)
         {
-            Console.WriteLine("leaving " + this.Name);
+            //Console.WriteLine("leaving " + this.Name);
 
             foreach (var variable in this.Variables.Values)
             {

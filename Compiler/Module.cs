@@ -211,6 +211,13 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("isUser", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isSystem", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isInterop", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
+                    libDecl.AddMethod("toString", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.String}");
+                            return reg;
+                        });
                     return libDecl;
             }
 

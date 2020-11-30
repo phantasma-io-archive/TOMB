@@ -1901,7 +1901,7 @@ namespace Phantasma.Tomb.Compiler
                     registerAlias[i] = alias;
 
                     string extra = alias != null ? " => " + alias : "";
-                    Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "alloc r" + i + extra);
+                    //Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "alloc r" + i + extra);
 
                     if (alias != null)
                     {
@@ -1928,7 +1928,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 var alias = registerAlias[index];
 
-                Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "dealloc r" + index + " => "+alias);
+                //Console.WriteLine(CodeGenerator.Tabs(CodeGenerator.currentScope.Level) + "dealloc r" + index + " => "+alias);
 
                 registerAllocs[index] = null;
                 registerAlias[index] = null;
