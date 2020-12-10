@@ -237,6 +237,7 @@ The following libraries can be imported into a contract.
 | ------------- | ------------- |
 | $THIS_ADDRESS  | The address of the current contract  |
 | $THIS_SYMBOL  | The symbol of the current token  |
+| $TYPE_OF  | The type of the argument  |
 
 ## Exception support
 

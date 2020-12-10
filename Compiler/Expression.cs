@@ -4,6 +4,7 @@ using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace Phantasma.Tomb.Compiler
 {
@@ -561,21 +562,36 @@ namespace Phantasma.Tomb.Compiler
 
             string val;
 
-            var decType = this.type as DecimalVarType;
+            switch (this.type.Kind)
+            {
+                case VarKind.Decimal:
+                    {
+                        var decType = this.type as DecimalVarType;
+                        var temp = decimal.Parse(this.value, CultureInfo.InvariantCulture);
+                        val = UnitConversion.ToBigInteger(temp, decType.decimals).ToString();
+                        break;
+                    }
 
-            if (decType != null)
-            {
-                var temp = decimal.Parse(this.value, CultureInfo.InvariantCulture);
-                val = UnitConversion.ToBigInteger(temp, decType.decimals).ToString();
-            }
-            else
-            {
-                val = this.value;
-            }
+                case VarKind.Enum:
+                    {
+                        val = $"{this.value} Enum";
+                        break;
+                    }
 
-            if (this.type.Kind == VarKind.Enum)
-            {
-                val = $"{val} Enum";
+                case VarKind.Type:
+                    {
+                        var srcType = (VarKind) Enum.Parse(typeof(VarKind), this.value);
+                        var vmType = MethodInterface.ConvertType(srcType);
+                        val = $"{(int)vmType} Enum";
+                        break;
+                    }
+
+                default:
+                    {
+                        val = this.value;
+                        break;
+                    }
+
             }
 
             output.AppendLine(this, $"LOAD {reg} {val}");
@@ -601,10 +617,12 @@ namespace Phantasma.Tomb.Compiler
     public class MacroExpression : Expression
     {
         public string value;
+        public string[] args;
 
-        public MacroExpression(Scope parentScope, string value) : base(parentScope)
+        public MacroExpression(Scope parentScope, string value, IEnumerable<string> args) : base(parentScope)
         {
             this.value = value;
+            this.args = args.ToArray();
         }
 
         public override string ToString()
@@ -653,6 +671,30 @@ namespace Phantasma.Tomb.Compiler
                         }
 
                         throw new CompilerException($"macro {value} is not available here");
+                    }
+
+                case "TYPE_OF":
+                    {
+                        if (args.Length != 1)
+                        {
+                            throw new CompilerException($"macro {value} requires 1 argument");
+                        }
+
+                        var target = args[0];
+
+                        VarKind kind;
+                        if (!Enum.TryParse<VarKind>(target, true, out kind))
+                        {
+                            var decl = scope.FindVariable(target, false);
+                            if (decl == null)
+                            {
+                                throw new CompilerException($"unknown identifier: {target}");
+                            }
+
+                            kind = decl.Type.Kind;
+                        }
+
+                        return new LiteralExpression(scope, kind.ToString(), VarType.Find(VarKind.Type));
                     }
 
                 default:

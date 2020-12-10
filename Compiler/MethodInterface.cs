@@ -178,6 +178,7 @@ namespace Phantasma.Tomb.Compiler
                     return VMType.Bool;
 
                 case VarKind.Enum:
+                case VarKind.Type:
                     return VMType.Enum;
 
                 case VarKind.Method:

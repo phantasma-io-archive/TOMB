@@ -1452,7 +1452,43 @@ namespace Phantasma.Tomb.Compiler
 
                 case TokenKind.Macro:
                     {
-                        return new MacroExpression(scope, first.value);
+                        var args = new List<string>();
+
+                        var next = this.FetchToken();
+                        if (next.value == "(")
+                        {
+                            do
+                            {
+                                next = this.FetchToken();
+                                if (next.value == ")")
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    switch (next.kind)
+                                    {
+                                        case TokenKind.Asm:
+                                        case TokenKind.Macro:
+                                        case TokenKind.Operator:
+                                        case TokenKind.Separator:
+                                        case TokenKind.Selector:
+                                            throw new CompilerException($"not valid macro argument: {next.kind}");
+
+
+                                        default:
+                                            args.Add(next.value);
+                                            break;
+                                    }
+                                }
+                            } while (true);
+                        }
+                        else
+                        {
+                            Rewind();
+                        }
+
+                        return new MacroExpression(scope, first.value, args);
                     }
 
                 default:
