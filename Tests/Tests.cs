@@ -822,12 +822,18 @@ namespace Tests
                     import Runtime;
                     import Time;
                     import NFT;
+                    import Map;
                     global _address:address;
                     global _owner:address;
+                    global _unlockStorageMap: storage_map<number, number>;
 
                     property name:string = """+ name + @""";
 
                     nft myNFT<someStruct, number> {
+
+                        import Call;
+                        import Map;
+
                         property name:string {
                             return _ROM.name;
                         }
@@ -843,6 +849,11 @@ namespace Tests
                         property infoURL:string {
                             return _ROM.infoURL;
                         }
+
+                        property unlockCount:number {
+                            local count:number := Call.interop(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _TokenID);
+                            return count;
+                        }
                     }
 
                     constructor(owner:address)	{
@@ -853,7 +864,9 @@ namespace Tests
 
                     public mint(dest:address):number {
                         local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        return NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        _unlockStorageMap.set(tokenID, 0);
+                        return tokenID;
                     }
 
                     public readName(nftID:number): string {
@@ -924,6 +937,17 @@ namespace Tests
             obj = VMObject.FromBytes(result);
             var nftOwner = obj.AsAddress();
             Assert.IsTrue(nftOwner == otherKeys.Address);
+
+            
+            var mempool = new Mempool(simulator.Nexus, 2, 1, System.Text.Encoding.UTF8.GetBytes(symbol), 0, new DummyLogger());
+            mempool?.SetKeys(keys);
+
+            var api = new NexusAPI(simulator.Nexus);
+            api.Mempool = mempool;
+            mempool.Start();
+
+            var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
+            Console.WriteLine("nft properties: " + nft.properties.ToString());
         }
 
         [Test]
