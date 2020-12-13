@@ -23,9 +23,9 @@ namespace Phantasma.Tomb.Compiler
             this.nftType = (StructVarType)VarType.Find(VarKind.Struct, name);
             //this.nftType.decl = new StructDeclaration(name, new[] { new StructField("id", VarKind.Number), new StructField("owner", VarKind.Address), new StructField("chain", VarKind.String), new StructField("rom", romType), new StructField("ram", ramType) });
 
-            this.Scope.AddVariable(new VarDeclaration(this.Scope, "_TokenID", VarType.Find(VarKind.Number), VarStorage.NFT));
-            this.Scope.AddVariable(new VarDeclaration(this.Scope, "_SeriesID", VarType.Find(VarKind.Number), VarStorage.NFT));
-            this.Scope.AddVariable(new VarDeclaration(this.Scope, "_MintID", VarType.Find(VarKind.Number), VarStorage.NFT));
+            this.Scope.AddVariable(new VarDeclaration(this.Scope, "_tokenID", VarType.Find(VarKind.Number), VarStorage.NFT));
+            this.Scope.AddVariable(new VarDeclaration(this.Scope, "_seriesID", VarType.Find(VarKind.Number), VarStorage.NFT));
+            this.Scope.AddVariable(new VarDeclaration(this.Scope, "_mintID", VarType.Find(VarKind.Number), VarStorage.NFT));
             this.Scope.AddVariable(new VarDeclaration(this.Scope, "_ROM", romType, VarStorage.NFT));
             this.Scope.AddVariable(new VarDeclaration(this.Scope, "_RAM", ramType, VarStorage.NFT));
         }

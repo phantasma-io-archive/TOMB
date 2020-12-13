@@ -4,13 +4,11 @@ using Phantasma.API;
 using Phantasma.Blockchain;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Core.Log;
-using Phantasma.Core.Types;
 using Phantasma.Core.Utils;
 using Phantasma.Cryptography;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.Simulator;
-using Phantasma.Storage;
 using Phantasma.Tomb.Compiler;
 using Phantasma.VM;
 using Phantasma.VM.Utils;
@@ -851,11 +849,12 @@ namespace Tests
                         }
 
                         property unlockCount:number {
-                            local count:number := Call.interop(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _TokenID);
+                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID);
                             return count;
                         }
                     }
 
+                    import Call;
                     constructor(owner:address)	{
                         _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
                         _owner:= owner;
@@ -866,6 +865,8 @@ namespace Tests
                         local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
                         local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
+                        // just to test Map.Set as well, still not perfect, Call.Interop should work without a generic of there's no return value
+                        Call.interop<number>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
                         return tokenID;
                     }
 
@@ -882,6 +883,8 @@ namespace Tests
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
+            //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
+            //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
 
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
@@ -938,7 +941,6 @@ namespace Tests
             var nftOwner = obj.AsAddress();
             Assert.IsTrue(nftOwner == otherKeys.Address);
 
-            
             var mempool = new Mempool(simulator.Nexus, 2, 1, System.Text.Encoding.UTF8.GetBytes(symbol), 0, new DummyLogger());
             mempool?.SetKeys(keys);
 
@@ -947,7 +949,28 @@ namespace Tests
             mempool.Start();
 
             var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
-            Console.WriteLine("nft properties: " + nft.properties.ToString());
+            foreach (var a in nft.properties)
+            {
+                switch (a.Key)
+                {
+                    case "Name":
+                        Assert.IsTrue(a.Value == "hello");
+                        break;
+                    case "Description":
+                        Assert.IsTrue(a.Value == "desc");
+                        break;
+                    case "ImageURL":
+                        Assert.IsTrue(a.Value == "imgURL");
+                        break;
+                    case "InfoURL":
+                        Assert.IsTrue(a.Value == "info");
+                        break;
+                    case "UnlockCount":
+                        Assert.IsTrue(a.Value == "111");
+                        break;
+
+                }
+            }
         }
 
         [Test]
