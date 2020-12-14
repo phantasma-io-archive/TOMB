@@ -241,19 +241,9 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Call":
-                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) })
-                        .SetPreCallback((output, scope, expr) =>
-                        {
-                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
-                            var reg = Compiler.Instance.AllocRegister(output, expr);
-
-                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
-                            output.AppendLine(expr, $"PUSH {reg}");
-
-                            return reg;
-                        });
-                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
-                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarKind.Any, new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarType.Generic(0), new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Any) });
                     break;
 
                 case "Chain":
