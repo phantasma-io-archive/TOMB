@@ -686,15 +686,17 @@ namespace Phantasma.Tomb.Compiler
                 variable.CallNecessaryConstructors(output, variable.Type, reg);
             }
 
-            var implicits = new VarDeclaration[0];
+            var implicits = new List<VarDeclaration>();
 
             if (this.scope.Module.Kind == ModuleKind.NFT)
             {
                 var idReg = Compiler.Instance.AllocRegister(output, this);
                 output.AppendLine(this, $"POP {idReg} // get nft tokenID from stack");
-                implicits = this.scope.Parent.Variables.Values.Where(x => x.Storage == VarStorage.NFT && this.IsNodeUsed(x)).ToArray();
+                implicits = this.scope.Parent.Variables.Values.Where(x => x.Storage == VarStorage.NFT && this.IsNodeUsed(x) && !x.Name.Equals("_tokenID", StringComparison.OrdinalIgnoreCase)).ToList();
 
-                if (implicits.Length > 0)
+                VarDeclaration tokenIDVar = this.scope.Parent.Variables.Values.Where(x => x.Storage == VarStorage.NFT && this.IsNodeUsed(x) && x.Name.Equals("_tokenID", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+                if (implicits.Count > 0)
                 {
                     var fieldStr = string.Join(',', implicits.Select(x => x.Name.Substring(1)));
                     output.AppendLine(this, $"// reading nft data");
@@ -728,6 +730,17 @@ namespace Phantasma.Tomb.Compiler
 
                     Compiler.Instance.DeallocRegister(ref dataReg);
                 }
+
+
+                if (tokenIDVar != null)
+                {
+                    var reg = Compiler.Instance.AllocRegister(output, tokenIDVar, tokenIDVar.Name);
+                    tokenIDVar.Register = reg;
+                    output.AppendLine(this, $"COPY {idReg} {reg} // tokenID");
+
+                    implicits.Add(tokenIDVar);
+                }
+
                 Compiler.Instance.DeallocRegister(ref idReg);
             }
 
