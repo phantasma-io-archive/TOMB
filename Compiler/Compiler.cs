@@ -1803,9 +1803,9 @@ namespace Phantasma.Tomb.Compiler
 
                     var genType = ExpectType();
 
-                    if (genType.IsStorageBound || genType.IsWeird)
+                    if (genType.IsStorageBound || (genType.Kind != VarKind.None && genType.IsWeird))
                     {
-                        throw new CompilerException($"{genType} can't be used as generic type");
+                        throw new CompilerException($"{genType.Kind} can't be used as generic type");
                     }
 
                     expr.generics.Add(genType);

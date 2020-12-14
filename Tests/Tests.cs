@@ -849,7 +849,7 @@ namespace Tests
                         }
 
                         property unlockCount:number {
-                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID);
+                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
                             return count;
                         }
                     }
@@ -865,8 +865,7 @@ namespace Tests
                         local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
                         local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
-                        // just to test Map.Set as well, still not perfect, Call.Interop should work without a generic of there's no return value
-                        Call.interop<number>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
+                        Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
                         return tokenID;
                     }
 
