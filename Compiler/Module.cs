@@ -4,6 +4,7 @@ using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
+using Phantasma.VM.Debug;
 using System;
 using System.Collections.Generic;
 using System.Linq;
