@@ -155,8 +155,7 @@ namespace Phantasma.Tomb.Compiler
                     SetPreCallback((output, scope, expr) =>
                     {
                         var reg = Compiler.Instance.AllocRegister(output, expr);
-                        var moduleName = expr.arguments[0].AsStringLiteral();
-                        var module = scope.Module.FindModule(moduleName, true);
+                        var module = expr.arguments[0].AsLiteral<Module>();
                         var script = Base16.Encode(module.script);
                         output.AppendLine(expr, $"LOAD {reg} 0x{script}");
                         return reg;
@@ -166,8 +165,7 @@ namespace Phantasma.Tomb.Compiler
                     SetPreCallback((output, scope, expr) =>
                     {
                         var reg = Compiler.Instance.AllocRegister(output, expr);
-                        var moduleName = expr.arguments[0].AsStringLiteral();
-                        var module = scope.Module.FindModule(moduleName, true);
+                        var module = expr.arguments[0].AsLiteral<Module>();
                         var abiBytes = module.abi.ToByteArray();
                         var script = Base16.Encode(abiBytes);
                         output.AppendLine(expr, $"LOAD {reg} 0x{script}");

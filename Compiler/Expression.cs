@@ -18,9 +18,9 @@ namespace Phantasma.Tomb.Compiler
             this.ParentScope = parentScope;
         }
 
-        public virtual string AsStringLiteral()
+        public virtual T AsLiteral<T>()
         {
-            throw new CompilerException(this, $"{this.GetType()} can't be converted to string");
+            throw new CompilerException(this, $"{this.GetType()} can't be converted to {typeof(T).Name} literal");
         }
 
         public abstract Register GenerateCode(CodeGenerator output);
@@ -174,14 +174,19 @@ namespace Phantasma.Tomb.Compiler
             this.right = rightSide;
         }
 
-        public override string AsStringLiteral()
+        public override T AsLiteral<T>()
         {
-            if (ResultType.Kind == VarKind.String && op == OperatorKind.Addition)
+            if (op == OperatorKind.Addition)
             {
-                return left.AsStringLiteral() + right.AsStringLiteral();
+                if (typeof(T) == typeof(string) && ResultType.Kind == VarKind.String)
+                    return (T)(object)(left.AsLiteral<string>() + right.AsLiteral<string>());
+
+                if (typeof(T) == typeof(int) && ResultType.Kind == VarKind.Number)
+                    return (T)(object)(left.AsLiteral<int>() + right.AsLiteral<int>());
             }
 
-            return base.AsStringLiteral();
+
+            return base.AsLiteral<T>();
         }
 
         public override bool IsNodeUsed(Node node)
@@ -445,7 +450,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         if (i == 0)
                         {
-                            customAlias = arg.AsStringLiteral();
+                            customAlias = arg.AsLiteral<string>();
                             argReg = null;
                         }
                         else
@@ -546,14 +551,19 @@ namespace Phantasma.Tomb.Compiler
             return "literal: " + value;
         }
 
-        public override string AsStringLiteral()
+        public override T AsLiteral<T>()
         {
-            if (this.type.Kind == VarKind.String)
+            if (this.type.Kind == VarKind.String && typeof(T) == typeof(string))
             {
-                return this.value;
+                return (T)(object)this.value;
             }
 
-            return base.AsStringLiteral();
+            if (this.type.Kind == VarKind.Module && typeof(T) == typeof(Module))
+            {
+                return (T)(object)Compiler.Instance.FindModule(this.value, true);
+            }
+
+            return base.AsLiteral<T>();
         }
 
         public override Register GenerateCode(CodeGenerator output)
@@ -759,14 +769,14 @@ namespace Phantasma.Tomb.Compiler
             return decl.ToString();
         }
 
-        public override string AsStringLiteral()
+        public override T AsLiteral<T>()
         {
-            if (decl.Type.Kind == VarKind.String)
+            if (decl.Type.Kind == VarKind.String && typeof(T) == typeof(string))
             {
-                return decl.Value;
+                return (T)(object)decl.Value;
             }
 
-            return base.AsStringLiteral();
+            return base.AsLiteral<T>();
         }
 
         public override Register GenerateCode(CodeGenerator output)
