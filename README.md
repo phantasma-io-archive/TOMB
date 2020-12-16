@@ -559,11 +559,11 @@ script startup {
 This example showcases a script that deploys a token contract.
 
 ```c#
-script deploy {
+token GHOST {
+...
+}
 
-	token GHOST {
-	... // has to reside inside script {} block for GHOST module be visible to the script
-	}
+script deploy {
 
     import Token;
     import Module;

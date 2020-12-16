@@ -66,7 +66,7 @@ namespace Phantasma.Tomb.Compiler
             _subModules.Add(subModule);
         }
 
-        public Module FindModule(string name)
+        public Module FindModule(string name, bool mustBeCompiled)
         {
             foreach (var module in _subModules)
             {
@@ -76,7 +76,7 @@ namespace Phantasma.Tomb.Compiler
                 }
             }
 
-            return null;
+            return Compiler.Instance.FindModule(name, mustBeCompiled);
         }
 
         public LibraryDeclaration FindLibrary(string name, bool required = true)
@@ -156,7 +156,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         var reg = Compiler.Instance.AllocRegister(output, expr);
                         var moduleName = expr.arguments[0].AsStringLiteral();
-                        var module = scope.Module.FindModule(moduleName);
+                        var module = scope.Module.FindModule(moduleName, true);
                         var script = Base16.Encode(module.script);
                         output.AppendLine(expr, $"LOAD {reg} 0x{script}");
                         return reg;
@@ -167,7 +167,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         var reg = Compiler.Instance.AllocRegister(output, expr);
                         var moduleName = expr.arguments[0].AsStringLiteral();
-                        var module = scope.Module.FindModule(moduleName);
+                        var module = scope.Module.FindModule(moduleName, true);
                         var abiBytes = module.abi.ToByteArray();
                         var script = Base16.Encode(abiBytes);
                         output.AppendLine(expr, $"LOAD {reg} 0x{script}");
@@ -549,7 +549,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("nft argument is not a literal value");
             }
 
-            var module = scope.Module.FindModule(literal.value);
+            var module = scope.Module.FindModule(literal.value, true);
 
             var abi = module.abi;
 

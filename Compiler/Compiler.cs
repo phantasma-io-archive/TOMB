@@ -209,12 +209,17 @@ namespace Phantasma.Tomb.Compiler
         private Dictionary<string, StructDeclaration> _structs = new Dictionary<string, StructDeclaration>();
         private Dictionary<string, EnumDeclaration> _enums = new Dictionary<string, EnumDeclaration>();
 
-        private Module FindModule(string name)
+        public Module FindModule(string name, bool mustBeCompiled)
         {
             foreach (var entry in _modules)
             {
                 if (entry.Name == name)
                 {
+                    if (mustBeCompiled && entry.script == null)
+                    {
+                        return null;
+                    }
+
                     return entry;
                 }
             }
@@ -579,7 +584,7 @@ namespace Phantasma.Tomb.Compiler
 
                                     case TokenKind.Identifier:
                                         {
-                                            var descModule = FindModule(temp.value) as Script;
+                                            var descModule = FindModule(temp.value, true) as Script;
                                             if (descModule != null)
                                             {
                                                 var descSecondType = descModule.Parameters[1].Type;
@@ -1403,7 +1408,7 @@ namespace Phantasma.Tomb.Compiler
                                 return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Method, method));
                             }
 
-                            var module = scope.Module.FindModule(first.value);
+                            var module = scope.Module.FindModule(first.value, true);
                             if (module != null)
                             {
                                 return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Module, method));
