@@ -151,9 +151,29 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Module":
-                    // TODO implementations of those
-                    libDecl.AddMethod("script", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) });
-                    libDecl.AddMethod("abi", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) });
+                    libDecl.AddMethod("getScript", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = Compiler.Instance.AllocRegister(output, expr);
+                        var moduleName = expr.arguments[0].AsStringLiteral();
+                        var module = scope.Module.FindModule(moduleName);
+                        var script = Base16.Encode(module.script);
+                        output.AppendLine(expr, $"LOAD {reg} 0x{script}");
+                        return reg;
+                    });
+
+                    libDecl.AddMethod("getABI", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = Compiler.Instance.AllocRegister(output, expr);
+                        var moduleName = expr.arguments[0].AsStringLiteral();
+                        var module = scope.Module.FindModule(moduleName);
+                        var abiBytes = module.abi.ToByteArray();
+                        var script = Base16.Encode(abiBytes);
+                        output.AppendLine(expr, $"LOAD {reg} 0x{script}");
+                        return reg;
+                    });
+
                     return libDecl;
 
                 case "Struct":

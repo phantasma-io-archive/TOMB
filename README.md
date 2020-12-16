@@ -221,8 +221,8 @@ The following libraries can be imported into a contract.
 ### Module
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Module.script(target:Module) | Bytes | TODO|
-| Module.abi(target:Module) | Bytes | TODO|
+| Module.getScript(target:Module) | Bytes | TODO|
+| Module.getABI(target:Module) | Bytes | TODO|
 
 ### Format
 | Method | Return type | Description|
@@ -551,6 +551,27 @@ script startup {
 		local temp:number := 50000;
 		Call.contract("Stake", "Unstake", target, temp);
 	}
+}
+```
+
+## Deploy contract script 
+
+This example showcases a script that deploys a contract.
+
+```c#
+token GHOST {
+...
+}
+
+script deploy {
+
+    import Call;
+    import Module;
+
+    code() {
+        local temp:number := 50000;
+        Runtime.deployContract(@P2KAkQRrL62zYvb5198CHBLiKHKr4bJvAG7aXwV69rtbeSz, "GHOST",  Module.getScript(GHOST),  Module.getABI(GHOST));
+    }
 }
 ```
 
