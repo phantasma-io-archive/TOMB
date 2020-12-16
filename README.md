@@ -556,7 +556,7 @@ script startup {
 
 ## Deploy contract script 
 
-This example showcases a script that deploys a contract.
+This example showcases a script that deploys a token contract.
 
 ```c#
 script deploy {
