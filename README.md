@@ -90,7 +90,7 @@ The following libraries can be imported into a contract.
 ### Token
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | None | TODO|
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None | TODO|
 | Token.exists(symbol:String) | Bool | TODO|
 | Token.getDecimals(symbol:String) | Number | TODO|
 | Token.getFlags(symbol:String) | Enum<TokenFlag> | TODO|
@@ -559,18 +559,20 @@ script startup {
 This example showcases a script that deploys a contract.
 
 ```c#
-token GHOST {
-...
-}
-
 script deploy {
 
-    import Call;
+	token GHOST {
+	... // has to reside inside script {} block for GHOST module be visible to the script
+	}
+
+    import Token;
     import Module;
 
     code() {
-        local temp:number := 50000;
-        Runtime.deployContract(@P2KAkQRrL62zYvb5198CHBLiKHKr4bJvAG7aXwV69rtbeSz, "GHOST",  Module.getScript(GHOST),  Module.getABI(GHOST));
+        local maxSupply:number := 50000;
+        local decimals:number := 1;
+		local flags:TokenFlags := TokenFlags.None;
+        Token.create(@P2KAkQRrL62zYvb5198CHBLiKHKr4bJvAG7aXwV69rtbeSz, "GHOST",  "Ghost Token", maxSupply, decimals, flags, Module.getScript(GHOST),  Module.getABI(GHOST));
     }
 }
 ```
