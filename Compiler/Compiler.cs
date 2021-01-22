@@ -1600,6 +1600,13 @@ namespace Phantasma.Tomb.Compiler
         private Expression ParseExpression(Scope scope, bool allowBinary = true)
         {
             var first = FetchToken();
+
+            if (first.kind == TokenKind.Operator && first.value == "!")
+            {
+                var expr = ParseExpression(scope, allowBinary);
+                return new NegationExpression(scope, expr);
+            }
+
             var second = FetchToken();
 
             switch (second.kind)
