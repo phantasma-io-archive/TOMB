@@ -1813,6 +1813,11 @@ namespace Phantasma.Tomb.Compiler
 
                     Rewind();
 
+                    if (expr.generics.Count > 0)
+                    {
+                        ExpectToken(",");
+                    }
+
                     var genType = ExpectType();
 
                     if (genType.IsStorageBound || (genType.Kind != VarKind.None && genType.IsWeird))
