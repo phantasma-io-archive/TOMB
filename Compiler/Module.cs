@@ -435,6 +435,7 @@ namespace Phantasma.Tomb.Compiler
                 case "Leaderboard":
                     {
                         var contract = NativeContractKind.Ranking.ToString().ToLower();
+                        libDecl.AddMethod("exists", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("boardName", VarKind.String)}).SetContract(contract).SetAlias(nameof(RankingContract.Exists));
                         libDecl.AddMethod("create", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("boardName", VarKind.String), new MethodParameter("capacity", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.CreateLeaderboard));
                         libDecl.AddMethod("getAddress", MethodImplementationType.ContractCall, VarKind.Address, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.GetAddressByIndex));
                         libDecl.AddMethod("getScoreByIndex", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("boardName", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetContract(contract).SetAlias(nameof(RankingContract.GetScoreByIndex));
