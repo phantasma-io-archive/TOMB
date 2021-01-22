@@ -514,15 +514,14 @@ namespace Phantasma.Tomb.Compiler
 
         private static Register ConvertFieldToStorageAccess(CodeGenerator output, Scope scope, Expression expression, bool insertContract)
         {
-            var literal = expression as LiteralExpression;
-            if (literal == null)
+            if (expression.ResultType.Kind != VarKind.String)
             {
-                throw new System.Exception("expected literal expression for field key");
+                throw new System.Exception("expected string expression for field key");
             }
 
-            var reg = Compiler.Instance.AllocRegister(output, expression);
+            var reg = expression.GenerateCode(output);
 
-            output.AppendLine(expression, $"LOAD {reg} {literal.value} // field name");
+            //output.AppendLine(expression, $"LOAD {reg} {reg} // field name");
 
             if (insertContract)
             {
