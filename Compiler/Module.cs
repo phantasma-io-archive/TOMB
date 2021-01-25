@@ -113,7 +113,7 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market",
+            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market", "Account",
             "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
@@ -333,6 +333,11 @@ namespace Phantasma.Tomb.Compiler
                             throw new Exception("Expected literal number expression");
                         }
                     });
+                    break;
+
+                case "Account":
+                    libDecl.AddMethod("getName", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { new MethodParameter("from", VarKind.Address) }).SetAlias("Account.Name");
+                    libDecl.AddMethod("getLastActivity", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { new MethodParameter("from", VarKind.Address) }).SetAlias("Account.LastActivity");
                     break;
 
                 case "UID":

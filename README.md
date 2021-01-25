@@ -113,6 +113,12 @@ The following libraries can be imported into a contract.
 | NFT.readROM<T>(symbol:String, id:Number) | T | TODO|
 | NFT.readRAM<T>(symbol:String, id:Number) | T | TODO|
 
+### Account
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Account.getName(from:Address) | String | TODO|
+| Account.getLastActivity(from:Address) | Timestamp | TODO|
+
 ### Organization
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
