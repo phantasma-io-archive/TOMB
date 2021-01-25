@@ -1582,6 +1582,11 @@ namespace Phantasma.Tomb.Compiler
                     rightSide = new CastExpression(scope, VarType.Find(VarKind.String), rightSide);
                 }
                 else
+                if (leftSide.ResultType.Kind == VarKind.Number && rightSide.ResultType.Kind == VarKind.Timestamp && op == OperatorKind.Subtraction)
+                {
+                    rightSide = new CastExpression(scope, VarType.Find(VarKind.Number), rightSide);
+                }
+                else
                 {
                     throw new CompilerException($"type mistmatch, {leftSide.ResultType} on left, {rightSide.ResultType} on right");
                 }
