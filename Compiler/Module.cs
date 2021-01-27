@@ -1,4 +1,4 @@
-using Phantasma.Blockchain.Contracts;
+﻿using Phantasma.Blockchain.Contracts;
 using Phantasma.Blockchain.Tokens;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
@@ -221,6 +221,25 @@ namespace Phantasma.Tomb.Compiler
                             output.AppendLine(expr, $"LOAD {reg} {decType.decimals}");
                             return reg;
                         });
+
+                    libDecl.AddMethod("convert", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("decimalPlaces", VarKind.Number), new MethodParameter("value", VarKind.Number) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var regA = expr.arguments[0].GenerateCode(output);
+                            var regB = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {regB} 10");
+                            output.AppendLine(expr, $"POW {regB} {regA} {regA}");
+
+                            Compiler.Instance.DeallocRegister(ref regB);
+
+                            regB = expr.arguments[1].GenerateCode(output);
+                            output.AppendLine(expr, $"MUL {regB} {regA} {regA}");
+                            Compiler.Instance.DeallocRegister(ref regB);
+
+                            return regA;
+                        });
+
                     return libDecl;
 
                 case "Address":

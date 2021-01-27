@@ -210,6 +210,7 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Decimal.decimals(target:Any) | Number | TODO|
+| Decimal.convert(decimalPlaces:Number, value:Number) | Number | TODO|
 
 ### Enum
 | Method | Return type | Description|
