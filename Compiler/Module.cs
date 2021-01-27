@@ -1,4 +1,4 @@
-﻿using Phantasma.Blockchain.Contracts;
+using Phantasma.Blockchain.Contracts;
 using Phantasma.Blockchain.Tokens;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
@@ -600,7 +600,7 @@ namespace Phantasma.Tomb.Compiler
             {
                 output.AppendLine(expression, $"PUSH {reg}"); // push script
 
-                output.AppendLine(expression, $"LOAD {reg} '{module.Name}' // name");
+                output.AppendLine(expression, $"LOAD {reg} \"{module.Name}\" // name");
             }
 
             //            output.AppendLine(expression, $"PUSH {reg}"); // not necessary because this is done after this call
