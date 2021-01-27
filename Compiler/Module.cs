@@ -303,8 +303,8 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
                     libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
                     libDecl.AddMethod("transactionHash", MethodImplementationType.ExtCall, VarKind.Hash, new MethodParameter[] { });
-                    libDecl.AddMethod("deployContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContract);
-                    libDecl.AddMethod("upgradeContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContract);
+                    libDecl.AddMethod("deployContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContractWithName);
+                    libDecl.AddMethod("upgradeContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContractWithName);
                     libDecl.AddMethod("gasTarget", MethodImplementationType.ExtCall, VarKind.Address, new MethodParameter[] {  }).SetAlias("Runtime.GasTarget");
                     libDecl.AddMethod("context", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.Context");
                     break;
@@ -375,7 +375,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
                     libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).
-                        SetAlias("Nexus.CreateTokenSeries").SetParameterCallback("nft", ConvertFieldToContract);
+                        SetAlias("Nexus.CreateTokenSeries").SetParameterCallback("nft", ConvertFieldToContractWithoutName);
                     libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadToken")
                         .SetPreCallback((output, scope, expr) =>
                         {
@@ -556,7 +556,17 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
-        private static Register ConvertFieldToContract(CodeGenerator output, Scope scope, Expression expression)
+        private static Register ConvertFieldToContractWithName(CodeGenerator output, Scope scope, Expression expression)
+        {
+            return ConvertFieldToContract(output, scope, expression, true);
+        }
+
+        private static Register ConvertFieldToContractWithoutName(CodeGenerator output, Scope scope, Expression expression)
+        {
+            return ConvertFieldToContract(output, scope, expression, false);
+        }
+
+        private static Register ConvertFieldToContract(CodeGenerator output, Scope scope, Expression expression, bool withName)
         {
             var literal = expression as LiteralExpression;
             if (literal == null)
@@ -585,7 +595,15 @@ namespace Phantasma.Tomb.Compiler
             output.AppendLine(expression, $"PUSH {reg}");
 
             output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(module.script)} // script");
-//            output.AppendLine(expression, $"PUSH {reg}");
+
+            if (withName)
+            {
+                output.AppendLine(expression, $"PUSH {reg}"); // push script
+
+                output.AppendLine(expression, $"LOAD {reg} '{module.Name}' // name");
+            }
+
+            //            output.AppendLine(expression, $"PUSH {reg}"); // not necessary because this is done after this call
 
             return reg;
         }

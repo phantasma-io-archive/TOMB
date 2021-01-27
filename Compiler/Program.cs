@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 
@@ -49,7 +49,8 @@ namespace Phantasma.Tomb.Compiler
 
             if (module.script != null)
             {
-                File.WriteAllBytes(module.Name + ".pvm", module.script);
+                var extension = module.Kind == ModuleKind.Script ? ".tx" : ".pvm";
+                File.WriteAllBytes(module.Name + extension, module.script);
             }
 
             if (module.debugInfo != null)

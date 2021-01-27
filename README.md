@@ -82,8 +82,8 @@ The following libraries can be imported into a contract.
 | Runtime.isWitness(address:Address) | Bool | TODO|
 | Runtime.isTrigger() | Bool | TODO|
 | Runtime.transactionHash() | Hash | TODO|
-| Runtime.deployContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
-| Runtime.upgradeContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
+| Runtime.deployContract(from:Address, contract:Module) | None | TODO|
+| Runtime.upgradeContract(from:Address, contract:Module) | None | TODO|
 | Runtime.gasTarget() | Address | TODO|
 | Runtime.context() | String | TODO|
 
