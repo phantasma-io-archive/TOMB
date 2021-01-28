@@ -82,15 +82,15 @@ The following libraries can be imported into a contract.
 | Runtime.isWitness(address:Address) | Bool | TODO|
 | Runtime.isTrigger() | Bool | TODO|
 | Runtime.transactionHash() | Hash | TODO|
-| Runtime.deployContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
-| Runtime.upgradeContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
+| Runtime.deployContract(from:Address, contract:Module) | None | TODO|
+| Runtime.upgradeContract(from:Address, contract:Module) | None | TODO|
 | Runtime.gasTarget() | Address | TODO|
 | Runtime.context() | String | TODO|
 
 ### Token
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | None | TODO|
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None | TODO|
 | Token.exists(symbol:String) | Bool | TODO|
 | Token.getDecimals(symbol:String) | Number | TODO|
 | Token.getFlags(symbol:String) | Enum<TokenFlag> | TODO|
@@ -112,6 +112,12 @@ The following libraries can be imported into a contract.
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | TODO|
 | NFT.readROM<T>(symbol:String, id:Number) | T | TODO|
 | NFT.readRAM<T>(symbol:String, id:Number) | T | TODO|
+
+### Account
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Account.getName(from:Address) | String | TODO|
+| Account.getLastActivity(from:Address) | Timestamp | TODO|
 
 ### Organization
 | Method | Return type | Description|
@@ -204,6 +210,7 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Decimal.decimals(target:Any) | Number | TODO|
+| Decimal.convert(decimalPlaces:Number, value:Number) | Number | TODO|
 
 ### Enum
 | Method | Return type | Description|
@@ -221,8 +228,8 @@ The following libraries can be imported into a contract.
 ### Module
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Module.script(target:Module) | Bytes | TODO|
-| Module.abi(target:Module) | Bytes | TODO|
+| Module.getScript(target:Module) | Bytes | TODO|
+| Module.getABI(target:Module) | Bytes | TODO|
 
 ### Format
 | Method | Return type | Description|
@@ -551,6 +558,29 @@ script startup {
 		local temp:number := 50000;
 		Call.contract("Stake", "Unstake", target, temp);
 	}
+}
+```
+
+## Deploy contract script 
+
+This example showcases a script that deploys a token contract.
+
+```c#
+token GHOST {
+...
+}
+
+script deploy {
+
+    import Token;
+    import Module;
+
+    code() {
+        local maxSupply:number := 50000;
+        local decimals:number := 1;
+		local flags:TokenFlags := TokenFlags.None;
+        Token.create(@P2KAkQRrL62zYvb5198CHBLiKHKr4bJvAG7aXwV69rtbeSz, "GHOST",  "Ghost Token", maxSupply, decimals, flags, Module.getScript(GHOST),  Module.getABI(GHOST));
+    }
 }
 ```
 

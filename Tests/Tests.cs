@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using Phantasma.API;
+using Phantasma.Storage;
 using Phantasma.Blockchain;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Core.Log;
@@ -1026,6 +1027,164 @@ namespace Tests
         }
 
         [Test]
+        public void TestStorageList()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                "import Runtime;\n" +
+                "import Time;\n" +
+                "import List;\n" +
+                "global myList: storage_list<string>;\n" +
+                "public getCount():number\n" +
+                "{\n" +
+                " return myList.count();\n" +
+                "}\n" +
+                "public getStuff(index:number):string \n" +
+                "{\n" +
+                " return myList.get(index);\n" +
+                "}\n"+
+                "public removeStuff(index:number) \n" +
+                "{\n" +
+                " myList.removeAt(index);\n" +
+                "}\n" +
+                "public clearStuff() \n" +
+                "{\n" +
+                " myList.clear();\n" +
+                "}\n" +
+                "public addStuff(stuff:string) \n" +
+                "{\n" +
+                " myList.add(stuff);\n" +
+                "}\n" +
+                "public replaceStuff(index:number, stuff:string) \n" +
+                "{\n" +
+                " myList.replace(index, stuff);\n" +
+                "}\n" +
+                "constructor(owner:address)	{\n" +
+                "   this.addStuff(\"hello\");\n" +
+                "   this.addStuff(\"world\");\n" +
+                "}\n" +
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            Func<int, string> fetchListItem = (index) =>
+            {
+                simulator.BeginBlock();
+                var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                        ScriptUtils.BeginScript().
+                        AllowGas(keys.Address, Address.Null, 1, 9999).
+                        CallContract("test", "getStuff", index).
+                        SpendGas(keys.Address).
+                        EndScript());
+                var block = simulator.EndBlock().FirstOrDefault();
+
+                var bytes = block.GetResultForTransaction(tx.Hash);
+                Assert.IsTrue(bytes != null);
+
+                var vmObj = Serialization.Unserialize<VMObject>(bytes);
+
+                return  vmObj.AsString();
+            };
+
+            Func<int> fetchListCount = () =>
+            {
+                simulator.BeginBlock();
+                var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                        ScriptUtils.BeginScript().
+                        AllowGas(keys.Address, Address.Null, 1, 9999).
+                        CallContract("test", "getCount").
+                        SpendGas(keys.Address).
+                        EndScript());
+                var block = simulator.EndBlock().FirstOrDefault();
+
+                var bytes = block.GetResultForTransaction(tx.Hash);
+                Assert.IsTrue(bytes != null);
+
+                var vmObj = Serialization.Unserialize<VMObject>(bytes);
+
+                return (int)vmObj.AsNumber();
+            };
+
+            string str;
+            int count;
+            
+            str = fetchListItem(0);
+            Assert.IsTrue(str == "hello");
+
+            str = fetchListItem(1);
+            Assert.IsTrue(str == "world");
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 2);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "removeStuff", 0).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 1);
+
+            str = fetchListItem(0);
+            Assert.IsTrue(str == "world");
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "replaceStuff", 0, "A").
+                    CallContract("test", "addStuff", "B").
+                    CallContract("test", "addStuff", "C").
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 3);
+
+            str = fetchListItem(0);
+            Assert.IsTrue(str == "A");
+
+            str = fetchListItem(1);
+            Assert.IsTrue(str == "B");
+
+            str = fetchListItem(2);
+            Assert.IsTrue(str == "C");
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "clearStuff").
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 0);
+        }
+
+        [Test]
         public void TestStorageMap()
         {
             var keys = PhantasmaKeys.Generate();
@@ -1042,14 +1201,14 @@ namespace Tests
                 "import Map;\n" +
                 "global _storageMap: storage_map<number, string>;\n" +
                 "constructor(owner:address)	{\n" +
-                "_storageMap.set(5, \"test1\");\n"+
+                "_storageMap.set(5, \"test1\");\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
                 " local test:string := _storageMap.get(5);\n" +
                 " Runtime.log(\"this log: \");\n" +
                 " Runtime.log(test);\n" +
-                "}\n"+
+                "}\n" +
                 "}\n";
 
             var parser = new Compiler();

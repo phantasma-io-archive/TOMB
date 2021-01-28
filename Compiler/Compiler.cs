@@ -209,12 +209,17 @@ namespace Phantasma.Tomb.Compiler
         private Dictionary<string, StructDeclaration> _structs = new Dictionary<string, StructDeclaration>();
         private Dictionary<string, EnumDeclaration> _enums = new Dictionary<string, EnumDeclaration>();
 
-        private Module FindModule(string name)
+        public Module FindModule(string name, bool mustBeCompiled)
         {
             foreach (var entry in _modules)
             {
                 if (entry.Name == name)
                 {
+                    if (mustBeCompiled && entry.script == null)
+                    {
+                        return null;
+                    }
+
                     return entry;
                 }
             }
@@ -579,7 +584,7 @@ namespace Phantasma.Tomb.Compiler
 
                                     case TokenKind.Identifier:
                                         {
-                                            var descModule = FindModule(temp.value) as Script;
+                                            var descModule = FindModule(temp.value, true) as Script;
                                             if (descModule != null)
                                             {
                                                 var descSecondType = descModule.Parameters[1].Type;
@@ -1403,7 +1408,7 @@ namespace Phantasma.Tomb.Compiler
                                 return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Method, method));
                             }
 
-                            var module = scope.Module.FindModule(first.value);
+                            var module = scope.Module.FindModule(first.value, true);
                             if (module != null)
                             {
                                 return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Module, method));
@@ -1577,6 +1582,16 @@ namespace Phantasma.Tomb.Compiler
                     rightSide = new CastExpression(scope, VarType.Find(VarKind.String), rightSide);
                 }
                 else
+                if (leftSide.ResultType.Kind == VarKind.Number && rightSide.ResultType.Kind == VarKind.Timestamp && op == OperatorKind.Subtraction)
+                {
+                    rightSide = new CastExpression(scope, VarType.Find(VarKind.Number), rightSide);
+                }
+                else
+                if (leftSide.ResultType.Kind == VarKind.Timestamp && rightSide.ResultType.Kind == VarKind.Number && op == OperatorKind.Addition)
+                {
+                    rightSide = new CastExpression(scope, VarType.Find(VarKind.Timestamp), rightSide);
+                }
+                else
                 {
                     throw new CompilerException($"type mistmatch, {leftSide.ResultType} on left, {rightSide.ResultType} on right");
                 }
@@ -1595,6 +1610,13 @@ namespace Phantasma.Tomb.Compiler
         private Expression ParseExpression(Scope scope, bool allowBinary = true)
         {
             var first = FetchToken();
+
+            if (first.kind == TokenKind.Operator && first.value == "!")
+            {
+                var expr = ParseExpression(scope, allowBinary);
+                return new NegationExpression(scope, expr);
+            }
+
             var second = FetchToken();
 
             switch (second.kind)
@@ -1800,6 +1822,11 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                     Rewind();
+
+                    if (expr.generics.Count > 0)
+                    {
+                        ExpectToken(",");
+                    }
 
                     var genType = ExpectType();
 

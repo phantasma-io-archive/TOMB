@@ -67,7 +67,7 @@ namespace Phantasma.Tomb.Compiler
             _subModules.Add(subModule);
         }
 
-        public Module FindModule(string name)
+        public Module FindModule(string name, bool mustBeCompiled)
         {
             foreach (var module in _subModules)
             {
@@ -77,7 +77,7 @@ namespace Phantasma.Tomb.Compiler
                 }
             }
 
-            return null;
+            return Compiler.Instance.FindModule(name, mustBeCompiled);
         }
 
         public LibraryDeclaration FindLibrary(string name, bool required = true)
@@ -114,7 +114,7 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market",
+            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market", "Account",
             "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
@@ -152,9 +152,27 @@ namespace Phantasma.Tomb.Compiler
             switch (name)
             {
                 case "Module":
-                    // TODO implementations of those
-                    libDecl.AddMethod("script", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) });
-                    libDecl.AddMethod("abi", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) });
+                    libDecl.AddMethod("getScript", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = Compiler.Instance.AllocRegister(output, expr);
+                        var module = expr.arguments[0].AsLiteral<Module>();
+                        var script = Base16.Encode(module.script);
+                        output.AppendLine(expr, $"LOAD {reg} 0x{script}");
+                        return reg;
+                    });
+
+                    libDecl.AddMethod("getABI", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = Compiler.Instance.AllocRegister(output, expr);
+                        var module = expr.arguments[0].AsLiteral<Module>();
+                        var abiBytes = module.abi.ToByteArray();
+                        var script = Base16.Encode(abiBytes);
+                        output.AppendLine(expr, $"LOAD {reg} 0x{script}");
+                        return reg;
+                    });
+
                     return libDecl;
 
                 case "Struct":
@@ -204,6 +222,25 @@ namespace Phantasma.Tomb.Compiler
                             output.AppendLine(expr, $"LOAD {reg} {decType.decimals}");
                             return reg;
                         });
+
+                    libDecl.AddMethod("convert", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("decimalPlaces", VarKind.Number), new MethodParameter("value", VarKind.Number) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var regA = expr.arguments[0].GenerateCode(output);
+                            var regB = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {regB} 10");
+                            output.AppendLine(expr, $"POW {regB} {regA} {regA}");
+
+                            Compiler.Instance.DeallocRegister(ref regB);
+
+                            regB = expr.arguments[1].GenerateCode(output);
+                            output.AppendLine(expr, $"MUL {regB} {regA} {regA}");
+                            Compiler.Instance.DeallocRegister(ref regB);
+
+                            return regA;
+                        });
+
                     return libDecl;
 
                 case "Address":
@@ -286,8 +323,8 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("isWitness", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) });
                     libDecl.AddMethod("isTrigger", MethodImplementationType.ExtCall, VarKind.Bool, new MethodParameter[] { });
                     libDecl.AddMethod("transactionHash", MethodImplementationType.ExtCall, VarKind.Hash, new MethodParameter[] { });
-                    libDecl.AddMethod("deployContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContract);
-                    libDecl.AddMethod("upgradeContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContract);
+                    libDecl.AddMethod("deployContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContractWithName);
+                    libDecl.AddMethod("upgradeContract", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("contract", VarKind.Module)}).SetParameterCallback("contract", ConvertFieldToContractWithName);
                     libDecl.AddMethod("gasTarget", MethodImplementationType.ExtCall, VarKind.Address, new MethodParameter[] {  }).SetAlias("Runtime.GasTarget");
                     libDecl.AddMethod("context", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.Context");
                     break;
@@ -318,6 +355,11 @@ namespace Phantasma.Tomb.Compiler
                     });
                     break;
 
+                case "Account":
+                    libDecl.AddMethod("getName", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { new MethodParameter("from", VarKind.Address) }).SetAlias("Account.Name");
+                    libDecl.AddMethod("getLastActivity", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { new MethodParameter("from", VarKind.Address) }).SetAlias("Account.LastActivity");
+                    break;
+
                 case "UID":
                     {
                         libDecl.AddMethod("generate", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.GenerateUID");
@@ -331,7 +373,7 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case "Token":
-                    libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarKind.Number), new MethodParameter("script", VarKind.Bytes) }).SetAlias("Nexus.CreateToken");
+                    libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarType.Find(VarKind.Enum, "TokenFlags")), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi", VarKind.Bytes) }).SetAlias("Nexus.CreateToken");
                     libDecl.AddMethod("exists", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.TokenExists");
                     libDecl.AddMethod("getDecimals", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetTokenDecimals");
                     libDecl.AddMethod("getFlags", MethodImplementationType.ExtCall, VarType.Find(VarKind.Enum, "TokenFlag"), new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetTokenFlags");
@@ -353,7 +395,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
                     libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).
-                        SetAlias("Nexus.CreateTokenSeries").SetParameterCallback("nft", ConvertFieldToContract);
+                        SetAlias("Nexus.CreateTokenSeries").SetParameterCallback("nft", ConvertFieldToContractWithoutName);
                     libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadToken")
                         .SetPreCallback((output, scope, expr) =>
                         {
@@ -470,12 +512,24 @@ namespace Phantasma.Tomb.Compiler
                     break;
 
                 case "List":
-                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("add", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarType.Generic(0)) });
-                    libDecl.AddMethod("replace", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
-                    libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) });
-                    libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("list", VarKind.String) });
+                    libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead)
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback(ConvertGenericResult);
+
+                    libDecl.AddMethod("add", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("value", VarType.Generic(0)) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("replace", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("removeAt", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead);
+                    libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
                     break;
 
                 default:
@@ -497,15 +551,14 @@ namespace Phantasma.Tomb.Compiler
 
         private static Register ConvertFieldToStorageAccess(CodeGenerator output, Scope scope, Expression expression, bool insertContract)
         {
-            var literal = expression as LiteralExpression;
-            if (literal == null)
+            if (expression.ResultType.Kind != VarKind.String)
             {
-                throw new System.Exception("expected literal expression for field key");
+                throw new System.Exception("expected string expression for field key");
             }
 
-            var reg = Compiler.Instance.AllocRegister(output, expression);
+            var reg = expression.GenerateCode(output);
 
-            output.AppendLine(expression, $"LOAD {reg} {literal.value} // field name");
+            //output.AppendLine(expression, $"LOAD {reg} {reg} // field name");
 
             if (insertContract)
             {
@@ -523,7 +576,17 @@ namespace Phantasma.Tomb.Compiler
             return reg;
         }
 
-        private static Register ConvertFieldToContract(CodeGenerator output, Scope scope, Expression expression)
+        private static Register ConvertFieldToContractWithName(CodeGenerator output, Scope scope, Expression expression)
+        {
+            return ConvertFieldToContract(output, scope, expression, true);
+        }
+
+        private static Register ConvertFieldToContractWithoutName(CodeGenerator output, Scope scope, Expression expression)
+        {
+            return ConvertFieldToContract(output, scope, expression, false);
+        }
+
+        private static Register ConvertFieldToContract(CodeGenerator output, Scope scope, Expression expression, bool withName)
         {
             var literal = expression as LiteralExpression;
             if (literal == null)
@@ -531,7 +594,7 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("nft argument is not a literal value");
             }
 
-            var module = scope.Module.FindModule(literal.value);
+            var module = scope.Module.FindModule(literal.value, true);
 
             var abi = module.abi;
 
@@ -552,7 +615,15 @@ namespace Phantasma.Tomb.Compiler
             output.AppendLine(expression, $"PUSH {reg}");
 
             output.AppendLine(expression, $"LOAD {reg} 0x{Base16.Encode(module.script)} // script");
-//            output.AppendLine(expression, $"PUSH {reg}");
+
+            if (withName)
+            {
+                output.AppendLine(expression, $"PUSH {reg}"); // push script
+
+                output.AppendLine(expression, $"LOAD {reg} \"{module.Name}\" // name");
+            }
+
+            //            output.AppendLine(expression, $"PUSH {reg}"); // not necessary because this is done after this call
 
             return reg;
         }
