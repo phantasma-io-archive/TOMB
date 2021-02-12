@@ -204,7 +204,6 @@ namespace Tests
 
             // call constructor
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -247,7 +246,6 @@ namespace Tests
             Assert.IsNotNull(returnType);
 
             vm = new TestVM(contract, storage, returnType);
-            vm.ThrowOnFault = true;
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -299,7 +297,6 @@ namespace Tests
             Assert.IsNotNull(getLength);
 
             vm = new TestVM(contract, storage, getLength);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -357,7 +354,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -376,7 +372,6 @@ namespace Tests
             Assert.IsNotNull(getLength);
 
             vm = new TestVM(contract, storage, getLength);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -453,7 +448,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -465,7 +459,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -506,7 +499,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -518,7 +510,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -556,7 +547,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -594,7 +584,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -606,7 +595,6 @@ namespace Tests
             Assert.IsNotNull(updateValue);
 
             vm = new TestVM(contract, storage, updateValue);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject("SOUL"));
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -618,7 +606,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -657,7 +644,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -669,7 +655,6 @@ namespace Tests
             Assert.IsNotNull(updateValue);
 
             vm = new TestVM(contract, storage, updateValue);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject("4"));
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -681,7 +666,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -720,7 +704,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -732,7 +715,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 

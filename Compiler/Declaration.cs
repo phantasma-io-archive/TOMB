@@ -561,7 +561,6 @@ namespace Phantasma.Tomb.Compiler
                 var obj = GenerateTestObject(this.returnType);
                 vm.Stack.Push(obj);
                 vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
-                vm.ThrowOnFault = true;
                 var state = vm.Execute();
 
                 if (state != ExecutionState.Halt)
