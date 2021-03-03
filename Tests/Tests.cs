@@ -1214,6 +1214,69 @@ namespace Tests
             simulator.EndBlock();
         }
 
+        public struct My_Struct
+        {
+            public string name;
+            public BigInteger value;
+        }
+
+        [Test]
+        public void TestStorageMapAndStruct()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "struct my_struct\n{" +
+                    "name:string;\n" +
+                    "value:number;\n" +
+                "}\n" +
+                "contract test {\n" +
+                "import Runtime;\n" +
+                "import Time;\n" +
+                "import Map;\n" +
+                "global _storageMap: storage_map<number, my_struct>;\n" +
+                "public createStruct(key:number, s:string, val:number)\n" +
+                "{\n" +
+                "local temp: my_struct := Struct.my_struct(s, val);\n" +
+                "_storageMap.set(key, temp);\n" +
+                "}\n" +
+                "public getStruct(key:number):my_struct\n" +
+                "{\n" +
+                "return _storageMap.get(key);\n" +
+                "}\n" +
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "createStruct", 5, "hello", 123).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            var vmObj = simulator.Nexus.RootChain.InvokeContract(simulator.Nexus.RootStorage, "test", "getStruct", 5);
+            var temp = vmObj.AsStruct<My_Struct>();
+            Assert.IsTrue(temp.name == "hello");
+            Assert.IsTrue(temp.value == 123);
+        }
+
         [Test]
         public void TestAES()
         {
