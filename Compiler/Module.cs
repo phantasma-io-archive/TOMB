@@ -186,7 +186,21 @@ namespace Phantasma.Tomb.Compiler
                             output.AppendLine(expr, $"SIZE {reg} {reg}");
                             return reg;
                         });
+
+                    libDecl.AddMethod("substr", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.String), new MethodParameter("index", VarKind.Number), new MethodParameter("length", VarKind.Number) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            var regB = expr.arguments[1].GenerateCode(output);
+                            var regC = expr.arguments[2].GenerateCode(output);
+                            output.AppendLine(expr, $"RANGE {reg} {reg} {regB} {regC}");
+                            Compiler.Instance.DeallocRegister(ref regB);
+                            Compiler.Instance.DeallocRegister(ref regC);
+                            return reg;
+                        });
+
                     return libDecl;
+
                 case "Bytes":
                     libDecl.AddMethod("toString", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.Bytes) }).
                         SetPreCallback((output, scope, expr) =>

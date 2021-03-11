@@ -205,6 +205,7 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | String.length(target:String) | Number | TODO|
+| String.substr(target:String, index:Number, length:Number) | Number | TODO|
 
 ### Decimal
 | Method | Return type | Description|
