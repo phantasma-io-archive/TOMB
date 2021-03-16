@@ -909,8 +909,11 @@ namespace Phantasma.Tomb.Compiler
 
                                 var method = new MethodInterface(script.library, MethodImplementationType.Custom, blockName, true, MethodKind.Method, script.ReturnType, new MethodParameter[0]);
 
+                                // TODO does this have to be added somewhere or its ok to just do this?
+                                var decl = new MethodDeclaration(scope, method);
+
                                 ExpectToken("{");
-                                script.main = ParseCommandBlock(scope, method);
+                                script.main = ParseCommandBlock(scope, decl);
                                 ExpectToken("}");
 
                                 break;
@@ -1019,7 +1022,7 @@ namespace Phantasma.Tomb.Compiler
             return list.ToArray();
         }
 
-        private StatementBlock ParseCommandBlock(Scope scope, MethodInterface method)
+        private StatementBlock ParseCommandBlock(Scope scope, MethodDeclaration method)
         {
             var block = new StatementBlock(scope);
 

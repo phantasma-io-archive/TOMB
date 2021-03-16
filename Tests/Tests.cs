@@ -1482,7 +1482,7 @@ namespace Tests
         //    Console.WriteLine("nft series: " + nft.series);
         //}
 
-        [Test]
+        /*[Test]
         public void TestCROWN()
         {
             var keys = PhantasmaKeys.Generate();
@@ -1510,6 +1510,6 @@ namespace Tests
                 Console.WriteLine($"res {a.Key}:{a.Value}");
 
             }
-        }
+        }*/
     }
 }

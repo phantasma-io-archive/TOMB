@@ -786,6 +786,8 @@ namespace Phantasma.Tomb.Compiler
                 Compiler.Instance.DeallocRegister(ref variable.Register);
             }
 
+            output.AppendLine(this, $"@{GetExitLabel()}:");
+
             // NOTE we don't need to dealloc anything here besides the global vars
             foreach (var variable in this.scope.Parent.Variables.Values)
             {
@@ -870,6 +872,18 @@ namespace Phantasma.Tomb.Compiler
             else
             {
                 return "entry_" + this.Name;
+            }
+        }
+
+        internal string GetExitLabel()
+        {
+            if (@interface.Kind == MethodKind.Constructor)
+            {
+                return "exit_constructor";
+            }
+            else
+            {
+                return "exit_" + this.Name;
             }
         }
 
