@@ -166,6 +166,51 @@ The following libraries can be imported into a contract.
 | Market.listToken(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number, typeAuction:Number, listingFee:Number, listingFeeAddress:Address) | None | TODO|
 | Market.editAuction(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number) | None | TODO|
  
+### Crowdsale
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Crowdsale.create(from:Address, name:String, SaleFlags flags, startDate:Timestamp, endDate:Timestamp, sellSymbol:String, receiveSymbol:String, price:Number, globalSoftCap:Number, globalHardCap:Number, userSoftCap:Number, userHardCap:Number) | Hash | TODO|
+| Crowdsale.isSaleActive(saleHash:Hash) | bool | TODO|
+| Crowdsale.GetSaleParticipants(saleHash:Hash) | Address[] | TODO|
+| Crowdsale.getSaleWhitelists(saleHash:Hash) | Address[] | TODO|
+| Crowdsale.isWhitelisted(saleHash:Hash, address:Address) | bool | TODO|
+| Crowdsale.addToWhitelist(saleHash:Hash, target:Address) | None | TODO|
+| Crowdsale.removeFromWhitelist(saleHash:Hash, target:Address) | None | TODO|
+| Crowdsale.getPurchasedAmount(saleHash:Hash, address:Address) | Number | TODO|
+| Crowdsale.getSoldAmount(saleHash:Hash) | Number | TODO|
+| Crowdsale.purchase(from:Address, saleHash:Hash, quoteSymbol:string, quoteAmount:Number) | None | TODO|
+| Crowdsale.closeSale(from:Address, saleHash:Hash) | None | TODO|
+| Crowdsale.getLatestSaleHash() | Hash | TODO|
+| Crowdsale.EditSalePrice(saleHash:Hash, price:Number) | None | TODO|
+
+### Stake
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Stake.getMasterThreshold() | Number | TODO|
+| Stake.isMaster(address:Address) | bool | TODO|
+| Stake.getMasterCount() | Number | TODO|
+| Stake.getMasterAddresses() | Address[] | TODO|
+| Stake.getClaimMasterCount(claimDate:Timestamp) | Number | TODO|
+| Stake.getMasterClaimDate(claimDistance:Number) | Timestamp | TODO|
+| Stake.getMasterDate(target:Address) | Timestamp | TODO|
+| Stake.getMasterClaimDateFromReference(claimDistance:Number, referenceTime:Timestamp) | Timestamp | TODO|
+| Stake.getMasterRewards(address:Address) | Number | TODO|
+| Stake.migrate(from:Address, to:Address) | None | TODO|
+| Stake.masterClaim(from:Address) | None | TODO|
+| Stake.stake(from:Address, stakeAmount:Number) | None | TODO|
+| Stake.unstake(from:Address, unstakeAmount:Number) | None | TODO|
+| Stake.getTimeBeforeUnstake(from:Address) | Number | TODO|
+| Stake.getStakeTimestamp(from:Address) | Timestamp | TODO|
+| Stake.getUnclaimed(from:Address) | Number | TODO|
+| Stake.claim(from:Address, stakeAddress:Address) | None | TODO|
+| Stake.getStake(address:Address) | Number | TODO|
+| Stake.getStorageStake(address:Address) | Number | TODO|
+| Stake.fuelToStake(fuelAmount:Number) | Number | TODO|
+| Stake.stakeToFuel(stakeAmount:Number) | Number | TODO|
+| Stake.getAddressVotingPower(address:Address) | Number | TODO|
+| Stake.updateRate() | None | TODO|
+| Stake.getRate() | Number | TODO|
+
 ### Time
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
