@@ -113,8 +113,8 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market", "Account",
-            "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module", FormatLibraryName };
+            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market", "Account", "Crowdsale", "Stake",
+            "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module",  FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -549,7 +549,57 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
                     break;
-
+                case "Crowdsale":
+                    {
+                        var contract = NativeContractKind.Sale.ToString().ToLower();
+                        // TODO getSales libDecl.AddMethod("getSales", MethodImplementationType.ContractCall, VarKind.Struct, null).SetContract(contract).SetAlias(nameof(SaleContract.GetSales));
+                        // TODO getSale libDecl.AddMethod("getSale", MethodImplementationType.ContractCall, VarKind.Struct, new[] { new MethodParameter("saleHash", VarKind.Hash) }).SetContract(contract).SetAlias(nameof(SaleContract.GetSale));
+                        libDecl.AddMethod("isSeller", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(SaleContract.IsSeller));
+                        libDecl.AddMethod("isSaleActive", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("saleHash", VarKind.Hash) }).SetContract(contract).SetAlias(nameof(SaleContract.IsSaleActive));
+                        libDecl.AddMethod("create", MethodImplementationType.ContractCall, VarKind.Hash, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("name", VarKind.String), new MethodParameter("flags", VarKind.Struct), new MethodParameter("startDate", VarKind.Timestamp), new MethodParameter("endDate", VarKind.Timestamp), new MethodParameter("sellSymbol", VarKind.String), new MethodParameter("receiveSymbol", VarKind.String), new MethodParameter("price", VarKind.Number), new MethodParameter("globalSoftCap", VarKind.Number), new MethodParameter("globalHardCap", VarKind.Number), new MethodParameter("userSoftCap", VarKind.Number), new MethodParameter("userHardCap", VarKind.Number)}).SetContract(contract).SetAlias(nameof(SaleContract.CreateSale)); // TODO
+                        libDecl.AddMethod("getSaleParticipants", MethodImplementationType.ContractCall, VarKind.Storage_List, new[] { new MethodParameter("saleHash", VarKind.Hash) }).SetContract(contract).SetAlias(nameof(SaleContract.GetSaleParticipants)); 
+                        libDecl.AddMethod("getSaleWhitelists", MethodImplementationType.ContractCall, VarKind.Storage_List, new[] { new MethodParameter("saleHash", VarKind.Hash) }).SetContract(contract).SetAlias(nameof(SaleContract.GetSaleWhitelists));
+                        libDecl.AddMethod("isWhitelisted", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(SaleContract.IsWhitelisted));
+                        libDecl.AddMethod("addToWhitelist", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(SaleContract.AddToWhitelist));
+                        libDecl.AddMethod("removeFromWhitelist", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(SaleContract.RemoveFromWhitelist));
+                        libDecl.AddMethod("getPurchasedAmount", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(SaleContract.GetPurchasedAmount));
+                        libDecl.AddMethod("getSoldAmount", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("saleHash", VarKind.Hash) }).SetContract(contract).SetAlias(nameof(SaleContract.GetSoldAmount));
+                        libDecl.AddMethod("purchase", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("quoteSymbol", VarKind.String), new MethodParameter("quoteAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(SaleContract.Purchase));
+                        libDecl.AddMethod("closeSale", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("saleHash", VarKind.Hash) }).SetContract(contract).SetAlias(nameof(SaleContract.CloseSale));
+                        libDecl.AddMethod("getLatestSaleHash", MethodImplementationType.ContractCall, VarKind.Hash, null).SetContract(contract).SetAlias(nameof(SaleContract.CloseSale));
+                        libDecl.AddMethod("editSalePrice", MethodImplementationType.ContractCall, VarKind.Hash, new[] { new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("price", VarKind.Number) }).SetContract(contract).SetAlias(nameof(SaleContract.CloseSale));
+                        break;
+                    }
+                case "Stake":
+                    {
+                        var contract = NativeContractKind.Stake.ToString().ToLower();
+                        libDecl.AddMethod("getMasterThreshold", MethodImplementationType.ContractCall, VarKind.Number, null).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterThreshold));
+                        libDecl.AddMethod("isMaster", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.IsMaster));
+                        libDecl.AddMethod("getMasterCount", MethodImplementationType.ContractCall, VarKind.Number, null).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterCount));
+                        libDecl.AddMethod("getMasterAddresses", MethodImplementationType.ContractCall, VarKind.Number, null).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterCount));
+                        libDecl.AddMethod("getMasterAddresses", MethodImplementationType.ContractCall, VarKind.Storage_List, null).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterAddresses));
+                        libDecl.AddMethod("getClaimMasterCount", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("claimDate", VarKind.Timestamp) }).SetContract(contract).SetAlias(nameof(StakeContract.GetClaimMasterCount));
+                        libDecl.AddMethod("getMasterClaimDate", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("claimDistance", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterClaimDate));
+                        libDecl.AddMethod("getMasterDate", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterDate));
+                        libDecl.AddMethod("getMasterClaimDateFromReference", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("claimDistance", VarKind.Number), new MethodParameter("referenceTime", VarKind.Timestamp) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterClaimDateFromReference));
+                        libDecl.AddMethod("getMasterRewards", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterRewards));
+                        libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.Migrate));
+                        libDecl.AddMethod("masterClaim", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.MasterClaim));
+                        libDecl.AddMethod("stake", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("stakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.Stake));
+                        libDecl.AddMethod("unstake", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("unstakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.Unstake));
+                        libDecl.AddMethod("getTimeBeforeUnstake", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetTimeBeforeUnstake));
+                        libDecl.AddMethod("getStakeTimestamp", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetStakeTimestamp));
+                        libDecl.AddMethod("getUnclaimed", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetUnclaimed));
+                        libDecl.AddMethod("claim", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("stakeAddress", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.Claim));
+                        libDecl.AddMethod("getStake", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetStake));
+                        libDecl.AddMethod("getStorageStake", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetStorageStake));
+                        libDecl.AddMethod("fuelToStake", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("fuelAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.FuelToStake));
+                        libDecl.AddMethod("stakeToFuel", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("stakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.StakeToFuel));
+                        libDecl.AddMethod("getAddressVotingPower", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetAddressVotingPower));
+                        libDecl.AddMethod("updateRate", MethodImplementationType.ContractCall, VarKind.None, null).SetContract(contract).SetAlias(nameof(StakeContract.UpdateRate));
+                        libDecl.AddMethod("getRate", MethodImplementationType.ContractCall, VarKind.Number, null).SetContract(contract).SetAlias(nameof(StakeContract.GetRate));
+                        break;
+                    }
                 default:
                     throw new CompilerException("unknown library: " + name);
             }
