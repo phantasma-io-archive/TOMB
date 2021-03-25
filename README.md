@@ -118,6 +118,15 @@ The following libraries can be imported into a contract.
 | ------------- | ------------- |------------- |
 | Account.getName(from:Address) | String | TODO|
 | Account.getLastActivity(from:Address) | Timestamp | TODO|
+| Account.registerName(target:Address, name:String) | None | TODO|
+| Account.unregisterName(target:Address) | None | TODO|
+| Account.registerScript(target:Address, script:Bytes, abiBytes:Bytes) | None | TODO|
+| Account.hasScript(address:Address) | Bool | TODO|
+| Account.lookUpAddress(target:Address) | String | TODO|
+| Account.lookUpScript(target:Address) | Bytes | TODO|
+| Account.lookUpABI(target:Address) | Bytes | TODO|
+| Account.lookUpName(name:String) | Address | TODO|
+| Account.migrate(from:Address, target:Address) | None | TODO|
 
 ### Organization
 | Method | Return type | Description|
@@ -138,6 +147,21 @@ The following libraries can be imported into a contract.
 | Storage.read(contract:String, field:String, type:Number) | Any | TODO|
 | Storage.write(field:String, value:Any) | None | TODO|
 | Storage.delete(field:String) | None | TODO|
+| Storage.calculateStorageSizeForStake(stakeAmount:Number) | Number | TODO|
+| Storage.createFile(target:Address, fileName:String, fileSize:Number, contentMerkle:Bytes, encryptionContent:Bytes) | None | TODO|
+| Storage.hasFile(target:Address, hash:Hash) | Bool | TODO|
+| Storage.addFile(from:Address, target:Address, archiveHash:Hash) | None | TODO|
+| Storage.deleteFile(from:Address, targetHash:Hash) | None | TODO|
+| Storage.hasPermission(externalAddr:Address, target:Address) | Bool | TODO|
+| Storage.addPermission(from:Address, externalAddr:Address) | None | TODO|
+| Storage.deletePermission(from:Address, externalAddr:Address) | None | TODO|
+| Storage.migratePermission(target:Address, oldAddr:Address, newAddr:Address) | None | TODO|
+| Storage.migrate(from:Address, target:Address) | None | TODO|
+| Storage.getUsedSpace(from:Address) | Number | TODO|
+| Storage.getAvailableSpace(from:Address) | Number | TODO|
+| Storage.GetUsedDataQuota(address:Address) | Number | TODO|
+| Storage.writeData(target:Address, key:Bytes, value:Bytes) | None | TODO|
+| Storage.deleteData(target:Address, key:Bytes) | None | TODO|
 
 ### Utils
 | Method | Return type | Description|
@@ -189,7 +213,6 @@ The following libraries can be imported into a contract.
 | Stake.getMasterThreshold() | Number | TODO|
 | Stake.isMaster(address:Address) | bool | TODO|
 | Stake.getMasterCount() | Number | TODO|
-| Stake.getMasterAddresses() | Address[] | TODO|
 | Stake.getClaimMasterCount(claimDate:Timestamp) | Number | TODO|
 | Stake.getMasterClaimDate(claimDistance:Number) | Timestamp | TODO|
 | Stake.getMasterDate(target:Address) | Timestamp | TODO|
@@ -210,6 +233,38 @@ The following libraries can be imported into a contract.
 | Stake.getAddressVotingPower(address:Address) | Number | TODO|
 | Stake.updateRate() | None | TODO|
 | Stake.getRate() | Number | TODO|
+
+### Governance
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Governance.hasName(name:String) | bool | TODO|
+| Governance.gasValue(name:String) | bool | TODO|
+| Governance.createValue(name:String, initial:Number, serializedConstraints:Bytes) | None | TODO|
+| Governance.getValue(name:String) | Number | TODO|
+| Governance.setValue(name:String, value:Number) | None | TODO|
+
+### Relay
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Relay.getBalance(from:Address) | Number | TODO|
+| Relay.getIndex(from:Address, to:Address) | Number | TODO|
+| Relay.getTopUpAddress(from:Address) | Address | TODO|
+| Relay.openChannel(from:Address, publicKey:Bytes) | None | TODO|
+| Relay.getKey(from:Address) | Bytes | TODO|
+| Relay.topUpChannel(from:Address, count:Number) | None | TODO|
+| Relay.settleChannel(receipt:RelayReceipt) | None | TODO|
+
+### Mail
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Mail.pushMessage(from:Address, target:Address, archiveHash:Hash) | None | TODO|
+| Mail.domainExists(domainName:String) | Bool | TODO|
+| Mail.registerDomain(from:Address, domainName:String) | None | TODO|
+| Mail.unregisterDomain(domainName:String) | None | TODO|
+| Mail.migrateDomain(domainName:String, target:Address) | None | TODO|
+| Mail.joinDomain(from:Address, domainName:String) | None | TODO|
+| Mail.leaveDomain(from:Address, domainName:String) | None | TODO|
+| Mail.getUserDomain(target:Address) | String | TODO|
 
 ### Time
 | Method | Return type | Description|
