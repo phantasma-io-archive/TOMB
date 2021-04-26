@@ -613,7 +613,7 @@ namespace Phantasma.Tomb.Compiler
 
             if (module.Kind == ModuleKind.NFT)
             {
-                var nftStandard = NFTUtils.GetNFTStandard();
+                var nftStandard = TokenUtils.GetNFTStandard();
                 if (!abi.Implements(nftStandard))
                 {
                     throw new CompilerException($"nft {literal.value} not does implement NFT standard");
