@@ -860,6 +860,10 @@ namespace Phantasma.Tomb.Compiler
                                         CheckParameters(name, parameters, new[] { VarKind.Address });
                                         break;
 
+                                    case "onMigrate": // from, to
+                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address });
+                                        break;
+
                                     default:
                                         throw new CompilerException($"Proper trigger support for trigger {name} is not implemented");
                                 }
