@@ -1,3 +1,4 @@
+using Phantasma.Numerics;
 using System;
 using System.IO;
 using System.Text;
@@ -51,6 +52,9 @@ namespace Phantasma.Tomb.Compiler
             {
                 var extension = module.Kind == ModuleKind.Script ? ".tx" : ".pvm";
                 File.WriteAllBytes(module.Name + extension, module.script);
+
+                var hex = Base16.Encode(module.script);
+                File.WriteAllText(module.Name + extension + ".hex", hex);
             }
 
             if (module.debugInfo != null)
@@ -60,7 +64,11 @@ namespace Phantasma.Tomb.Compiler
 
             if (module.abi != null)
             {
-                File.WriteAllBytes(module.Name + ".abi", module.abi.ToByteArray());
+                var abiBytes = module.abi.ToByteArray();
+                File.WriteAllBytes(module.Name + ".abi", abiBytes);
+
+                var hex = Base16.Encode(abiBytes);
+                File.WriteAllText(module.Name + ".abi.hex", hex);
             }
         }
 
