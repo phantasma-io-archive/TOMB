@@ -666,11 +666,6 @@ namespace Phantasma.Tomb.Compiler
                                 var line = this.CurrentLine;
                                 var propertyName = ExpectIdentifier();
 
-                                if (contract.Kind == ModuleKind.Token && string.Equals(propertyName, "symbol", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    throw new CompilerException("symbol property not required, symbol is already defined by token contract name");
-                                }
-
                                 var parameters = new MethodParameter[0];
                                 var scope = new Scope(module.Scope, propertyName, parameters);
 
@@ -688,7 +683,6 @@ namespace Phantasma.Tomb.Compiler
                                 var next = FetchToken();
                                 if (next.value == "=")
                                 {
-
                                     var literal = ExpectExpression(scope);
 
                                     if (literal.ResultType != returnType)
