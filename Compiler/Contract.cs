@@ -123,6 +123,11 @@ namespace Phantasma.Tomb.Compiler
                         {
                             ExpectMethodType(method, VarKind.Bool);
                             checkForGlobals = true;
+
+                            if (method.Name.Equals("IsSwappable", StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new CompilerException(this, $"Please remove the method '{method.Name}' from the token contract '{this.Name}'");
+                            }
                         }
                     }
 
