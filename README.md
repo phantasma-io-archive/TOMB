@@ -86,6 +86,7 @@ The following libraries can be imported into a contract.
 | Runtime.upgradeContract(from:Address, contract:Module) | None | TODO|
 | Runtime.gasTarget() | Address | TODO|
 | Runtime.context() | String | TODO|
+| Runtime.previousContext() | String | TODO|
 
 ### Token
 | Method | Return type | Description|
