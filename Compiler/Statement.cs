@@ -119,6 +119,8 @@ namespace Phantasma.Tomb.Compiler
         {
             var returnType = this.method.@interface.ReturnType;
 
+            var simpleReturn = (this.method.ParentScope.Module is Script);
+
             if (expression != null)
             {
                 if (returnType.Kind == VarKind.None)
@@ -138,7 +140,14 @@ namespace Phantasma.Tomb.Compiler
                 throw new System.Exception($"expected return expression for non-void method: {method.Name}");
             }
 
-            output.AppendLine(this, "JMP @"+this.method.GetExitLabel());
+            if (simpleReturn)
+            {
+                output.AppendLine(this, "RET");
+            }
+            else
+            {
+                output.AppendLine(this, "JMP @" + this.method.GetExitLabel());
+            }
         }
     }
 
