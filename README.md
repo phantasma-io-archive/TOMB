@@ -981,6 +981,12 @@ contract test {
 ## NFTs
 Showcases how to implement an NFT, showcasing all details including ROM, RAM and token series.
 
+When creating an NFT, they must have 4 default properties implemented and they're:
+- ```name```, returns the name of the NFT
+- ```description```, returns the descriptions of the NFT
+- ```imageURL```, returns the image URL of the NFT
+- ```infoURL```, returns the info URL of the NFT
+
 ```c#
 struct luchador_rom
 {
@@ -1033,11 +1039,11 @@ token NACHO {
 		}
 
 		property imageURL: string {
-			return "https://nacho.men/img/luchador/"+ _TokenID;
+			return "https://nacho.men/img/luchador/"+ _tokenID;
 		}
 
 		property infoURL: string {
-			return "https://nacho.men/api/luchador/"+ _TokenID;
+			return "https://nacho.men/api/luchador/"+ _tokenID;
 		}
 	}
 
@@ -1057,11 +1063,11 @@ token NACHO {
 		}
 
 		property imageURL: string {
-			return "https://nacho.men/img/item/"+ _TokenID;
+			return "https://nacho.men/img/item/"+ _tokenID;
 		}
 
 		property infoURL: string {
-			return "https://nacho.men/api/item/"+ _TokenID;
+			return "https://nacho.men/api/item/"+ _tokenID;
 		}
 	}	
 
