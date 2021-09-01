@@ -88,6 +88,12 @@ The following libraries can be imported into a contract.
 | Runtime.context() | String | TODO|
 | Runtime.previousContext() | String | TODO|
 
+### Math
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Math.min(a:Number, b:Number) | Number | Returns smallest of two numbers|
+| Math.max(a:Number, b:Number) | Number | Returns largest of two numbers|
+
 ### Token
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |

@@ -223,6 +223,38 @@ namespace Tests
 
 
         [Test]
+        public void TestMinMax()
+        {
+            var sourceCode =
+                "contract test{\n" +
+                "import Math;\n" +
+                "public calculate(a:number, b:number):number {\n" +
+                "return Math.min(a, b);\n" +
+                "}}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            // call increment
+            var calculate = contract.abi.FindMethod("calculate");
+            Assert.IsNotNull(calculate);
+
+            vm = new TestVM(contract, storage, calculate);
+            vm.Stack.Push(VMObject.FromObject(5));
+            vm.Stack.Push(VMObject.FromObject(2));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 2);            
+        }
+
+
+        [Test]
         public void TestType()
         {
             var sourceCode = new string[] {
