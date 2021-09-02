@@ -113,7 +113,8 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Leaderboard", "Market", "Account", "Crowdsale", "Stake", "Governance", "Relay", "Mail",
+            "Call", "Runtime", "Math","Token", "NFT", "Organization", "Oracle", "Storage", "Utils", 
+            "Leaderboard", "Market", "Account", "Crowdsale", "Stake", "Governance", "Relay", "Mail", 
             "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module",  FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
@@ -224,6 +225,7 @@ namespace Phantasma.Tomb.Compiler
                             return regA;
                         });
                     return libDecl;
+
 
                 case "Decimal":
                     libDecl.AddMethod("decimals", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.Any) }).
@@ -348,6 +350,29 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("stop", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("task", VarKind.Address) }).SetAlias("Task.Stop");
                     libDecl.AddMethod("current", MethodImplementationType.ExtCall, VarKind.Task, new MethodParameter[] { }).SetAlias("Task.Current");
                     break;
+
+                case "Math":
+                    libDecl.AddMethod("min", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("valA", VarKind.Number), new MethodParameter("valB", VarKind.Number) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var regA = expr.arguments[0].GenerateCode(output);
+                        var regB = expr.arguments[1].GenerateCode(output);
+                        output.AppendLine(expr, $"MIN {regA} {regA} {regB}");
+                        Compiler.Instance.DeallocRegister(ref regB);
+                        return regA;
+                    });
+
+                    libDecl.AddMethod("max", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("valA", VarKind.Number), new MethodParameter("valB", VarKind.Number) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var regA = expr.arguments[0].GenerateCode(output);
+                        var regB = expr.arguments[1].GenerateCode(output);
+                        output.AppendLine(expr, $"MAX {regA} {regA} {regB}");
+                        Compiler.Instance.DeallocRegister(ref regB);
+                        return regA;
+                    });
+                    break;
+
 
 
                 case "Time":
