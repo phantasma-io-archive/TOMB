@@ -113,7 +113,7 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Math","Token", "NFT", "Organization", "Oracle", "Storage", "Utils", 
+            "Call", "Runtime", "Math","Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Array",
             "Leaderboard", "Market", "Account", "Crowdsale", "Stake", "Governance", "Relay", "Mail", 
             "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module",  FormatLibraryName };
 
@@ -556,6 +556,26 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("editAuction", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("baseSymbol", VarKind.String), new MethodParameter("quoteSymbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number), new MethodParameter("price", VarKind.Number), new MethodParameter("endPrice", VarKind.Number), new MethodParameter("startDate", VarKind.Timestamp), new MethodParameter("endDate", VarKind.Timestamp), new MethodParameter("extensionPeriod", VarKind.Number),  } ).SetContract(contract).SetAlias(nameof(MarketContract.EditAuction));
                         break;
                     }
+
+                case "Array":
+                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) })
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback(ConvertGenericResult);
+                    libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
+                    libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) });
+                    libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any) });
+                    libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("array", VarKind.Any) });
+                    break;
+
 
                 case "Map":
                     libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarType.Generic(1), new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
