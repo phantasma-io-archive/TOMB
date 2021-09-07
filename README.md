@@ -170,6 +170,15 @@ The following libraries can be imported into a contract.
 | Storage.writeData(target:Address, key:Bytes, value:Bytes) | None | TODO|
 | Storage.deleteData(target:Address, key:Bytes) | None | TODO|
 
+### Array
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Array.get(array:Any, index:Number) | Generic<0> | TODO|
+| Array.set(array:Any, index:Number, value:Generic<0>) | None | TODO|
+| Array.remove(array:Any, index:Number) | None | TODO|
+| Array.clear(array:Any) | None | TODO|
+| Array.count(array:Any) | Number | TODO|
+
 ### Utils
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
