@@ -104,7 +104,7 @@ The following libraries can be imported into a contract.
 | Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
 | Token.transferAll(from:Address, to:Address, symbol:String) | None | TODO|
 | Token.mint(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
-| Token.write(from:Address, symbol:String, tokenID:Number, ram:Bytes) | None | TODO|
+| Token.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | TODO|
 | Token.burn(from:Address, symbol:String, amount:Number) | None | TODO|
 | Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number) | None | TODO|
 | Token.getBalance(from:Address, symbol:String) | Number | TODO|
@@ -114,8 +114,8 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | NFT.transfer(from:Address, to:Address, symbol:String, id:Number) | None | TODO|
-| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any) | None | TODO|
-| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Bytes) | None | TODO|
+| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any, seriesID:Number) | None | TODO|
+| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | TODO|
 | NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
 | NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | TODO|

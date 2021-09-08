@@ -988,6 +988,225 @@ namespace Tests
         }
 
         [Test]
+        public void TestNFTWrite()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            string symbol = "ATEST";
+            string name = "Test";
+
+            var sourceCode =
+                @"struct someStruct
+                {
+                    created:timestamp;
+                    creator:address;
+                    royalties:number;
+                    name:string;
+                    description:string;
+                    imageURL:string;
+                    infoURL:string;
+                }
+                token " + symbol + @" {
+                    import Runtime;
+                    import Time;
+                    import NFT;
+                    import Map;
+                    global _address:address;
+                    global _owner:address;
+                    global _unlockStorageMap: storage_map<number, number>;
+
+                    property name:string = """ + name + @""";
+
+                    nft myNFT<someStruct, number> {
+
+                        import Call;
+                        import Map;
+
+                        property name:string {
+                            return _ROM.name;
+                        }
+
+                        property description:string {
+                            return _ROM.description;
+                        }
+
+                        property imageURL:string {
+                            return _ROM.imageURL;
+                        }
+
+                        property infoURL:string {
+                            return _ROM.infoURL;
+                        }
+
+                        property unlockCount:number {
+                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                            return count;
+                        }
+                    }
+
+                    import Call;
+                    constructor(owner:address)	{
+                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner:= owner;
+                        NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
+                    }
+
+                    public mint(dest:address):number {
+                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        _unlockStorageMap.set(tokenID, 0);
+                        Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
+                        return tokenID;
+                    }
+
+                    public updateNFT(from:address, nftID:number) {
+                        local symbol : string := $THIS_SYMBOL;
+                        NFT.write(from, $THIS_SYMBOL, nftID, 1);
+                    }
+
+                    public readNFTRAM(nftID:number): number{
+                        local ramInfo : number := NFT.readRAM<number>($THIS_SYMBOL, nftID);
+                        return ramInfo;
+                    }
+
+                    public readName(nftID:number): string {
+                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        return romInfo.name;
+                    }
+
+                    public readOwner(nftID:number): address {
+                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        return nftInfo.owner;
+                    }
+                }";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
+            //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            var otherKeys = PhantasmaKeys.Generate();
+
+            simulator.BeginBlock();
+            var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "mint", otherKeys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+            var block = simulator.EndBlock().First();
+
+            var result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            var obj = VMObject.FromBytes(result);
+            var nftID = obj.AsNumber();
+            Assert.IsTrue(nftID > 0);
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readName", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var nftName = obj.AsString();
+            Assert.IsTrue(nftName == "hello");
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readOwner", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var nftOwner = obj.AsAddress();
+            Assert.IsTrue(nftOwner == otherKeys.Address);
+
+            // update ram
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "updateNFT", otherKeys.Address.Text, nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+
+            // Read RAM
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readNFTRAM", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var ram = obj.AsNumber();
+            Assert.IsTrue(ram == 1);
+
+            var mempool = new Mempool(simulator.Nexus, 2, 1, System.Text.Encoding.UTF8.GetBytes(symbol), 0, new DummyLogger());
+            mempool?.SetKeys(keys);
+
+            var api = new NexusAPI(simulator.Nexus);
+            api.Mempool = mempool;
+            mempool.Start();
+
+            var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
+            foreach (var a in nft.properties)
+            {
+                switch (a.Key)
+                {
+                    case "Name":
+                        Assert.IsTrue(a.Value == "hello");
+                        break;
+                    case "Description":
+                        Assert.IsTrue(a.Value == "desc");
+                        break;
+                    case "ImageURL":
+                        Assert.IsTrue(a.Value == "imgURL");
+                        break;
+                    case "InfoURL":
+                        Assert.IsTrue(a.Value == "info");
+                        break;
+                    case "UnlockCount":
+                        Assert.IsTrue(a.Value == "111");
+                        break;
+
+                }
+            }
+        }
+
+        [Test]
         public void TestTriggers()
         {
             var keys = PhantasmaKeys.Generate();
