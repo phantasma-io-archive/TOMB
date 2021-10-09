@@ -191,6 +191,11 @@ namespace Phantasma.Tomb.Compiler
                 return ParseDecimal();
             }
 
+            if (token.value == "array")
+            {
+                return ParseArray();
+            }
+
             var kind = (VarKind)Enum.Parse(typeof(VarKind), token.value, true);
             return VarType.Find(kind);
         }
@@ -970,7 +975,7 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
-        private DecimalVarType ParseDecimal() 
+        private DecimalVarType ParseDecimal()
         {
             ExpectToken("<");
             var decimals = int.Parse(ExpectNumber());
@@ -981,7 +986,16 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("invalid decimals: " + decimals);
             }
 
-            return (DecimalVarType) VarType.Find(VarKind.Decimal, decimals);
+            return (DecimalVarType)VarType.Find(VarKind.Decimal, decimals);
+        }
+
+        private ArrayVarType ParseArray()
+        {
+            ExpectToken("<");
+            var elementType = ExpectType();
+            ExpectToken(">");
+
+            return (ArrayVarType)VarType.Find(VarKind.Array, elementType);
         }
 
         private MethodParameter[] ParseParameters(Scope scope)
@@ -1152,7 +1166,7 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 var initCmd = new AssignStatement();
                                 initCmd.variable = varDecl;
-                                initCmd.expression = initExpr;
+                                initCmd.valueExpression = initExpr;
                                 block.Commands.Add(initCmd);
                             }
 
@@ -1273,7 +1287,39 @@ namespace Phantasma.Tomb.Compiler
                             if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
                             {
                                 var setCommand = new AssignStatement();
-                                setCommand.variable = scope.FindVariable(token.value);
+
+                                var varName = token.value;
+                                VarType expressionExpectedType;
+
+                                var indexerPos = varName.IndexOf("[");
+                                if (indexerPos >= 0)
+                                {
+                                    if (!varName.EndsWith("]"))
+                                    {
+                                        throw new CompilerException("expected ] in array indexer");
+                                    }
+
+                                    var tmp = varName.Substring(indexerPos + 1, (varName.Length - indexerPos) - 2);
+
+                                    varName = varName.Substring(0, indexerPos);
+
+                                    setCommand.variable = scope.FindVariable(varName);
+
+                                    var arrayType = setCommand.variable.Type as ArrayVarType;
+
+                                    if (arrayType == null)
+                                    {
+                                        throw new CompilerException($"variable {setCommand.variable} is not an array");
+                                    }
+
+                                    expressionExpectedType = arrayType.elementType;
+                                    setCommand.indexExpression = ParseArrayIndexingExpression(scope, tmp, expressionExpectedType);
+                                }
+                                else
+                                {
+                                    setCommand.variable = scope.FindVariable(varName);
+                                    expressionExpectedType = setCommand.variable.Type;
+                                }
 
                                 var expr = ExpectExpression(scope);
                                 if (next.value != ":=")
@@ -1290,9 +1336,9 @@ namespace Phantasma.Tomb.Compiler
                                 }
 
 
-                                expr = Expression.AutoCast(expr, setCommand.variable.Type);
+                                expr = Expression.AutoCast(expr, expressionExpectedType);
 
-                                setCommand.expression = expr;
+                                setCommand.valueExpression = expr;
                                 block.Commands.Add(setCommand);
                             }
                             else
@@ -1391,6 +1437,33 @@ namespace Phantasma.Tomb.Compiler
                         }
                         else
                         {
+                            var indexerPos = first.value.IndexOf("[");
+                            if (indexerPos >= 0)
+                            {
+                                if (!first.value.EndsWith("]"))
+                                {
+                                    throw new CompilerException("expected ] in array indexer");
+                                }
+
+                                var varName = first.value;
+
+                                var tmp = first.value.Substring(indexerPos + 1, (varName.Length - indexerPos) - 2);
+
+                                varName = varName.Substring(0, indexerPos);
+
+                                var arrayVar = scope.FindVariable(varName);
+
+                                var arrayType = arrayVar.Type as ArrayVarType;
+
+                                if (arrayType == null)
+                                {
+                                    throw new CompilerException($"variable {arrayVar} is not an array");
+                                }
+
+                                var indexExpression = ParseArrayIndexingExpression(scope, tmp, arrayType.elementType);
+                                return new ArrayExpression(scope, arrayVar, indexExpression);
+                            }
+
                             var varDecl = scope.FindVariable(first.value, false);
                             if (varDecl != null)
                             {
@@ -1560,6 +1633,18 @@ namespace Phantasma.Tomb.Compiler
                 default:
                     return OperatorKind.Unknown;
             }
+        }
+
+        // TODO: here we only suppprt variables or literal expressions as index, but could be expand later...
+        private Expression ParseArrayIndexingExpression(Scope scope, string exprStr, VarType elementType)
+        {
+            var varDecl = scope.FindVariable(exprStr, false);
+            if (varDecl != null)
+            {
+                return new VarExpression(scope, varDecl);
+            }
+
+            return new LiteralExpression(scope, exprStr, elementType); 
         }
 
         private Expression ParseBinaryExpression(Scope scope, LexerToken opToken, Expression leftSide, Expression rightSide)

@@ -1683,6 +1683,153 @@ namespace Tests
             simulator.EndBlock();
         }
 
+        [Test]
+        public void ArraysSimple()
+        {
+            // TODO make other tests also use multiline strings for source code, much more readable...
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public test(x:number):number {
+		local my_array: array<number>;		
+		my_array[1] := x;			
+		return Array.length(my_array);		
+	}	
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(5));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 1);
+        }
+
+        [Test]
+        public void ArraysVariableIndex()
+        {
+            // TODO make other tests also use multiline strings for source code, much more readable...
+            var sourceCode = @"
+contract arrays {
+	public test(x:number, idx:number):number {
+		local my_array: array<number>;		
+		my_array[idx] := x;			
+		local num:number := my_array[idx];		
+		return num + 1;
+	}	
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(2));
+            vm.Stack.Push(VMObject.FromObject(5));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 6);
+        }
+
+
+        [Test]
+        public void StringManipulation()
+        {
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public test(s:string, idx:number):string {        
+		local my_array: array<number>;		
+		my_array := s.toArray();	
+        my_array[idx] := 42; // replace char in this index with an asterisk (ascii table 42)
+		local result:string := String.fromArray(my_array);		
+		return result;
+	}	
+
+	public toUpper(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}	
+
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(2));
+            vm.Stack.Push(VMObject.FromObject("ABCD"));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsString();
+            Assert.IsTrue(result == "AB*D");
+
+            var toUpper = contract.abi.FindMethod("toUpper");
+            Assert.IsNotNull(toUpper);
+
+            vm = new TestVM(contract, storage, toUpper);
+            vm.Stack.Push(VMObject.FromObject("abcd"));
+            state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            result = vm.Stack.Pop().AsString();
+            Assert.IsTrue(result == "ABCD");
+        }
+
         // add simplified version of that test
         //[Test]
         //public void TestGHOST()

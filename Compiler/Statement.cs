@@ -60,7 +60,8 @@ namespace Phantasma.Tomb.Compiler
     public class AssignStatement : Statement
     {
         public VarDeclaration variable;
-        public Expression expression;
+        public Expression valueExpression;
+        public Expression indexExpression;
 
         public AssignStatement() : base()
         {
@@ -71,12 +72,13 @@ namespace Phantasma.Tomb.Compiler
         {
             callback(this);
             variable.Visit(callback);
-            expression.Visit(callback);
+            valueExpression.Visit(callback);
+            indexExpression?.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
         {
-            return (node == this) || variable.IsNodeUsed(node) || expression.IsNodeUsed(node);
+            return (node == this) || variable.IsNodeUsed(node) || valueExpression.IsNodeUsed(node) || (indexExpression != null && indexExpression.IsNodeUsed(node));
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -86,8 +88,21 @@ namespace Phantasma.Tomb.Compiler
                 variable.Register = Compiler.Instance.AllocRegister(output, variable, variable.Name);
             }
 
-            var srcReg = expression.GenerateCode(output);
-            output.AppendLine(this, $"COPY {srcReg} {variable.Register}");
+            var srcReg = valueExpression.GenerateCode(output);
+            
+            if (indexExpression != null)
+            {
+                var idxReg = indexExpression.GenerateCode(output);
+
+                output.AppendLine(this, $"PUT {srcReg} {variable.Register} {idxReg}");
+
+                Compiler.Instance.DeallocRegister(ref idxReg);
+            }
+            else
+            {
+                output.AppendLine(this, $"COPY {srcReg} {variable.Register}");
+            }
+
             Compiler.Instance.DeallocRegister(ref srcReg);
         }
     }

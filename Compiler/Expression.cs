@@ -1,4 +1,4 @@
-using Phantasma.Domain;
+﻿using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -780,6 +780,54 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public override VarType ResultType => decl.Type;
+    }
+
+    public class ArrayExpression : Expression
+    {
+        public VarDeclaration decl;
+        public Expression indexExpression;
+
+        public ArrayExpression(Scope parentScope, VarDeclaration declaration, Expression indexExpression) : base(parentScope)
+        {
+            this.decl = declaration;
+            this.indexExpression = indexExpression;
+        }
+
+        public override string ToString()
+        {
+            return decl.ToString();
+        }
+
+        public override Register GenerateCode(CodeGenerator output)
+        {
+            if (decl.Register == null)
+            {
+                throw new CompilerException(this, $"var not initialized:" + decl.Name);
+            }
+
+            var dstReg = Compiler.Instance.AllocRegister(output, this);
+            var idxReg = indexExpression.GenerateCode(output);
+
+            output.AppendLine(this, $"GET {decl.Register} {dstReg} {idxReg}");
+
+            Compiler.Instance.DeallocRegister(ref idxReg);
+
+            return dstReg;
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            decl.Visit(callback);
+            indexExpression.Visit(callback);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this) || node == decl;
+        }
+
+        public override VarType ResultType => decl.Type is ArrayVarType ? ((ArrayVarType)decl.Type).elementType : VarType.Find(VarKind.Unknown);
     }
 
     public class ConstExpression : Expression

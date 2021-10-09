@@ -18,6 +18,7 @@ TOMB smart contract compiler for Phantasma platform
 - Constants
 - Enums
 - Global and local variables
+- Array indexing
 - Bitshifting and logical operators
 - Contract constructors, methods and triggers
 - Contract public methods
@@ -336,8 +337,11 @@ The following libraries can be imported into a contract.
 ### String
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
+| String.toBytes(target:String) | Bytes | TODO|
 | String.length(target:String) | Number | TODO|
-| String.substr(target:String, index:Number, length:Number) | Number | TODO|
+| String.substr(target:String, index:Number, length:Number) | String | TODO|
+| String.toArray(target:String) | Array<Number> | TODO|
+| String.fromArray(target:Array<Number>) | String | TODO|
 
 ### Decimal
 | Method | Return type | Description|
@@ -563,6 +567,43 @@ contract test {
 	{
 		return my_state.get(target);
 	}
+}
+```
+
+## String manipulation
+The compiler supports generic types, including maps.<br/>
+Maps are one of the few types that don't have to initialized in the constructor.<br/>
+
+```c#
+contract test {
+	import Array;
+	
+	public toUpper(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}	
 }
 ```
 

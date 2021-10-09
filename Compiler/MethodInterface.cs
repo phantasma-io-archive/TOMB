@@ -197,6 +197,7 @@ namespace Phantasma.Tomb.Compiler
                     return VMType.None;
 
                 case VarKind.Struct:
+                case VarKind.Array:
                     return VMType.Struct;
 
                 case VarKind.Module:
