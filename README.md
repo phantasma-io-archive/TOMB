@@ -47,6 +47,17 @@ TOMB smart contract compiler for Phantasma platform
 - Warnings
 - Debugger support
 
+## Feature Requests
+
+- Call a function from anywhere in the code
+- Create Classes that can be manipulated
+- Change Struct values of an instanciated struct without needing to recreated
+- Fix if's and else's and add else if, also add && and ||
+- Better support for Arrays, methods like, Array.shuffle() | Array.push() | Array.add() | Array.pop() | Array.shift()
+- Better Math Library, implement methods like, Math.Ceil() | Math.floor()
+- Multiple file support (Before compiling it, to make the code easier to write.)
+- Implement a null types
+
 ## Literals
 
 Different data types are recognized by the compiler.
