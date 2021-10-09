@@ -1567,7 +1567,9 @@ namespace Phantasma.Tomb.Compiler
                             Rewind();
                         }
 
-                        return new MacroExpression(scope, first.value, args);
+                        var macro = new MacroExpression(scope, first.value, args);
+
+                        return macro.Unfold(scope);
                     }
 
                 default:
