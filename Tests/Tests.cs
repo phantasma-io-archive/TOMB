@@ -223,7 +223,7 @@ namespace Tests
 
 
         [Test]
-        public void TestMinMax()
+        public void MinMax()
         {
             var sourceCode =
                 "contract test{\n" +
@@ -255,7 +255,7 @@ namespace Tests
 
 
         [Test]
-        public void TestType()
+        public void TypeOf()
         {
             var sourceCode = new string[] {
                 "contract test{" ,
@@ -292,7 +292,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStrings()
+        public void StringsSimple()
         {
             var str = "hello";
 
@@ -345,7 +345,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestDecimals()
+        public void DecimalsSimple()
         {
             var valStr = "2.4587";
             var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
@@ -418,7 +418,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestDecimalsPrecision()
+        public void DecimalsPrecision()
         {
             var valStr = "2.4587";
             var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
@@ -452,7 +452,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestEnums()
+        public void Enums()
         {
             string[] sourceCode = new string[] {
                 "enum MyEnum { A, B, C}",
@@ -506,7 +506,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestProperties()
+        public void Properties()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -555,7 +555,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestBool()
+        public void Bools()
         {
             string[] sourceCode = new string[] {
                 "token TEST {",
@@ -587,7 +587,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestUpdateStringMethod()
+        public void UpdateStringMethod()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -651,7 +651,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestUpdateNumberMethod()
+        public void UpdateNumberMethod()
         {
             string[] sourceCode = new string[] {
                 "token GHOST {",
@@ -711,7 +711,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestQueryMethodAddress()
+        public void QueryMethodAddress()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -760,7 +760,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestIsWitness()
+        public void IsWitness()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -808,7 +808,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestNFT()
+        public void NFTs()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1207,7 +1207,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestTriggers()
+        public void Triggers()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1260,7 +1260,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageList()
+        public void StorageList()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1418,7 +1418,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageMap()
+        public void StorageMap()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1472,7 +1472,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageMapAndStruct()
+        public void StorageMapAndStruct()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1529,7 +1529,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestAES()
+        public void AES()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1580,7 +1580,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestAESAndStorageMap()
+        public void AESAndStorageMap()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1636,7 +1636,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageMapHas()
+        public void StorageMapHas()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1684,7 +1684,7 @@ namespace Tests
         }
 
         [Test]
-        public void ArraysSimple()
+        public void ArraySimple()
         {
             // TODO make other tests also use multiline strings for source code, much more readable...
             var sourceCode = @"
@@ -1719,7 +1719,7 @@ contract arrays {
         }
 
         [Test]
-        public void ArraysVariableIndex()
+        public void ArrayVariableIndex()
         {
             // TODO make other tests also use multiline strings for source code, much more readable...
             var sourceCode = @"
