@@ -1066,6 +1066,8 @@ Showcases how to implement a fungible token (eg: the Phantasma equivalent to an 
 
 ```c#
 token DOG { // this defines the token symbol as DOG
+	import Runtime;
+
 	property name:string = "Dog Token";
 
 	property isFungible: bool = true;
