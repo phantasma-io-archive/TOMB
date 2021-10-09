@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -183,7 +183,7 @@ namespace Phantasma.Tomb.Compiler
                     return VarType.Find(VarKind.Enum, token.value);
                 }
 
-                throw new CompilerException("expected type, got " + token.kind);
+                throw new CompilerException($"expected type, got {token.kind} [{token.value}]");
             }
 
             if (token.value == "decimal")
