@@ -1037,6 +1037,7 @@ namespace Phantasma.Tomb.Compiler
         private StatementBlock ParseCommandBlock(Scope scope, MethodDeclaration method)
         {
             var block = new StatementBlock(scope);
+            var terminateEarly = false;
 
             do
             {
@@ -1110,6 +1111,8 @@ namespace Phantasma.Tomb.Compiler
 
                             block.Commands.Add(new ReturnStatement(method, expr));
                             ExpectToken(";");
+
+                            terminateEarly = true;
                             break;
                         }
 
@@ -1124,6 +1127,8 @@ namespace Phantasma.Tomb.Compiler
 
                             block.Commands.Add(new ThrowStatement(expr));
                             ExpectToken(";");
+
+                            terminateEarly = true;
                             break;
                         }
 
@@ -1212,6 +1217,61 @@ namespace Phantasma.Tomb.Compiler
                             break;
                         }
 
+                    case "switch":
+                        {
+                            var switchCommand = new SwitchStatement(scope);
+
+                            ExpectToken("(");
+                            switchCommand.variable = ExpectExpression(scope) as VarExpression;
+
+                            if (switchCommand.variable == null)
+                            {
+                                throw new CompilerException($"switch condition must be variable expression");
+                            }
+
+                            ExpectToken(")");
+
+                            ExpectToken("{");
+
+                            while (true)
+                            {
+                                var next = FetchToken();
+
+                                if (next.value == "}")
+                                {
+                                    break;
+                                }
+                                else
+                                if (next.value == "default")
+                                {
+                                    ExpectToken(":");
+                                    switchCommand.@default = ParseCommandBlock(switchCommand.Scope, method);
+                                    break;
+                                }
+
+                                Rewind();
+                                ExpectToken("case");
+
+                                var literal = ParseExpression(scope, false) as LiteralExpression;
+
+                                if (literal == null)
+                                {
+                                    throw new CompilerException($"switch case condition must be literal expression");
+                                }
+
+                                ExpectToken(":");
+
+                                var body = ParseCommandBlock(switchCommand.Scope, method);
+
+                                switchCommand.cases.Add(new CaseStatement(literal, body));
+                            }
+
+                            ExpectToken("}");
+
+                            block.Commands.Add(switchCommand);
+                            break;
+                        }
+
                     case "while":
                         {
                             var whileCommand = new WhileStatement(scope);
@@ -1268,6 +1328,7 @@ namespace Phantasma.Tomb.Compiler
                             ExpectToken(";");
 
                             block.Commands.Add(new BreakStatement(scope));
+                            terminateEarly = true;
                             break;
                         }
 
@@ -1276,6 +1337,7 @@ namespace Phantasma.Tomb.Compiler
                             ExpectToken(";");
 
                             block.Commands.Add(new ContinueStatement(scope));
+                            terminateEarly = true;
                             break;
                         }
 
@@ -1404,7 +1466,22 @@ namespace Phantasma.Tomb.Compiler
 
                         break;
                 }
-            } while (true);
+            } while (!terminateEarly);
+
+            if (terminateEarly)
+            {
+                if (block.Commands.Count > 1)
+                {
+                    ExpectToken("}");
+                    Rewind();
+                }
+
+                return block;
+            }
+            else
+            {
+                throw new CompilerException("weird compiler flow detected, contact devs");
+            }
         }
         
         private Expression ExpectExpression(Scope scope)

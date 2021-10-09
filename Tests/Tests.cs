@@ -177,18 +177,70 @@ namespace Tests
         }
 
         [Test]
+        public void Switch()
+        {
+            var sourceCode =
+                @"
+contract test {
+    public check(x:number): string {
+        switch (x) {
+            case 0: return ""zero"";
+            case 1: return ""one"";
+            case 2: return ""two"";
+            default: return ""other"";
+        }                  
+     }}";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+            
+            var check = contract.abi.FindMethod("check");
+            Assert.IsNotNull(check);
+            
+            // test different cases
+            for (int i=-1; i<=4; i++)
+            {
+                var vm = new TestVM(contract, storage, check);
+                vm.Stack.Push(VMObject.FromObject(i));
+                var state = vm.Execute();
+                Assert.IsTrue(state == ExecutionState.Halt);
+                var result = vm.Stack.Pop().AsString();
+
+                string expected;
+                switch (i)
+                {
+                    case 0: expected = "zero"; break;
+                    case 1: expected = "one"; break;
+                    case 2: expected = "two"; break;
+                    default: expected = "other"; break;
+                }
+
+                Assert.IsTrue(result == expected);
+            }
+        }
+
+
+        [Test]
         public void TestCounter()
         {
             var sourceCode =
-                "contract test{\n" +
-                "global counter: number;\n" +
-                "constructor(owner:address)	{\n" +
-                "counter:= 0;}\n" +
-                "public increment(){\n" +
-                "if (counter < 0){\n" +
-                "throw \"invalid state\";}\n" +
-                "counter += 1;\n" +
-                "}}\n";
+                @"
+contract test {
+    global counter: number;
+    
+    constructor(owner:address)	{
+        counter:= 0; 
+    }
+    
+    public increment() {
+        if (counter < 0) {
+            throw ""invalid state"";
+        }   
+                
+        counter += 1;
+     }}";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -226,11 +278,11 @@ namespace Tests
         public void MinMax()
         {
             var sourceCode =
-                "contract test{\n" +
-                "import Math;\n" +
-                "public calculate(a:number, b:number):number {\n" +
-                "return Math.min(a, b);\n" +
-                "}}\n";
+                @"contract test{
+                    import Math;
+                    public calculate(a:number, b:number):number {
+                        return Math.min(a, b);
+                    }}";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();

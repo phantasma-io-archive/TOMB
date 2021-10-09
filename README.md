@@ -27,6 +27,7 @@ TOMB smart contract compiler for Phantasma platform
 - Generic types
 - If ... Else
 - While ... and Do ... While loops
+- Switch .. case
 - Break and Continue
 - Throw Exceptions
 - Uninitialized globals validation
@@ -42,7 +43,6 @@ TOMB smart contract compiler for Phantasma platform
 ## Planned features
 
 - For.. Loops
-- Switch .. case
 - Try .. Catch
 - More...
 - Warnings
@@ -429,6 +429,22 @@ contract test {
 	}
 }
 ```
+
+## Switch case
+Simple contract that sums two numbers and returns the result
+
+```c#
+contract test {
+    public check(x:number): string {
+        switch (x) {
+            case 0: return "zero";
+            case 1: return "one";
+            case 2: return "two";
+            default: return "other";
+        }                  
+	}
+}
+ ```
 
 ## Simple Counter
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
