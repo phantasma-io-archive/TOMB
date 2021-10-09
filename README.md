@@ -1084,8 +1084,15 @@ token DOG { // this defines the token symbol as DOG
 	constructor(owner:address)	{
        _admin := owner;
 	}
+
+	// allows the token to be upgraded later, remove this trigger if you want a imutable fungible token
+	trigger onUpgrade(from:address) 
+	{
+		Runtime.expect(Runtime.isWitness(_admin), "witness failed");
+		return;
+	}
 	
-	// its possible to also add triggers, custom methods etc
+	// its possible to also add more triggers, custom methods etc
 }
 ```
 
