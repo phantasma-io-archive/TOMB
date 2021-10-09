@@ -1061,7 +1061,33 @@ contract test {
 }
 ```
 
+## Fungible Token
+Showcases how to implement a fungible token (eg: the Phantasma equivalent to an Ethereum ERC20).
 
+```c#
+token DOG { // this defines the token symbol as DOG
+	property name:string = "Dog Token";
+
+	property isFungible: bool = true;
+
+	property isDivisible: bool = true;
+	property decimals:number = 8; // required only if isDivisible is true
+	
+	property isTransferable: bool = true;
+	property isBurnable: bool = true;
+	
+	property isFinite: bool = false;
+	//property maxSupply: number = 1000000; // required only if isFinite is true
+	
+	global _admin: address;
+	
+	constructor(owner:address)	{
+       _admin := owner;
+	}
+	
+	// its possible to also add triggers, custom methods etc
+}
+```
 
 ## NFTs
 Showcases how to implement an NFT, showcasing all details including ROM, RAM and token series.
