@@ -1,4 +1,5 @@
-﻿using System;
+using Phantasma.Numerics;
+using System;
 using System.IO;
 using System.Text;
 
@@ -49,7 +50,11 @@ namespace Phantasma.Tomb.Compiler
 
             if (module.script != null)
             {
-                File.WriteAllBytes(module.Name + ".pvm", module.script);
+                var extension = module.Kind == ModuleKind.Script ? ".tx" : ".pvm";
+                File.WriteAllBytes(module.Name + extension, module.script);
+
+                var hex = Base16.Encode(module.script);
+                File.WriteAllText(module.Name + extension + ".hex", hex);
             }
 
             if (module.debugInfo != null)
@@ -59,15 +64,22 @@ namespace Phantasma.Tomb.Compiler
 
             if (module.abi != null)
             {
-                File.WriteAllBytes(module.Name + ".abi", module.abi.ToByteArray());
+                var abiBytes = module.abi.ToByteArray();
+                File.WriteAllBytes(module.Name + ".abi", abiBytes);
+
+                var hex = Base16.Encode(abiBytes);
+                File.WriteAllText(module.Name + ".abi.hex", hex);
             }
         }
 
         static void Main(string[] args)
         {
+#if DEBUG
             ExportLibraryInfo();
-
             var sourceFilePath = args.Length > 0 ? args[0] : "katacomb.txt";
+#else
+            var sourceFilePath = args.Length > 0 ? args[0] : "my_contract.tomb";
+#endif
 
             if (!File.Exists(sourceFilePath))
             {

@@ -18,9 +18,9 @@ namespace Phantasma.Tomb.Compiler
             this.ParentScope = parentScope;
         }
 
-        public virtual string AsStringLiteral()
+        public virtual T AsLiteral<T>()
         {
-            throw new CompilerException(this, $"{this.GetType()} can't be converted to string");
+            throw new CompilerException(this, $"{this.GetType()} can't be converted to {typeof(T).Name} literal");
         }
 
         public abstract Register GenerateCode(CodeGenerator output);
@@ -174,14 +174,19 @@ namespace Phantasma.Tomb.Compiler
             this.right = rightSide;
         }
 
-        public override string AsStringLiteral()
+        public override T AsLiteral<T>()
         {
-            if (ResultType.Kind == VarKind.String && op == OperatorKind.Addition)
+            if (op == OperatorKind.Addition)
             {
-                return left.AsStringLiteral() + right.AsStringLiteral();
+                if (typeof(T) == typeof(string) && ResultType.Kind == VarKind.String)
+                    return (T)(object)(left.AsLiteral<string>() + right.AsLiteral<string>());
+
+                if (typeof(T) == typeof(int) && ResultType.Kind == VarKind.Number)
+                    return (T)(object)(left.AsLiteral<int>() + right.AsLiteral<int>());
             }
 
-            return base.AsStringLiteral();
+
+            return base.AsLiteral<T>();
         }
 
         public override bool IsNodeUsed(Node node)
@@ -445,7 +450,7 @@ namespace Phantasma.Tomb.Compiler
                     {
                         if (i == 0)
                         {
-                            customAlias = arg.AsStringLiteral();
+                            customAlias = arg.AsLiteral<string>();
                             argReg = null;
                         }
                         else
@@ -546,14 +551,19 @@ namespace Phantasma.Tomb.Compiler
             return "literal: " + value;
         }
 
-        public override string AsStringLiteral()
+        public override T AsLiteral<T>()
         {
-            if (this.type.Kind == VarKind.String)
+            if (this.type.Kind == VarKind.String && typeof(T) == typeof(string))
             {
-                return this.value;
+                return (T)(object)this.value;
             }
 
-            return base.AsStringLiteral();
+            if (this.type.Kind == VarKind.Module && typeof(T) == typeof(Module))
+            {
+                return (T)(object)Compiler.Instance.FindModule(this.value, true);
+            }
+
+            return base.AsLiteral<T>();
         }
 
         public override Register GenerateCode(CodeGenerator output)
@@ -567,7 +577,13 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Decimal:
                     {
                         var decType = this.type as DecimalVarType;
-                        var temp = decimal.Parse(this.value, CultureInfo.InvariantCulture);
+                        decimal temp;
+
+                        if (!decimal.TryParse(this.value, NumberStyles.Number, CultureInfo.InvariantCulture, out temp))
+                        {
+                            throw new CompilerException("Invalid decimal literal: " + this.value);
+                        }
+
                         val = UnitConversion.ToBigInteger(temp, decType.decimals).ToString();
                         break;
                     }
@@ -588,6 +604,27 @@ namespace Phantasma.Tomb.Compiler
 
                 default:
                     {
+                        switch (this.type.Kind)
+                        {
+                            case VarKind.Bool:
+                                if (!(this.value.Equals("false", StringComparison.OrdinalIgnoreCase) || this.value.Equals("true", StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    throw new CompilerException("Invalid bool literal: " + this.value);
+                                }
+                                break;
+
+                            case VarKind.Number:
+                                {
+                                    BigInteger temp;
+
+                                    if (!BigInteger.TryParse(this.value, out temp))
+                                    {
+                                        throw new CompilerException("Invalid number literal: " + this.value);
+                                    }
+                                    break;
+                                }
+                        }
+
                         val = this.value;
                         break;
                     }
@@ -745,6 +782,54 @@ namespace Phantasma.Tomb.Compiler
         public override VarType ResultType => decl.Type;
     }
 
+    public class ArrayExpression : Expression
+    {
+        public VarDeclaration decl;
+        public Expression indexExpression;
+
+        public ArrayExpression(Scope parentScope, VarDeclaration declaration, Expression indexExpression) : base(parentScope)
+        {
+            this.decl = declaration;
+            this.indexExpression = indexExpression;
+        }
+
+        public override string ToString()
+        {
+            return decl.ToString();
+        }
+
+        public override Register GenerateCode(CodeGenerator output)
+        {
+            if (decl.Register == null)
+            {
+                throw new CompilerException(this, $"var not initialized:" + decl.Name);
+            }
+
+            var dstReg = Compiler.Instance.AllocRegister(output, this);
+            var idxReg = indexExpression.GenerateCode(output);
+
+            output.AppendLine(this, $"GET {decl.Register} {dstReg} {idxReg}");
+
+            Compiler.Instance.DeallocRegister(ref idxReg);
+
+            return dstReg;
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            decl.Visit(callback);
+            indexExpression.Visit(callback);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this) || node == decl;
+        }
+
+        public override VarType ResultType => decl.Type is ArrayVarType ? ((ArrayVarType)decl.Type).elementType : VarType.Find(VarKind.Unknown);
+    }
+
     public class ConstExpression : Expression
     {
         public ConstDeclaration decl;
@@ -759,14 +844,14 @@ namespace Phantasma.Tomb.Compiler
             return decl.ToString();
         }
 
-        public override string AsStringLiteral()
+        public override T AsLiteral<T>()
         {
-            if (decl.Type.Kind == VarKind.String)
+            if (decl.Type.Kind == VarKind.String && typeof(T) == typeof(string))
             {
-                return decl.Value;
+                return (T)(object)decl.Value;
             }
 
-            return base.AsStringLiteral();
+            return base.AsLiteral<T>();
         }
 
         public override Register GenerateCode(CodeGenerator output)

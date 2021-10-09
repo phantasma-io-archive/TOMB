@@ -561,7 +561,6 @@ namespace Phantasma.Tomb.Compiler
                 var obj = GenerateTestObject(this.returnType);
                 vm.Stack.Push(obj);
                 vm.Stack.Push(VMObject.FromObject(Address.FromText("S3dApERMJUMRYECjyKLJioz2PCBUY6HBnktmC9u1obhDAgm")));
-                vm.ThrowOnFault = true;
                 var state = vm.Execute();
 
                 if (state != ExecutionState.Halt)
@@ -787,6 +786,8 @@ namespace Phantasma.Tomb.Compiler
                 Compiler.Instance.DeallocRegister(ref variable.Register);
             }
 
+            output.AppendLine(this, $"@{GetExitLabel()}:");
+
             // NOTE we don't need to dealloc anything here besides the global vars
             foreach (var variable in this.scope.Parent.Variables.Values)
             {
@@ -799,7 +800,15 @@ namespace Phantasma.Tomb.Compiler
                 {                    
                     if (isConstructor && !variable.Type.IsStorageBound)
                     {
-                        throw new CompilerException($"global variable '{variable.Name}' not assigned in constructor of {this.scope.Module.Name}");
+                        if (variable.Type.Kind == VarKind.Array)
+                        {
+                            // HACK: quick solution to prevent global arrasy, it might be possible to support then as globals, but I did not have time yet to study if feasible...
+                            throw new CompilerException($"instead of array use storage_map type for variable: '{variable.Name}'");
+                        }
+                        else
+                        {
+                            throw new CompilerException($"global variable '{variable.Name}' not assigned in constructor of {this.scope.Module.Name}");
+                        }                        
                     }
 
                     continue; // if we hit this, means it went unused 
@@ -871,6 +880,18 @@ namespace Phantasma.Tomb.Compiler
             else
             {
                 return "entry_" + this.Name;
+            }
+        }
+
+        internal string GetExitLabel()
+        {
+            if (@interface.Kind == MethodKind.Constructor)
+            {
+                return "exit_constructor";
+            }
+            else
+            {
+                return "exit_" + this.Name;
             }
         }
 

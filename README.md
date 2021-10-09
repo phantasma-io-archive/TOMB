@@ -18,6 +18,7 @@ TOMB smart contract compiler for Phantasma platform
 - Constants
 - Enums
 - Global and local variables
+- Array indexing
 - Bitshifting and logical operators
 - Contract constructors, methods and triggers
 - Contract public methods
@@ -46,6 +47,17 @@ TOMB smart contract compiler for Phantasma platform
 - More...
 - Warnings
 - Debugger support
+
+## Feature Requests
+
+- Call a function from anywhere in the code
+- Create Classes that can be manipulated
+- Change Struct values of an instanciated struct without needing to recreated
+- Fix if's and else's and add else if, also add && and ||
+- Better support for Arrays, methods like, Array.shuffle() | Array.push() | Array.add() | Array.pop() | Array.shift()
+- Better Math Library, implement methods like, Math.Ceil() | Math.floor()
+- Multiple file support (Before compiling it, to make the code easier to write.)
+- Implement a null types
 
 ## Literals
 
@@ -82,21 +94,29 @@ The following libraries can be imported into a contract.
 | Runtime.isWitness(address:Address) | Bool | TODO|
 | Runtime.isTrigger() | Bool | TODO|
 | Runtime.transactionHash() | Hash | TODO|
-| Runtime.deployContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
-| Runtime.upgradeContract(from:Address, name:String, script:Bytes, abi:Bytes) | None | TODO|
+| Runtime.deployContract(from:Address, contract:Module) | None | TODO|
+| Runtime.upgradeContract(from:Address, contract:Module) | None | TODO|
 | Runtime.gasTarget() | Address | TODO|
 | Runtime.context() | String | TODO|
+| Runtime.previousContext() | String | TODO|
+
+### Math
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Math.min(a:Number, b:Number) | Number | Returns smallest of two numbers|
+| Math.max(a:Number, b:Number) | Number | Returns largest of two numbers|
 
 ### Token
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes) | None | TODO|
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None | TODO|
 | Token.exists(symbol:String) | Bool | TODO|
 | Token.getDecimals(symbol:String) | Number | TODO|
 | Token.getFlags(symbol:String) | Enum<TokenFlag> | TODO|
 | Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
 | Token.transferAll(from:Address, to:Address, symbol:String) | None | TODO|
 | Token.mint(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
+| Token.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | TODO|
 | Token.burn(from:Address, symbol:String, amount:Number) | None | TODO|
 | Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number) | None | TODO|
 | Token.getBalance(from:Address, symbol:String) | Number | TODO|
@@ -106,12 +126,28 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | NFT.transfer(from:Address, to:Address, symbol:String, id:Number) | None | TODO|
-| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any) | None | TODO|
+| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any, seriesID:Number) | None | TODO|
+| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | TODO|
 | NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
 | NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | TODO|
 | NFT.readROM<T>(symbol:String, id:Number) | T | TODO|
 | NFT.readRAM<T>(symbol:String, id:Number) | T | TODO|
+
+### Account
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Account.getName(from:Address) | String | TODO|
+| Account.getLastActivity(from:Address) | Timestamp | TODO|
+| Account.registerName(target:Address, name:String) | None | TODO|
+| Account.unregisterName(target:Address) | None | TODO|
+| Account.registerScript(target:Address, script:Bytes, abiBytes:Bytes) | None | TODO|
+| Account.hasScript(address:Address) | Bool | TODO|
+| Account.lookUpAddress(target:Address) | String | TODO|
+| Account.lookUpScript(target:Address) | Bytes | TODO|
+| Account.lookUpABI(target:Address) | Bytes | TODO|
+| Account.lookUpName(name:String) | Address | TODO|
+| Account.migrate(from:Address, target:Address) | None | TODO|
 
 ### Organization
 | Method | Return type | Description|
@@ -132,6 +168,30 @@ The following libraries can be imported into a contract.
 | Storage.read(contract:String, field:String, type:Number) | Any | TODO|
 | Storage.write(field:String, value:Any) | None | TODO|
 | Storage.delete(field:String) | None | TODO|
+| Storage.calculateStorageSizeForStake(stakeAmount:Number) | Number | TODO|
+| Storage.createFile(target:Address, fileName:String, fileSize:Number, contentMerkle:Bytes, encryptionContent:Bytes) | None | TODO|
+| Storage.hasFile(target:Address, hash:Hash) | Bool | TODO|
+| Storage.addFile(from:Address, target:Address, archiveHash:Hash) | None | TODO|
+| Storage.deleteFile(from:Address, targetHash:Hash) | None | TODO|
+| Storage.hasPermission(externalAddr:Address, target:Address) | Bool | TODO|
+| Storage.addPermission(from:Address, externalAddr:Address) | None | TODO|
+| Storage.deletePermission(from:Address, externalAddr:Address) | None | TODO|
+| Storage.migratePermission(target:Address, oldAddr:Address, newAddr:Address) | None | TODO|
+| Storage.migrate(from:Address, target:Address) | None | TODO|
+| Storage.getUsedSpace(from:Address) | Number | TODO|
+| Storage.getAvailableSpace(from:Address) | Number | TODO|
+| Storage.GetUsedDataQuota(address:Address) | Number | TODO|
+| Storage.writeData(target:Address, key:Bytes, value:Bytes) | None | TODO|
+| Storage.deleteData(target:Address, key:Bytes) | None | TODO|
+
+### Array
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Array.get(array:Any, index:Number) | Generic<0> | TODO|
+| Array.set(array:Any, index:Number, value:Generic<0>) | None | TODO|
+| Array.remove(array:Any, index:Number) | None | TODO|
+| Array.clear(array:Any) | None | TODO|
+| Array.count(array:Any) | Number | TODO|
 
 ### Utils
 | Method | Return type | Description|
@@ -156,6 +216,85 @@ The following libraries can be imported into a contract.
 | Market.buy(from:Address, symbol:String, tokenID:Number) | None | TODO|
 | Market.cancel(symbol:String, tokenID:Number) | None | TODO|
 | Market.hasAuction(symbol:String, tokenID:Number) | Bool | TODO|
+| Market.bid(from:Address, symbol:String, tokenID:Number, price:Number, buyingFee:Number, buyingFeeAddress:Address) | None | TODO|
+| Market.listToken(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number, typeAuction:Number, listingFee:Number, listingFeeAddress:Address) | None | TODO|
+| Market.editAuction(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number) | None | TODO|
+ 
+### Crowdsale
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Crowdsale.create(from:Address, name:String, SaleFlags flags, startDate:Timestamp, endDate:Timestamp, sellSymbol:String, receiveSymbol:String, price:Number, globalSoftCap:Number, globalHardCap:Number, userSoftCap:Number, userHardCap:Number) | Hash | TODO|
+| Crowdsale.isSaleActive(saleHash:Hash) | bool | TODO|
+| Crowdsale.GetSaleParticipants(saleHash:Hash) | Address[] | TODO|
+| Crowdsale.getSaleWhitelists(saleHash:Hash) | Address[] | TODO|
+| Crowdsale.isWhitelisted(saleHash:Hash, address:Address) | bool | TODO|
+| Crowdsale.addToWhitelist(saleHash:Hash, target:Address) | None | TODO|
+| Crowdsale.removeFromWhitelist(saleHash:Hash, target:Address) | None | TODO|
+| Crowdsale.getPurchasedAmount(saleHash:Hash, address:Address) | Number | TODO|
+| Crowdsale.getSoldAmount(saleHash:Hash) | Number | TODO|
+| Crowdsale.purchase(from:Address, saleHash:Hash, quoteSymbol:string, quoteAmount:Number) | None | TODO|
+| Crowdsale.closeSale(from:Address, saleHash:Hash) | None | TODO|
+| Crowdsale.getLatestSaleHash() | Hash | TODO|
+| Crowdsale.EditSalePrice(saleHash:Hash, price:Number) | None | TODO|
+
+### Stake
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Stake.getMasterThreshold() | Number | TODO|
+| Stake.isMaster(address:Address) | bool | TODO|
+| Stake.getMasterCount() | Number | TODO|
+| Stake.getClaimMasterCount(claimDate:Timestamp) | Number | TODO|
+| Stake.getMasterClaimDate(claimDistance:Number) | Timestamp | TODO|
+| Stake.getMasterDate(target:Address) | Timestamp | TODO|
+| Stake.getMasterClaimDateFromReference(claimDistance:Number, referenceTime:Timestamp) | Timestamp | TODO|
+| Stake.getMasterRewards(address:Address) | Number | TODO|
+| Stake.migrate(from:Address, to:Address) | None | TODO|
+| Stake.masterClaim(from:Address) | None | TODO|
+| Stake.stake(from:Address, stakeAmount:Number) | None | TODO|
+| Stake.unstake(from:Address, unstakeAmount:Number) | None | TODO|
+| Stake.getTimeBeforeUnstake(from:Address) | Number | TODO|
+| Stake.getStakeTimestamp(from:Address) | Timestamp | TODO|
+| Stake.getUnclaimed(from:Address) | Number | TODO|
+| Stake.claim(from:Address, stakeAddress:Address) | None | TODO|
+| Stake.getStake(address:Address) | Number | TODO|
+| Stake.getStorageStake(address:Address) | Number | TODO|
+| Stake.fuelToStake(fuelAmount:Number) | Number | TODO|
+| Stake.stakeToFuel(stakeAmount:Number) | Number | TODO|
+| Stake.getAddressVotingPower(address:Address) | Number | TODO|
+| Stake.updateRate() | None | TODO|
+| Stake.getRate() | Number | TODO|
+
+### Governance
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Governance.hasName(name:String) | bool | TODO|
+| Governance.gasValue(name:String) | bool | TODO|
+| Governance.createValue(name:String, initial:Number, serializedConstraints:Bytes) | None | TODO|
+| Governance.getValue(name:String) | Number | TODO|
+| Governance.setValue(name:String, value:Number) | None | TODO|
+
+### Relay
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Relay.getBalance(from:Address) | Number | TODO|
+| Relay.getIndex(from:Address, to:Address) | Number | TODO|
+| Relay.getTopUpAddress(from:Address) | Address | TODO|
+| Relay.openChannel(from:Address, publicKey:Bytes) | None | TODO|
+| Relay.getKey(from:Address) | Bytes | TODO|
+| Relay.topUpChannel(from:Address, count:Number) | None | TODO|
+| Relay.settleChannel(receipt:RelayReceipt) | None | TODO|
+
+### Mail
+| Method | Return type | Description|
+| ------------- | ------------- |------------- |
+| Mail.pushMessage(from:Address, target:Address, archiveHash:Hash) | None | TODO|
+| Mail.domainExists(domainName:String) | Bool | TODO|
+| Mail.registerDomain(from:Address, domainName:String) | None | TODO|
+| Mail.unregisterDomain(domainName:String) | None | TODO|
+| Mail.migrateDomain(domainName:String, target:Address) | None | TODO|
+| Mail.joinDomain(from:Address, domainName:String) | None | TODO|
+| Mail.leaveDomain(from:Address, domainName:String) | None | TODO|
+| Mail.getUserDomain(target:Address) | String | TODO|
 
 ### Time
 | Method | Return type | Description|
@@ -198,12 +337,17 @@ The following libraries can be imported into a contract.
 ### String
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
+| String.toBytes(target:String) | Bytes | TODO|
 | String.length(target:String) | Number | TODO|
+| String.substr(target:String, index:Number, length:Number) | String | TODO|
+| String.toArray(target:String) | Array<Number> | TODO|
+| String.fromArray(target:Array<Number>) | String | TODO|
 
 ### Decimal
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Decimal.decimals(target:Any) | Number | TODO|
+| Decimal.convert(decimalPlaces:Number, value:Number) | Number | TODO|
 
 ### Enum
 | Method | Return type | Description|
@@ -221,8 +365,8 @@ The following libraries can be imported into a contract.
 ### Module
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Module.script(target:Module) | Bytes | TODO|
-| Module.abi(target:Module) | Bytes | TODO|
+| Module.getScript(target:Module) | Bytes | TODO|
+| Module.getABI(target:Module) | Bytes | TODO|
 
 ### Format
 | Method | Return type | Description|
@@ -426,6 +570,43 @@ contract test {
 }
 ```
 
+## String manipulation
+The compiler supports generic types, including maps.<br/>
+Maps are one of the few types that don't have to initialized in the constructor.<br/>
+
+```c#
+contract test {
+	import Array;
+	
+	public toUpper(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}	
+}
+```
+
 ## Random numbers
 It is possible to generate pseudo random numbers, and also to control the generation seed.<br/>
 If a seed is not specified, then the current transaction hash will be used as seed, if available.<br/>
@@ -551,6 +732,29 @@ script startup {
 		local temp:number := 50000;
 		Call.contract("Stake", "Unstake", target, temp);
 	}
+}
+```
+
+## Deploy contract script 
+
+This example showcases a script that deploys a token contract.
+
+```c#
+token GHOST {
+...
+}
+
+script deploy {
+
+    import Token;
+    import Module;
+
+    code() {
+        local maxSupply:number := 50000;
+        local decimals:number := 1;
+		local flags:TokenFlags := TokenFlags.None;
+        Token.create(@P2KAkQRrL62zYvb5198CHBLiKHKr4bJvAG7aXwV69rtbeSz, "GHOST",  "Ghost Token", maxSupply, decimals, flags, Module.getScript(GHOST),  Module.getABI(GHOST));
+    }
 }
 ```
 
@@ -846,6 +1050,12 @@ contract test {
 ## NFTs
 Showcases how to implement an NFT, showcasing all details including ROM, RAM and token series.
 
+When creating an NFT, they must have 4 default properties implemented and they're:
+- ```name```, returns the name of the NFT
+- ```description```, returns the descriptions of the NFT
+- ```imageURL```, returns the image URL of the NFT
+- ```infoURL```, returns the info URL of the NFT
+
 ```c#
 struct luchador_rom
 {
@@ -898,11 +1108,11 @@ token NACHO {
 		}
 
 		property imageURL: string {
-			return "https://nacho.men/img/luchador/"+ _TokenID;
+			return "https://nacho.men/img/luchador/"+ _tokenID;
 		}
 
 		property infoURL: string {
-			return "https://nacho.men/api/luchador/"+ _TokenID;
+			return "https://nacho.men/api/luchador/"+ _tokenID;
 		}
 	}
 
@@ -922,11 +1132,11 @@ token NACHO {
 		}
 
 		property imageURL: string {
-			return "https://nacho.men/img/item/"+ _TokenID;
+			return "https://nacho.men/img/item/"+ _tokenID;
 		}
 
 		property infoURL: string {
-			return "https://nacho.men/api/item/"+ _TokenID;
+			return "https://nacho.men/api/item/"+ _tokenID;
 		}
 	}	
 

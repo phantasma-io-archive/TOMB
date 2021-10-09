@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using Phantasma.API;
+using Phantasma.Storage;
 using Phantasma.Blockchain;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Core.Log;
@@ -203,7 +204,6 @@ namespace Tests
 
             // call constructor
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -219,6 +219,38 @@ namespace Tests
             Assert.IsTrue(result == ExecutionState.Halt);
 
             Assert.IsTrue(storage.Count == 1);
+        }
+
+
+        [Test]
+        public void TestMinMax()
+        {
+            var sourceCode =
+                "contract test{\n" +
+                "import Math;\n" +
+                "public calculate(a:number, b:number):number {\n" +
+                "return Math.min(a, b);\n" +
+                "}}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            // call increment
+            var calculate = contract.abi.FindMethod("calculate");
+            Assert.IsNotNull(calculate);
+
+            vm = new TestVM(contract, storage, calculate);
+            vm.Stack.Push(VMObject.FromObject(5));
+            vm.Stack.Push(VMObject.FromObject(2));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 2);            
         }
 
 
@@ -246,7 +278,6 @@ namespace Tests
             Assert.IsNotNull(returnType);
 
             vm = new TestVM(contract, storage, returnType);
-            vm.ThrowOnFault = true;
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -298,7 +329,6 @@ namespace Tests
             Assert.IsNotNull(getLength);
 
             vm = new TestVM(contract, storage, getLength);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -356,7 +386,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -375,7 +404,6 @@ namespace Tests
             Assert.IsNotNull(getLength);
 
             vm = new TestVM(contract, storage, getLength);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -452,7 +480,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -464,7 +491,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -505,7 +531,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -517,7 +542,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -555,7 +579,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -593,7 +616,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -605,7 +627,6 @@ namespace Tests
             Assert.IsNotNull(updateValue);
 
             vm = new TestVM(contract, storage, updateValue);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject("SOUL"));
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -617,7 +638,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -656,7 +676,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -668,7 +687,6 @@ namespace Tests
             Assert.IsNotNull(updateValue);
 
             vm = new TestVM(contract, storage, updateValue);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject("4"));
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -680,7 +698,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -719,7 +736,6 @@ namespace Tests
             var keys = PhantasmaKeys.Generate();
 
             vm = new TestVM(contract, storage, constructor);
-            vm.ThrowOnFault = true;
             vm.Stack.Push(VMObject.FromObject(keys.Address));
             var result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
@@ -731,7 +747,6 @@ namespace Tests
             Assert.IsNotNull(getValue);
 
             vm = new TestVM(contract, storage, getValue);
-            vm.ThrowOnFault = true;
             result = vm.Execute();
             Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -973,6 +988,225 @@ namespace Tests
         }
 
         [Test]
+        public void TestNFTWrite()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            string symbol = "ATEST";
+            string name = "Test";
+
+            var sourceCode =
+                @"struct someStruct
+                {
+                    created:timestamp;
+                    creator:address;
+                    royalties:number;
+                    name:string;
+                    description:string;
+                    imageURL:string;
+                    infoURL:string;
+                }
+                token " + symbol + @" {
+                    import Runtime;
+                    import Time;
+                    import NFT;
+                    import Map;
+                    global _address:address;
+                    global _owner:address;
+                    global _unlockStorageMap: storage_map<number, number>;
+
+                    property name:string = """ + name + @""";
+
+                    nft myNFT<someStruct, number> {
+
+                        import Call;
+                        import Map;
+
+                        property name:string {
+                            return _ROM.name;
+                        }
+
+                        property description:string {
+                            return _ROM.description;
+                        }
+
+                        property imageURL:string {
+                            return _ROM.imageURL;
+                        }
+
+                        property infoURL:string {
+                            return _ROM.infoURL;
+                        }
+
+                        property unlockCount:number {
+                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                            return count;
+                        }
+                    }
+
+                    import Call;
+                    constructor(owner:address)	{
+                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner:= owner;
+                        NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
+                    }
+
+                    public mint(dest:address):number {
+                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        _unlockStorageMap.set(tokenID, 0);
+                        Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
+                        return tokenID;
+                    }
+
+                    public updateNFT(from:address, nftID:number) {
+                        local symbol : string := $THIS_SYMBOL;
+                        NFT.write(from, $THIS_SYMBOL, nftID, 1);
+                    }
+
+                    public readNFTRAM(nftID:number): number{
+                        local ramInfo : number := NFT.readRAM<number>($THIS_SYMBOL, nftID);
+                        return ramInfo;
+                    }
+
+                    public readName(nftID:number): string {
+                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        return romInfo.name;
+                    }
+
+                    public readOwner(nftID:number): address {
+                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        return nftInfo.owner;
+                    }
+                }";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
+            //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            var otherKeys = PhantasmaKeys.Generate();
+
+            simulator.BeginBlock();
+            var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "mint", otherKeys.Address).
+                    SpendGas(keys.Address).
+                    EndScript());
+            var block = simulator.EndBlock().First();
+
+            var result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            var obj = VMObject.FromBytes(result);
+            var nftID = obj.AsNumber();
+            Assert.IsTrue(nftID > 0);
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readName", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var nftName = obj.AsString();
+            Assert.IsTrue(nftName == "hello");
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readOwner", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var nftOwner = obj.AsAddress();
+            Assert.IsTrue(nftOwner == otherKeys.Address);
+
+            // update ram
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "updateNFT", otherKeys.Address.Text, nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+
+            // Read RAM
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
+                ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "readNFTRAM", nftID).
+                    SpendGas(keys.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            result = block.GetResultForTransaction(tx.Hash);
+            Assert.NotNull(result);
+            obj = VMObject.FromBytes(result);
+            var ram = obj.AsNumber();
+            Assert.IsTrue(ram == 1);
+
+            var mempool = new Mempool(simulator.Nexus, 2, 1, System.Text.Encoding.UTF8.GetBytes(symbol), 0, new DummyLogger());
+            mempool?.SetKeys(keys);
+
+            var api = new NexusAPI(simulator.Nexus);
+            api.Mempool = mempool;
+            mempool.Start();
+
+            var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
+            foreach (var a in nft.properties)
+            {
+                switch (a.Key)
+                {
+                    case "Name":
+                        Assert.IsTrue(a.Value == "hello");
+                        break;
+                    case "Description":
+                        Assert.IsTrue(a.Value == "desc");
+                        break;
+                    case "ImageURL":
+                        Assert.IsTrue(a.Value == "imgURL");
+                        break;
+                    case "InfoURL":
+                        Assert.IsTrue(a.Value == "info");
+                        break;
+                    case "UnlockCount":
+                        Assert.IsTrue(a.Value == "111");
+                        break;
+
+                }
+            }
+        }
+
+        [Test]
         public void TestTriggers()
         {
             var keys = PhantasmaKeys.Generate();
@@ -1026,6 +1260,164 @@ namespace Tests
         }
 
         [Test]
+        public void TestStorageList()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "contract test {\n" +
+                "import Runtime;\n" +
+                "import Time;\n" +
+                "import List;\n" +
+                "global myList: storage_list<string>;\n" +
+                "public getCount():number\n" +
+                "{\n" +
+                " return myList.count();\n" +
+                "}\n" +
+                "public getStuff(index:number):string \n" +
+                "{\n" +
+                " return myList.get(index);\n" +
+                "}\n"+
+                "public removeStuff(index:number) \n" +
+                "{\n" +
+                " myList.removeAt(index);\n" +
+                "}\n" +
+                "public clearStuff() \n" +
+                "{\n" +
+                " myList.clear();\n" +
+                "}\n" +
+                "public addStuff(stuff:string) \n" +
+                "{\n" +
+                " myList.add(stuff);\n" +
+                "}\n" +
+                "public replaceStuff(index:number, stuff:string) \n" +
+                "{\n" +
+                " myList.replace(index, stuff);\n" +
+                "}\n" +
+                "constructor(owner:address)	{\n" +
+                "   this.addStuff(\"hello\");\n" +
+                "   this.addStuff(\"world\");\n" +
+                "}\n" +
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            Func<int, string> fetchListItem = (index) =>
+            {
+                simulator.BeginBlock();
+                var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                        ScriptUtils.BeginScript().
+                        AllowGas(keys.Address, Address.Null, 1, 9999).
+                        CallContract("test", "getStuff", index).
+                        SpendGas(keys.Address).
+                        EndScript());
+                var block = simulator.EndBlock().FirstOrDefault();
+
+                var bytes = block.GetResultForTransaction(tx.Hash);
+                Assert.IsTrue(bytes != null);
+
+                var vmObj = Serialization.Unserialize<VMObject>(bytes);
+
+                return  vmObj.AsString();
+            };
+
+            Func<int> fetchListCount = () =>
+            {
+                simulator.BeginBlock();
+                var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                        ScriptUtils.BeginScript().
+                        AllowGas(keys.Address, Address.Null, 1, 9999).
+                        CallContract("test", "getCount").
+                        SpendGas(keys.Address).
+                        EndScript());
+                var block = simulator.EndBlock().FirstOrDefault();
+
+                var bytes = block.GetResultForTransaction(tx.Hash);
+                Assert.IsTrue(bytes != null);
+
+                var vmObj = Serialization.Unserialize<VMObject>(bytes);
+
+                return (int)vmObj.AsNumber();
+            };
+
+            string str;
+            int count;
+            
+            str = fetchListItem(0);
+            Assert.IsTrue(str == "hello");
+
+            str = fetchListItem(1);
+            Assert.IsTrue(str == "world");
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 2);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "removeStuff", 0).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 1);
+
+            str = fetchListItem(0);
+            Assert.IsTrue(str == "world");
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "replaceStuff", 0, "A").
+                    CallContract("test", "addStuff", "B").
+                    CallContract("test", "addStuff", "C").
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 3);
+
+            str = fetchListItem(0);
+            Assert.IsTrue(str == "A");
+
+            str = fetchListItem(1);
+            Assert.IsTrue(str == "B");
+
+            str = fetchListItem(2);
+            Assert.IsTrue(str == "C");
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "clearStuff").
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            count = fetchListCount();
+            Assert.IsTrue(count == 0);
+        }
+
+        [Test]
         public void TestStorageMap()
         {
             var keys = PhantasmaKeys.Generate();
@@ -1042,14 +1434,14 @@ namespace Tests
                 "import Map;\n" +
                 "global _storageMap: storage_map<number, string>;\n" +
                 "constructor(owner:address)	{\n" +
-                "_storageMap.set(5, \"test1\");\n"+
+                "_storageMap.set(5, \"test1\");\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
                 " local test:string := _storageMap.get(5);\n" +
                 " Runtime.log(\"this log: \");\n" +
                 " Runtime.log(test);\n" +
-                "}\n"+
+                "}\n" +
                 "}\n";
 
             var parser = new Compiler();
@@ -1071,6 +1463,69 @@ namespace Tests
                     SpendGas(keys.Address).
                     EndScript());
             simulator.EndBlock();
+        }
+
+        public struct My_Struct
+        {
+            public string name;
+            public BigInteger value;
+        }
+
+        [Test]
+        public void TestStorageMapAndStruct()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var keys2 = PhantasmaKeys.Generate();
+
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+            var sourceCode =
+                "struct my_struct\n{" +
+                    "name:string;\n" +
+                    "value:number;\n" +
+                "}\n" +
+                "contract test {\n" +
+                "import Runtime;\n" +
+                "import Time;\n" +
+                "import Map;\n" +
+                "global _storageMap: storage_map<number, my_struct>;\n" +
+                "public createStruct(key:number, s:string, val:number)\n" +
+                "{\n" +
+                "local temp: my_struct := Struct.my_struct(s, val);\n" +
+                "_storageMap.set(key, temp);\n" +
+                "}\n" +
+                "public getStruct(key:number):my_struct\n" +
+                "{\n" +
+                "return _storageMap.get(key);\n" +
+                "}\n" +
+                "}\n";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "createStruct", 5, "hello", 123).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            var vmObj = simulator.Nexus.RootChain.InvokeContract(simulator.Nexus.RootStorage, "test", "getStruct", 5);
+            var temp = vmObj.AsStruct<My_Struct>();
+            Assert.IsTrue(temp.name == "hello");
+            Assert.IsTrue(temp.value == 123);
         }
 
         [Test]
@@ -1228,6 +1683,153 @@ namespace Tests
             simulator.EndBlock();
         }
 
+        [Test]
+        public void ArraysSimple()
+        {
+            // TODO make other tests also use multiline strings for source code, much more readable...
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public test(x:number):number {
+		local my_array: array<number>;		
+		my_array[1] := x;			
+		return Array.length(my_array);		
+	}	
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(5));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 1);
+        }
+
+        [Test]
+        public void ArraysVariableIndex()
+        {
+            // TODO make other tests also use multiline strings for source code, much more readable...
+            var sourceCode = @"
+contract arrays {
+	public test(x:number, idx:number):number {
+		local my_array: array<number>;		
+		my_array[idx] := x;			
+		local num:number := my_array[idx];		
+		return num + 1;
+	}	
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(2));
+            vm.Stack.Push(VMObject.FromObject(5));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 6);
+        }
+
+
+        [Test]
+        public void StringManipulation()
+        {
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public test(s:string, idx:number):string {        
+		local my_array: array<number>;		
+		my_array := s.toArray();	
+        my_array[idx] := 42; // replace char in this index with an asterisk (ascii table 42)
+		local result:string := String.fromArray(my_array);		
+		return result;
+	}	
+
+	public toUpper(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}	
+
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(2));
+            vm.Stack.Push(VMObject.FromObject("ABCD"));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsString();
+            Assert.IsTrue(result == "AB*D");
+
+            var toUpper = contract.abi.FindMethod("toUpper");
+            Assert.IsNotNull(toUpper);
+
+            vm = new TestVM(contract, storage, toUpper);
+            vm.Stack.Push(VMObject.FromObject("abcd"));
+            state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            result = vm.Stack.Pop().AsString();
+            Assert.IsTrue(result == "ABCD");
+        }
+
         // add simplified version of that test
         //[Test]
         //public void TestGHOST()
@@ -1278,7 +1880,7 @@ namespace Tests
         //    Console.WriteLine("nft series: " + nft.series);
         //}
 
-        [Test]
+        /*[Test]
         public void TestCROWN()
         {
             var keys = PhantasmaKeys.Generate();
@@ -1306,6 +1908,6 @@ namespace Tests
                 Console.WriteLine($"res {a.Key}:{a.Value}");
 
             }
-        }
+        }*/
     }
 }

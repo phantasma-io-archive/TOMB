@@ -191,6 +191,11 @@ namespace Phantasma.Tomb.Compiler
                 return ParseDecimal();
             }
 
+            if (token.value == "array")
+            {
+                return ParseArray();
+            }
+
             var kind = (VarKind)Enum.Parse(typeof(VarKind), token.value, true);
             return VarType.Find(kind);
         }
@@ -209,12 +214,17 @@ namespace Phantasma.Tomb.Compiler
         private Dictionary<string, StructDeclaration> _structs = new Dictionary<string, StructDeclaration>();
         private Dictionary<string, EnumDeclaration> _enums = new Dictionary<string, EnumDeclaration>();
 
-        private Module FindModule(string name)
+        public Module FindModule(string name, bool mustBeCompiled)
         {
             foreach (var entry in _modules)
             {
                 if (entry.Name == name)
                 {
+                    if (mustBeCompiled && entry.script == null)
+                    {
+                        return null;
+                    }
+
                     return entry;
                 }
             }
@@ -579,7 +589,7 @@ namespace Phantasma.Tomb.Compiler
 
                                     case TokenKind.Identifier:
                                         {
-                                            var descModule = FindModule(temp.value) as Script;
+                                            var descModule = FindModule(temp.value, true) as Script;
                                             if (descModule != null)
                                             {
                                                 var descSecondType = descModule.Parameters[1].Type;
@@ -661,11 +671,6 @@ namespace Phantasma.Tomb.Compiler
                                 var line = this.CurrentLine;
                                 var propertyName = ExpectIdentifier();
 
-                                if (contract.Kind == ModuleKind.Token && string.Equals(propertyName, "symbol", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    throw new CompilerException("symbol property not required, symbol is already defined by token contract name");
-                                }
-
                                 var parameters = new MethodParameter[0];
                                 var scope = new Scope(module.Scope, propertyName, parameters);
 
@@ -683,7 +688,6 @@ namespace Phantasma.Tomb.Compiler
                                 var next = FetchToken();
                                 if (next.value == "=")
                                 {
-
                                     var literal = ExpectExpression(scope);
 
                                     if (literal.ResultType != returnType)
@@ -855,6 +859,10 @@ namespace Phantasma.Tomb.Compiler
                                         CheckParameters(name, parameters, new[] { VarKind.Address });
                                         break;
 
+                                    case "onMigrate": // from, to
+                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address });
+                                        break;
+
                                     default:
                                         throw new CompilerException($"Proper trigger support for trigger {name} is not implemented");
                                 }
@@ -904,8 +912,11 @@ namespace Phantasma.Tomb.Compiler
 
                                 var method = new MethodInterface(script.library, MethodImplementationType.Custom, blockName, true, MethodKind.Method, script.ReturnType, new MethodParameter[0]);
 
+                                // TODO does this have to be added somewhere or its ok to just do this?
+                                var decl = new MethodDeclaration(scope, method);
+
                                 ExpectToken("{");
-                                script.main = ParseCommandBlock(scope, method);
+                                script.main = ParseCommandBlock(scope, decl);
                                 ExpectToken("}");
 
                                 break;
@@ -964,7 +975,7 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
-        private DecimalVarType ParseDecimal() 
+        private DecimalVarType ParseDecimal()
         {
             ExpectToken("<");
             var decimals = int.Parse(ExpectNumber());
@@ -975,7 +986,16 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("invalid decimals: " + decimals);
             }
 
-            return (DecimalVarType) VarType.Find(VarKind.Decimal, decimals);
+            return (DecimalVarType)VarType.Find(VarKind.Decimal, decimals);
+        }
+
+        private ArrayVarType ParseArray()
+        {
+            ExpectToken("<");
+            var elementType = ExpectType();
+            ExpectToken(">");
+
+            return (ArrayVarType)VarType.Find(VarKind.Array, elementType);
         }
 
         private MethodParameter[] ParseParameters(Scope scope)
@@ -1014,7 +1034,7 @@ namespace Phantasma.Tomb.Compiler
             return list.ToArray();
         }
 
-        private StatementBlock ParseCommandBlock(Scope scope, MethodInterface method)
+        private StatementBlock ParseCommandBlock(Scope scope, MethodDeclaration method)
         {
             var block = new StatementBlock(scope);
 
@@ -1146,7 +1166,7 @@ namespace Phantasma.Tomb.Compiler
                             {
                                 var initCmd = new AssignStatement();
                                 initCmd.variable = varDecl;
-                                initCmd.expression = initExpr;
+                                initCmd.valueExpression = initExpr;
                                 block.Commands.Add(initCmd);
                             }
 
@@ -1267,7 +1287,39 @@ namespace Phantasma.Tomb.Compiler
                             if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
                             {
                                 var setCommand = new AssignStatement();
-                                setCommand.variable = scope.FindVariable(token.value);
+
+                                var varName = token.value;
+                                VarType expressionExpectedType;
+
+                                var indexerPos = varName.IndexOf("[");
+                                if (indexerPos >= 0)
+                                {
+                                    if (!varName.EndsWith("]"))
+                                    {
+                                        throw new CompilerException("expected ] in array indexer");
+                                    }
+
+                                    var tmp = varName.Substring(indexerPos + 1, (varName.Length - indexerPos) - 2);
+
+                                    varName = varName.Substring(0, indexerPos);
+
+                                    setCommand.variable = scope.FindVariable(varName);
+
+                                    var arrayType = setCommand.variable.Type as ArrayVarType;
+
+                                    if (arrayType == null)
+                                    {
+                                        throw new CompilerException($"variable {setCommand.variable} is not an array");
+                                    }
+
+                                    expressionExpectedType = arrayType.elementType;
+                                    setCommand.indexExpression = ParseArrayIndexingExpression(scope, tmp, expressionExpectedType);
+                                }
+                                else
+                                {
+                                    setCommand.variable = scope.FindVariable(varName);
+                                    expressionExpectedType = setCommand.variable.Type;
+                                }
 
                                 var expr = ExpectExpression(scope);
                                 if (next.value != ":=")
@@ -1284,9 +1336,9 @@ namespace Phantasma.Tomb.Compiler
                                 }
 
 
-                                expr = Expression.AutoCast(expr, setCommand.variable.Type);
+                                expr = Expression.AutoCast(expr, expressionExpectedType);
 
-                                setCommand.expression = expr;
+                                setCommand.valueExpression = expr;
                                 block.Commands.Add(setCommand);
                             }
                             else
@@ -1385,6 +1437,33 @@ namespace Phantasma.Tomb.Compiler
                         }
                         else
                         {
+                            var indexerPos = first.value.IndexOf("[");
+                            if (indexerPos >= 0)
+                            {
+                                if (!first.value.EndsWith("]"))
+                                {
+                                    throw new CompilerException("expected ] in array indexer");
+                                }
+
+                                var varName = first.value;
+
+                                var tmp = first.value.Substring(indexerPos + 1, (varName.Length - indexerPos) - 2);
+
+                                varName = varName.Substring(0, indexerPos);
+
+                                var arrayVar = scope.FindVariable(varName);
+
+                                var arrayType = arrayVar.Type as ArrayVarType;
+
+                                if (arrayType == null)
+                                {
+                                    throw new CompilerException($"variable {arrayVar} is not an array");
+                                }
+
+                                var indexExpression = ParseArrayIndexingExpression(scope, tmp, arrayType.elementType);
+                                return new ArrayExpression(scope, arrayVar, indexExpression);
+                            }
+
                             var varDecl = scope.FindVariable(first.value, false);
                             if (varDecl != null)
                             {
@@ -1403,7 +1482,7 @@ namespace Phantasma.Tomb.Compiler
                                 return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Method, method));
                             }
 
-                            var module = scope.Module.FindModule(first.value);
+                            var module = scope.Module.FindModule(first.value, true);
                             if (module != null)
                             {
                                 return new LiteralExpression(scope, first.value, VarType.Find(VarKind.Module, method));
@@ -1556,6 +1635,18 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
+        // TODO: here we only suppprt variables or literal expressions as index, but could be expand later...
+        private Expression ParseArrayIndexingExpression(Scope scope, string exprStr, VarType elementType)
+        {
+            var varDecl = scope.FindVariable(exprStr, false);
+            if (varDecl != null)
+            {
+                return new VarExpression(scope, varDecl);
+            }
+
+            return new LiteralExpression(scope, exprStr, elementType); 
+        }
+
         private Expression ParseBinaryExpression(Scope scope, LexerToken opToken, Expression leftSide, Expression rightSide)
         {
             if (opToken.kind != TokenKind.Operator)
@@ -1577,6 +1668,16 @@ namespace Phantasma.Tomb.Compiler
                     rightSide = new CastExpression(scope, VarType.Find(VarKind.String), rightSide);
                 }
                 else
+                if (leftSide.ResultType.Kind == VarKind.Number && rightSide.ResultType.Kind == VarKind.Timestamp && op == OperatorKind.Subtraction)
+                {
+                    rightSide = new CastExpression(scope, VarType.Find(VarKind.Number), rightSide);
+                }
+                else
+                if (leftSide.ResultType.Kind == VarKind.Timestamp && rightSide.ResultType.Kind == VarKind.Number && op == OperatorKind.Addition)
+                {
+                    rightSide = new CastExpression(scope, VarType.Find(VarKind.Timestamp), rightSide);
+                }
+                else
                 {
                     throw new CompilerException($"type mistmatch, {leftSide.ResultType} on left, {rightSide.ResultType} on right");
                 }
@@ -1595,6 +1696,13 @@ namespace Phantasma.Tomb.Compiler
         private Expression ParseExpression(Scope scope, bool allowBinary = true)
         {
             var first = FetchToken();
+
+            if (first.kind == TokenKind.Operator && first.value == "!")
+            {
+                var expr = ParseExpression(scope, allowBinary);
+                return new NegationExpression(scope, expr);
+            }
+
             var second = FetchToken();
 
             switch (second.kind)
@@ -1800,6 +1908,11 @@ namespace Phantasma.Tomb.Compiler
                     }
 
                     Rewind();
+
+                    if (expr.generics.Count > 0)
+                    {
+                        ExpectToken(",");
+                    }
 
                     var genType = ExpectType();
 

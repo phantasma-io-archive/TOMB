@@ -2,4 +2,7 @@
 .vs/
 obj/
 bin/
+Publish/
 *.user
+
+Compiler/Properties/launchSettings.json

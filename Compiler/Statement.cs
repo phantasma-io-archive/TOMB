@@ -60,7 +60,8 @@ namespace Phantasma.Tomb.Compiler
     public class AssignStatement : Statement
     {
         public VarDeclaration variable;
-        public Expression expression;
+        public Expression valueExpression;
+        public Expression indexExpression;
 
         public AssignStatement() : base()
         {
@@ -71,12 +72,13 @@ namespace Phantasma.Tomb.Compiler
         {
             callback(this);
             variable.Visit(callback);
-            expression.Visit(callback);
+            valueExpression.Visit(callback);
+            indexExpression?.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
         {
-            return (node == this) || variable.IsNodeUsed(node) || expression.IsNodeUsed(node);
+            return (node == this) || variable.IsNodeUsed(node) || valueExpression.IsNodeUsed(node) || (indexExpression != null && indexExpression.IsNodeUsed(node));
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -86,8 +88,21 @@ namespace Phantasma.Tomb.Compiler
                 variable.Register = Compiler.Instance.AllocRegister(output, variable, variable.Name);
             }
 
-            var srcReg = expression.GenerateCode(output);
-            output.AppendLine(this, $"COPY {srcReg} {variable.Register}");
+            var srcReg = valueExpression.GenerateCode(output);
+            
+            if (indexExpression != null)
+            {
+                var idxReg = indexExpression.GenerateCode(output);
+
+                output.AppendLine(this, $"PUT {srcReg} {variable.Register} {idxReg}");
+
+                Compiler.Instance.DeallocRegister(ref idxReg);
+            }
+            else
+            {
+                output.AppendLine(this, $"COPY {srcReg} {variable.Register}");
+            }
+
             Compiler.Instance.DeallocRegister(ref srcReg);
         }
     }
@@ -96,9 +111,9 @@ namespace Phantasma.Tomb.Compiler
     {
         public Expression expression;
 
-        public MethodInterface method;
+        public MethodDeclaration method;
 
-        public ReturnStatement(MethodInterface method, Expression expression) : base()
+        public ReturnStatement(MethodDeclaration method, Expression expression) : base()
         {
             this.expression = expression;
             this.method = method;
@@ -117,26 +132,37 @@ namespace Phantasma.Tomb.Compiler
 
         public override void GenerateCode(CodeGenerator output)
         {
+            var returnType = this.method.@interface.ReturnType;
+
+            var simpleReturn = (this.method.ParentScope.Module is Script);
+
             if (expression != null)
             {
-                if (this.method.ReturnType.Kind == VarKind.None)
+                if (returnType.Kind == VarKind.None)
                 {
                     throw new System.Exception($"unexpect return expression for void method: {method.Name}");
                 }
 
-                this.expression = Expression.AutoCast(expression, this.method.ReturnType);
+                this.expression = Expression.AutoCast(expression, returnType);
 
                 var reg = this.expression.GenerateCode(output);
                 output.AppendLine(this, $"PUSH {reg}");
                 Compiler.Instance.DeallocRegister(ref reg);
             }
             else
-            if (this.method.ReturnType.Kind != VarKind.None)
+            if (returnType.Kind != VarKind.None)
             {
                 throw new System.Exception($"expected return expression for non-void method: {method.Name}");
             }
 
-            output.AppendLine(this, "RET");
+            if (simpleReturn)
+            {
+                output.AppendLine(this, "RET");
+            }
+            else
+            {
+                output.AppendLine(this, "JMP @" + this.method.GetExitLabel());
+            }
         }
     }
 

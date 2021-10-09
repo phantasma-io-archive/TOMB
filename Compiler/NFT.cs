@@ -34,7 +34,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var abi = base.GenerateCode(output);
 
-            var nftStandard = NFTUtils.GetNFTStandard();
+            var nftStandard = TokenUtils.GetNFTStandard();
 
             // convert ABI parameters
             var methods = new List<ContractMethod>();

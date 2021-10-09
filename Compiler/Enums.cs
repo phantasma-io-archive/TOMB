@@ -26,6 +26,7 @@ namespace Phantasma.Tomb.Compiler
         Storage_Map,
         Storage_List,
         Storage_Set,
+        Array,
     }
 
     public abstract class VarType
@@ -110,6 +111,34 @@ namespace Phantasma.Tomb.Compiler
 
                 case VarKind.Generic:
                     result = new GenericVarType((int)extra);
+                    break;
+
+                case VarKind.Array:
+                    VarType elementType = extra as VarType;
+
+                    if (elementType == null)
+                    {
+                        VarKind elementKind;
+
+                        var extraStr = extra != null ? extra.ToString() : null;
+
+                        if (string.IsNullOrEmpty(extraStr))
+                        {
+                            throw new CompilerException($"Untype arrays not supported");
+                        }
+                        
+                        if (System.Enum.TryParse<VarKind>(extraStr, out elementKind))
+                        {
+                            elementType = Find(elementKind);                            
+                        }
+                        
+                        if (elementType == null)
+                        {
+                            throw new CompilerException($"Could not initialize array element type: {extra}");
+                        }
+                    }
+
+                    result = new ArrayVarType(elementType);
                     break;
 
                 default:
@@ -200,6 +229,21 @@ namespace Phantasma.Tomb.Compiler
         public override string ToString()
         {
             return $"{Kind}<{index}>";
+        }
+    }
+
+    public class ArrayVarType : VarType
+    {
+        public readonly VarType elementType;
+
+        public ArrayVarType(VarType elementType) : base(VarKind.Array)
+        {
+            this.elementType = elementType;
+        }
+
+        public override string ToString()
+        {
+            return $"{Kind}<{elementType}>";
         }
     }
 

@@ -93,6 +93,8 @@ namespace Phantasma.Tomb.Compiler
                 {
                     string name;
 
+                    bool checkForGlobals = false;
+
                     if (method.Name.StartsWith("get"))
                     {
                         name = method.Name.Substring(3);
@@ -101,11 +103,18 @@ namespace Phantasma.Tomb.Compiler
                         {
                             case "Name":
                                 hasName = true;
+                                checkForGlobals = true;
                                 ExpectMethodType(method, VarKind.String);
                                 break;
 
                             case "MaxSupply":
+                                checkForGlobals = true;
                                 ExpectMethodType(method, VarKind.Number);
+                                break;
+
+                            case "Symbol":
+                            case "Decimals":
+                                checkForGlobals = true;
                                 break;
                         }
                     }
@@ -114,7 +123,32 @@ namespace Phantasma.Tomb.Compiler
                         if (method.Name.StartsWith("is") && method.Name.Length > 2 && char.IsUpper(method.Name[2]))
                         {
                             ExpectMethodType(method, VarKind.Bool);
+                            checkForGlobals = true;
+
+                            if (method.Name.Equals("IsSwappable", StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new CompilerException(this, $"Please remove the method '{method.Name}' from the token contract '{this.Name}'");
+                            }
                         }
+                    }
+
+                    if (checkForGlobals)
+                    {
+                        method.Visit((x) =>
+                        {
+                            VarDeclaration decl = null;
+
+                            if (x is VarExpression)
+                            {
+                                var varExpr = (VarExpression)x;
+                                decl = varExpr.decl;
+                            }
+
+                            if (decl != null && decl.Storage == VarStorage.Global)
+                            {
+                                throw new CompilerException($"Access to global variable {decl.Name} is not allowed in property {method.Name}");
+                            }
+                        });
                     }
                 }
 
@@ -153,7 +187,7 @@ namespace Phantasma.Tomb.Compiler
             return abi;
         }
 
-        public MethodInterface AddMethod(int line, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, Scope scope)
+        public MethodDeclaration AddMethod(int line, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, Scope scope)
         {
             if (Methods.Count == 0)
             {
@@ -175,7 +209,7 @@ namespace Phantasma.Tomb.Compiler
 
             scope.Method = decl;
 
-            return method;
+            return decl;
         }
 
         public void SetMethodBody(string name, StatementBlock body)
