@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
 using System;
@@ -577,7 +577,13 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Decimal:
                     {
                         var decType = this.type as DecimalVarType;
-                        var temp = decimal.Parse(this.value, CultureInfo.InvariantCulture);
+                        decimal temp;
+
+                        if (!decimal.TryParse(this.value, NumberStyles.Number, CultureInfo.InvariantCulture, out temp))
+                        {
+                            throw new CompilerException("Invalid decimal literal: " + this.value);
+                        }
+
                         val = UnitConversion.ToBigInteger(temp, decType.decimals).ToString();
                         break;
                     }
@@ -598,6 +604,27 @@ namespace Phantasma.Tomb.Compiler
 
                 default:
                     {
+                        switch (this.type.Kind)
+                        {
+                            case VarKind.Bool:
+                                if (!(this.value.Equals("false", StringComparison.OrdinalIgnoreCase) || this.value.Equals("true", StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    throw new CompilerException("Invalid bool literal: " + this.value);
+                                }
+                                break;
+
+                            case VarKind.Number:
+                                {
+                                    BigInteger temp;
+
+                                    if (!BigInteger.TryParse(this.value, out temp))
+                                    {
+                                        throw new CompilerException("Invalid number literal: " + this.value);
+                                    }
+                                    break;
+                                }
+                        }
+
                         val = this.value;
                         break;
                     }
