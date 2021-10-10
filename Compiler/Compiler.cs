@@ -2083,6 +2083,9 @@ namespace Phantasma.Tomb.Compiler
                     expr.arguments.Add(arg);
 
                     var expectedType = expr.method.Parameters[i].Type;
+
+                    arg = Expression.AutoCast(arg, expectedType);
+
                     if (arg.ResultType != expectedType && expectedType.Kind != VarKind.Any)
                     {
                         throw new CompilerException($"expected argument of type {expectedType}, got {arg.ResultType} instead");
