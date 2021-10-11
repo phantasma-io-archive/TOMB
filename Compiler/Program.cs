@@ -74,9 +74,12 @@ namespace Phantasma.Tomb.Compiler
 
         static void Main(string[] args)
         {
+#if DEBUG
             ExportLibraryInfo();
-
             var sourceFilePath = args.Length > 0 ? args[0] : "katacomb.txt";
+#else
+            var sourceFilePath = args.Length > 0 ? args[0] : "my_contract.tomb";
+#endif
 
             if (!File.Exists(sourceFilePath))
             {

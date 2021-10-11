@@ -800,7 +800,15 @@ namespace Phantasma.Tomb.Compiler
                 {                    
                     if (isConstructor && !variable.Type.IsStorageBound)
                     {
-                        throw new CompilerException($"global variable '{variable.Name}' not assigned in constructor of {this.scope.Module.Name}");
+                        if (variable.Type.Kind == VarKind.Array)
+                        {
+                            // HACK: quick solution to prevent global arrasy, it might be possible to support then as globals, but I did not have time yet to study if feasible...
+                            throw new CompilerException($"instead of array use storage_map type for variable: '{variable.Name}'");
+                        }
+                        else
+                        {
+                            throw new CompilerException($"global variable '{variable.Name}' not assigned in constructor of {this.scope.Module.Name}");
+                        }                        
                     }
 
                     continue; // if we hit this, means it went unused 

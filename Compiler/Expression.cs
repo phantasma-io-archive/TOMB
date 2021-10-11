@@ -577,7 +577,13 @@ namespace Phantasma.Tomb.Compiler
                 case VarKind.Decimal:
                     {
                         var decType = this.type as DecimalVarType;
-                        var temp = decimal.Parse(this.value, CultureInfo.InvariantCulture);
+                        decimal temp;
+
+                        if (!decimal.TryParse(this.value, NumberStyles.Number, CultureInfo.InvariantCulture, out temp))
+                        {
+                            throw new CompilerException("Invalid decimal literal: " + this.value);
+                        }
+
                         val = UnitConversion.ToBigInteger(temp, decType.decimals).ToString();
                         break;
                     }
@@ -598,6 +604,27 @@ namespace Phantasma.Tomb.Compiler
 
                 default:
                     {
+                        switch (this.type.Kind)
+                        {
+                            case VarKind.Bool:
+                                if (!(this.value.Equals("false", StringComparison.OrdinalIgnoreCase) || this.value.Equals("true", StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    throw new CompilerException("Invalid bool literal: " + this.value);
+                                }
+                                break;
+
+                            case VarKind.Number:
+                                {
+                                    BigInteger temp;
+
+                                    if (!BigInteger.TryParse(this.value, out temp))
+                                    {
+                                        throw new CompilerException("Invalid number literal: " + this.value);
+                                    }
+                                    break;
+                                }
+                        }
+
                         val = this.value;
                         break;
                     }
@@ -753,6 +780,54 @@ namespace Phantasma.Tomb.Compiler
         }
 
         public override VarType ResultType => decl.Type;
+    }
+
+    public class ArrayExpression : Expression
+    {
+        public VarDeclaration decl;
+        public Expression indexExpression;
+
+        public ArrayExpression(Scope parentScope, VarDeclaration declaration, Expression indexExpression) : base(parentScope)
+        {
+            this.decl = declaration;
+            this.indexExpression = indexExpression;
+        }
+
+        public override string ToString()
+        {
+            return decl.ToString();
+        }
+
+        public override Register GenerateCode(CodeGenerator output)
+        {
+            if (decl.Register == null)
+            {
+                throw new CompilerException(this, $"var not initialized:" + decl.Name);
+            }
+
+            var dstReg = Compiler.Instance.AllocRegister(output, this);
+            var idxReg = indexExpression.GenerateCode(output);
+
+            output.AppendLine(this, $"GET {decl.Register} {dstReg} {idxReg}");
+
+            Compiler.Instance.DeallocRegister(ref idxReg);
+
+            return dstReg;
+        }
+
+        public override void Visit(Action<Node> callback)
+        {
+            callback(this);
+            decl.Visit(callback);
+            indexExpression.Visit(callback);
+        }
+
+        public override bool IsNodeUsed(Node node)
+        {
+            return (node == this) || node == decl;
+        }
+
+        public override VarType ResultType => decl.Type is ArrayVarType ? ((ArrayVarType)decl.Type).elementType : VarType.Find(VarKind.Unknown);
     }
 
     public class ConstExpression : Expression

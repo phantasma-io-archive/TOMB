@@ -18,6 +18,7 @@ TOMB smart contract compiler for Phantasma platform
 - Constants
 - Enums
 - Global and local variables
+- Array indexing
 - Bitshifting and logical operators
 - Contract constructors, methods and triggers
 - Contract public methods
@@ -26,6 +27,7 @@ TOMB smart contract compiler for Phantasma platform
 - Generic types
 - If ... Else
 - While ... and Do ... While loops
+- Switch .. case
 - Break and Continue
 - Throw Exceptions
 - Uninitialized globals validation
@@ -41,7 +43,6 @@ TOMB smart contract compiler for Phantasma platform
 ## Planned features
 
 - For.. Loops
-- Switch .. case
 - Try .. Catch
 - More...
 - Warnings
@@ -336,8 +337,11 @@ The following libraries can be imported into a contract.
 ### String
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
+| String.toBytes(target:String) | Bytes | TODO|
 | String.length(target:String) | Number | TODO|
-| String.substr(target:String, index:Number, length:Number) | Number | TODO|
+| String.substr(target:String, index:Number, length:Number) | String | TODO|
+| String.toArray(target:String) | Array<Number> | TODO|
+| String.fromArray(target:Array<Number>) | String | TODO|
 
 ### Decimal
 | Method | Return type | Description|
@@ -425,6 +429,22 @@ contract test {
 	}
 }
 ```
+
+## Switch case
+Simple contract that sums two numbers and returns the result
+
+```c#
+contract test {
+    public check(x:number): string {
+        switch (x) {
+            case 0: return "zero";
+            case 1: return "one";
+            case 2: return "two";
+            default: return "other";
+        }                  
+	}
+}
+ ```
 
 ## Simple Counter
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
@@ -563,6 +583,43 @@ contract test {
 	{
 		return my_state.get(target);
 	}
+}
+```
+
+## String manipulation
+The compiler supports generic types, including maps.<br/>
+Maps are one of the few types that don't have to initialized in the constructor.<br/>
+
+```c#
+contract test {
+	import Array;
+	
+	public toUpper(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}	
 }
 ```
 
@@ -1004,7 +1061,42 @@ contract test {
 }
 ```
 
+## Fungible Token
+Showcases how to implement a fungible token (eg: the Phantasma equivalent to an Ethereum ERC20).
 
+```c#
+token DOG { // this defines the token symbol as DOG
+	import Runtime;
+
+	property name:string = "Dog Token";
+
+	property isFungible: bool = true;
+
+	property isDivisible: bool = true;
+	property decimals:number = 8; // required only if isDivisible is true
+	
+	property isTransferable: bool = true;
+	property isBurnable: bool = true;
+	
+	property isFinite: bool = false;
+	//property maxSupply: number = 1000000; // required only if isFinite is true
+	
+	global _admin: address;
+	
+	constructor(owner:address)	{
+       _admin := owner;
+	}
+
+	// allows the token to be upgraded later, remove this trigger if you want a imutable fungible token
+	trigger onUpgrade(from:address) 
+	{
+		Runtime.expect(Runtime.isWitness(_admin), "witness failed");
+		return;
+	}
+	
+	// its possible to also add more triggers, custom methods etc
+}
+```
 
 ## NFTs
 Showcases how to implement an NFT, showcasing all details including ROM, RAM and token series.

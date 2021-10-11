@@ -1,4 +1,4 @@
-﻿using Phantasma.Blockchain.Contracts;
+using Phantasma.Blockchain.Contracts;
 using Phantasma.Blockchain.Tokens;
 using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
@@ -129,7 +129,7 @@ namespace Phantasma.Tomb.Compiler
             var libDecl = new LibraryDeclaration(scope, name);
 
             VarKind libKind;
-            if (Enum.TryParse<VarKind>(name, out libKind) && libKind != VarKind.Bytes && libKind != VarKind.Method && libKind != VarKind.Task)
+            if (Enum.TryParse<VarKind>(name, out libKind) && libKind != VarKind.Bytes && libKind != VarKind.Method && libKind != VarKind.Task && libKind != VarKind.Array)
             {
                 switch (libKind)
                 {
@@ -200,6 +200,22 @@ namespace Phantasma.Tomb.Compiler
                             return reg;
                         });
 
+                    libDecl.AddMethod("toArray", MethodImplementationType.Custom, VarType.Find(VarKind.Array, VarType.Find(VarKind.Number)), new[] { new MethodParameter("target", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.Struct}");
+                            return reg;
+                        });
+
+                    libDecl.AddMethod("fromArray", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarType.Find(VarKind.Array, VarType.Find(VarKind.Number))) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.String}");
+                            return reg;
+                        });
+
                     return libDecl;
 
                 case "Bytes":
@@ -255,8 +271,21 @@ namespace Phantasma.Tomb.Compiler
 
                             return regA;
                         });
-
                     return libDecl;
+
+                case "Array":
+                    {
+                        libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.Any) }).
+                            SetPreCallback((output, scope, expr) =>
+                            {
+                                var reg = expr.arguments[0].GenerateCode(output);
+                                output.AppendLine(expr, $"COUNT {reg} {reg}");
+                                return reg;
+                            });
+
+                        return libDecl;
+                    }
+
 
                 case "Address":
                     // TODO implementations of those
@@ -572,6 +601,8 @@ namespace Phantasma.Tomb.Compiler
                             return reg;
                         })
                         .SetPostCallback(ConvertGenericResult);
+
+                    // TODO not implemented yet... for now use builtin TOMB array support, eg: local temp: array<number>
                     libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
                     libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) });
                     libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any) });

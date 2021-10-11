@@ -177,18 +177,70 @@ namespace Tests
         }
 
         [Test]
+        public void Switch()
+        {
+            var sourceCode =
+                @"
+contract test {
+    public check(x:number): string {
+        switch (x) {
+            case 0: return ""zero"";
+            case 1: return ""one"";
+            case 2: return ""two"";
+            default: return ""other"";
+        }                  
+     }}";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+            
+            var check = contract.abi.FindMethod("check");
+            Assert.IsNotNull(check);
+            
+            // test different cases
+            for (int i=-1; i<=4; i++)
+            {
+                var vm = new TestVM(contract, storage, check);
+                vm.Stack.Push(VMObject.FromObject(i));
+                var state = vm.Execute();
+                Assert.IsTrue(state == ExecutionState.Halt);
+                var result = vm.Stack.Pop().AsString();
+
+                string expected;
+                switch (i)
+                {
+                    case 0: expected = "zero"; break;
+                    case 1: expected = "one"; break;
+                    case 2: expected = "two"; break;
+                    default: expected = "other"; break;
+                }
+
+                Assert.IsTrue(result == expected);
+            }
+        }
+
+
+        [Test]
         public void TestCounter()
         {
             var sourceCode =
-                "contract test{\n" +
-                "global counter: number;\n" +
-                "constructor(owner:address)	{\n" +
-                "counter:= 0;}\n" +
-                "public increment(){\n" +
-                "if (counter < 0){\n" +
-                "throw \"invalid state\";}\n" +
-                "counter += 1;\n" +
-                "}}\n";
+                @"
+contract test {
+    global counter: number;
+    
+    constructor(owner:address)	{
+        counter:= 0; 
+    }
+    
+    public increment() {
+        if (counter < 0) {
+            throw ""invalid state"";
+        }   
+                
+        counter += 1;
+     }}";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -223,14 +275,14 @@ namespace Tests
 
 
         [Test]
-        public void TestMinMax()
+        public void MinMax()
         {
             var sourceCode =
-                "contract test{\n" +
-                "import Math;\n" +
-                "public calculate(a:number, b:number):number {\n" +
-                "return Math.min(a, b);\n" +
-                "}}\n";
+                @"contract test{
+                    import Math;
+                    public calculate(a:number, b:number):number {
+                        return Math.min(a, b);
+                    }}";
 
             var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
@@ -255,7 +307,7 @@ namespace Tests
 
 
         [Test]
-        public void TestType()
+        public void TypeOf()
         {
             var sourceCode = new string[] {
                 "contract test{" ,
@@ -292,7 +344,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStrings()
+        public void StringsSimple()
         {
             var str = "hello";
 
@@ -345,7 +397,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestDecimals()
+        public void DecimalsSimple()
         {
             var valStr = "2.4587";
             var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
@@ -418,7 +470,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestDecimalsPrecision()
+        public void DecimalsPrecision()
         {
             var valStr = "2.4587";
             var val = decimal.Parse(valStr, CultureInfo.InvariantCulture);
@@ -452,7 +504,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestEnums()
+        public void Enums()
         {
             string[] sourceCode = new string[] {
                 "enum MyEnum { A, B, C}",
@@ -506,7 +558,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestProperties()
+        public void Properties()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -555,7 +607,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestBool()
+        public void Bools()
         {
             string[] sourceCode = new string[] {
                 "token TEST {",
@@ -587,7 +639,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestUpdateStringMethod()
+        public void UpdateStringMethod()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -651,7 +703,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestUpdateNumberMethod()
+        public void UpdateNumberMethod()
         {
             string[] sourceCode = new string[] {
                 "token GHOST {",
@@ -711,7 +763,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestQueryMethodAddress()
+        public void QueryMethodAddress()
         {
             string[] sourceCode = new string[] {
                 "token TEST  {",
@@ -760,7 +812,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestIsWitness()
+        public void IsWitness()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -808,7 +860,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestNFT()
+        public void NFTs()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1207,7 +1259,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestTriggers()
+        public void Triggers()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1260,7 +1312,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageList()
+        public void StorageList()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1418,7 +1470,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageMap()
+        public void StorageMap()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1472,7 +1524,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageMapAndStruct()
+        public void StorageMapAndStruct()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1529,7 +1581,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestAES()
+        public void AES()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1580,7 +1632,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestAESAndStorageMap()
+        public void AESAndStorageMap()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1636,7 +1688,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestStorageMapHas()
+        public void StorageMapHas()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1681,6 +1733,153 @@ namespace Tests
                     SpendGas(keys.Address).
                     EndScript());
             simulator.EndBlock();
+        }
+
+        [Test]
+        public void ArraySimple()
+        {
+            // TODO make other tests also use multiline strings for source code, much more readable...
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public test(x:number):number {
+		local my_array: array<number>;		
+		my_array[1] := x;			
+		return Array.length(my_array);		
+	}	
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(5));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 1);
+        }
+
+        [Test]
+        public void ArrayVariableIndex()
+        {
+            // TODO make other tests also use multiline strings for source code, much more readable...
+            var sourceCode = @"
+contract arrays {
+	public test(x:number, idx:number):number {
+		local my_array: array<number>;		
+		my_array[idx] := x;			
+		local num:number := my_array[idx];		
+		return num + 1;
+	}	
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(2));
+            vm.Stack.Push(VMObject.FromObject(5));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 6);
+        }
+
+
+        [Test]
+        public void StringManipulation()
+        {
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public test(s:string, idx:number):string {        
+		local my_array: array<number>;		
+		my_array := s.toArray();	
+        my_array[idx] := 42; // replace char in this index with an asterisk (ascii table 42)
+		local result:string := String.fromArray(my_array);		
+		return result;
+	}	
+
+	public toUpper(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}	
+
+}
+";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var test = contract.abi.FindMethod("test");
+            Assert.IsNotNull(test);
+
+            vm = new TestVM(contract, storage, test);
+            vm.Stack.Push(VMObject.FromObject(2));
+            vm.Stack.Push(VMObject.FromObject("ABCD"));
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            var result = vm.Stack.Pop().AsString();
+            Assert.IsTrue(result == "AB*D");
+
+            var toUpper = contract.abi.FindMethod("toUpper");
+            Assert.IsNotNull(toUpper);
+
+            vm = new TestVM(contract, storage, toUpper);
+            vm.Stack.Push(VMObject.FromObject("abcd"));
+            state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+
+            result = vm.Stack.Pop().AsString();
+            Assert.IsTrue(result == "ABCD");
         }
 
         // add simplified version of that test

@@ -4,7 +4,12 @@ namespace Phantasma.Tomb.Compiler
 {
     public class CompilerException : Exception
     {
-        public CompilerException(string msg) : base($"line {Compiler.Instance.CurrentLine}: {msg}")
+        private static string FetchCurrentLine()
+        {
+            return Compiler.Instance != null ? Compiler.Instance.CurrentLine.ToString() : "???";
+        }
+
+        public CompilerException(string msg) : base($"line {FetchCurrentLine()}: {msg}")
         {
 
         }
