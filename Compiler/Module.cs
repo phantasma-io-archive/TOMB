@@ -894,7 +894,17 @@ namespace Phantasma.Tomb.Compiler
             DebugInfo temp;
             Dictionary<string, int> labels;
 
-            script = AssemblerUtils.BuildScript(lines, this.Name, out temp, out labels);
+
+            try
+            {
+                script = AssemblerUtils.BuildScript(lines, this.Name, out temp, out labels);
+            }
+            catch (Exception e)
+            {
+                System.IO.File.WriteAllText("output.asm", string.Join('\n', lines));
+                throw e;
+            }
+
             this.debugInfo = temp;
 
             lines = AssemblerUtils.CommentOffsets(lines, this.debugInfo).ToArray();
