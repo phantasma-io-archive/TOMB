@@ -1375,7 +1375,7 @@ namespace Phantasma.Tomb.Compiler
                                     }
 
                                     expressionExpectedType = arrayType.elementType;
-                                    setCommand.indexExpression = ParseArrayIndexingExpression(scope, tmp, expressionExpectedType);
+                                    setCommand.keyExpression = ParseArrayIndexingExpression(scope, tmp, expressionExpectedType);
                                 }
                                 else
                                 {
@@ -1383,22 +1383,7 @@ namespace Phantasma.Tomb.Compiler
                                     expressionExpectedType = setCommand.variable.Type;
                                 }
 
-                                var expr = ExpectExpression(scope);
-                                if (next.value != ":=")
-                                {
-                                    var str = next.value.Substring(0, next.value.Length - 1);
-                                    var op = ParseOperator(str);
-
-                                    if (op == OperatorKind.Unknown)
-                                    {
-                                        throw new CompilerException("unknown operator: " + next.value);
-                                    }
-
-                                    expr = new BinaryExpression(scope, op, new VarExpression(scope, setCommand.variable), expr);
-                                }
-
-
-                                expr = Expression.AutoCast(expr, expressionExpectedType);
+                                var expr = ParseAssignmentExpression(scope, next, setCommand.variable, expressionExpectedType);
 
                                 setCommand.valueExpression = expr;
                                 block.Commands.Add(setCommand);
@@ -1407,6 +1392,7 @@ namespace Phantasma.Tomb.Compiler
                             if (next.kind == TokenKind.Selector)
                             {
                                 var varDecl = scope.FindVariable(token.value, false);
+                                bool isStructField = false;
 
                                 LibraryDeclaration libDecl;
 
@@ -1438,6 +1424,14 @@ namespace Phantasma.Tomb.Compiler
                                                 break;
                                             }
 
+                                        case VarKind.Struct:
+                                            {
+                                                libDecl = null;
+                                                isStructField = true;
+                                                break;
+                                            }
+
+
                                         default:
                                             throw new CompilerException($"expected {token.value} to be generic type, but is {varDecl.Type} instead");
                                     }
@@ -1447,10 +1441,41 @@ namespace Phantasma.Tomb.Compiler
                                     libDecl = scope.Module.FindLibrary(token.value);
                                 }
 
-                                var methodCall = new MethodCallStatement();
-                                methodCall.expression = ParseMethodExpression(scope, libDecl, varDecl);
+                                if (isStructField)
+                                {
+                                    var fieldName = ExpectIdentifier();
 
-                                block.Commands.Add(methodCall);
+                                    next = FetchToken();
+
+                                    if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
+                                    {
+                                        var structName = ((StructVarType)varDecl.Type).name;
+                                        if (!_structs.ContainsKey(structName))
+                                        {
+                                            throw new CompilerException("unknown struct: " + structName);
+                                        }
+
+                                        var structDecl = _structs[structName];
+                                        var fieldDecl = structDecl.fields.FirstOrDefault(x => x.name == fieldName);
+
+                                        var assignment = new AssignStatement();
+                                        assignment.variable = varDecl;
+                                        assignment.keyExpression = new LiteralExpression(scope, "\"" + fieldName + "\"" , fieldDecl.type);
+                                        assignment.valueExpression = ParseAssignmentExpression(scope, next, varDecl, fieldDecl.type);
+                                        block.Commands.Add(assignment);
+                                    }
+                                    else
+                                    {
+                                        throw new CompilerException($"expected assignment operator");
+                                    }
+                                }
+                                else
+                                {
+                                    var methodCall = new MethodCallStatement();
+                                    methodCall.expression = ParseMethodExpression(scope, libDecl, varDecl);
+
+                                    block.Commands.Add(methodCall);
+                                }
                             }
                             else
                             {
@@ -1483,7 +1508,29 @@ namespace Phantasma.Tomb.Compiler
                 throw new CompilerException("weird compiler flow detected, contact devs");
             }
         }
-        
+
+        private Expression ParseAssignmentExpression(Scope scope, LexerToken next, VarDeclaration varDecl, VarType expectedType)
+        {
+            var expr = ExpectExpression(scope);
+            if (next.value != ":=")
+            {
+                var str = next.value.Substring(0, next.value.Length - 1);
+                var op = ParseOperator(str);
+
+                if (op == OperatorKind.Unknown)
+                {
+                    throw new CompilerException("unknown operator: " + next.value);
+                }
+
+                expr = new BinaryExpression(scope, op, new VarExpression(scope, varDecl), expr);
+            }
+
+
+            expr = Expression.AutoCast(expr, expectedType);
+
+            return expr;
+        }
+
         private Expression ExpectExpression(Scope scope)
         {
             var expr = ParseExpression(scope);
