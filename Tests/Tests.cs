@@ -1011,8 +1011,6 @@ contract test {
             mempool?.SetKeys(keys);
 
             var api = new NexusAPI(simulator.Nexus);
-            api.Mempool = mempool;
-            mempool.Start();
 
             var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
             foreach (var a in nft.properties)
