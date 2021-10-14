@@ -892,7 +892,10 @@ contract test {
                     global _owner:address;
                     global _unlockStorageMap: storage_map<number, number>;
 
-                    property name:string = """+ name + @""";
+                    property symbol:string = """ + symbol + @""";
+                    property name:string = """ + name + @""";
+                    property isBurnable:bool = true;
+                    property isTransferable:bool = true;
 
                     nft myNFT<someStruct, number> {
 
@@ -955,7 +958,7 @@ contract test {
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                     () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable,*/ contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
