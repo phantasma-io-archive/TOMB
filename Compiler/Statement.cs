@@ -61,7 +61,7 @@ namespace Phantasma.Tomb.Compiler
     {
         public VarDeclaration variable;
         public Expression valueExpression;
-        public Expression indexExpression;
+        public Expression keyExpression; // can be null, if not null it should be an expression that resolves into a key (struct field name or array index)
 
         public AssignStatement() : base()
         {
@@ -73,12 +73,12 @@ namespace Phantasma.Tomb.Compiler
             callback(this);
             variable.Visit(callback);
             valueExpression.Visit(callback);
-            indexExpression?.Visit(callback);
+            keyExpression?.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
         {
-            return (node == this) || variable.IsNodeUsed(node) || valueExpression.IsNodeUsed(node) || (indexExpression != null && indexExpression.IsNodeUsed(node));
+            return (node == this) || variable.IsNodeUsed(node) || valueExpression.IsNodeUsed(node) || (keyExpression != null && keyExpression.IsNodeUsed(node));
         }
 
         public override void GenerateCode(CodeGenerator output)
@@ -90,9 +90,9 @@ namespace Phantasma.Tomb.Compiler
 
             var srcReg = valueExpression.GenerateCode(output);
             
-            if (indexExpression != null)
+            if (keyExpression != null)
             {
-                var idxReg = indexExpression.GenerateCode(output);
+                var idxReg = keyExpression.GenerateCode(output);
 
                 output.AppendLine(this, $"PUT {srcReg} {variable.Register} {idxReg}");
 

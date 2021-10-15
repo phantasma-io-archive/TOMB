@@ -892,7 +892,10 @@ contract test {
                     global _owner:address;
                     global _unlockStorageMap: storage_map<number, number>;
 
-                    property name:string = """+ name + @""";
+                    property symbol:string = """ + symbol + @""";
+                    property name:string = """ + name + @""";
+                    property isBurnable:bool = true;
+                    property isTransferable:bool = true;
 
                     nft myNFT<someStruct, number> {
 
@@ -955,7 +958,7 @@ contract test {
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                     () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable,*/ contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
@@ -1011,8 +1014,6 @@ contract test {
             mempool?.SetKeys(keys);
 
             var api = new NexusAPI(simulator.Nexus);
-            api.Mempool = mempool;
-            mempool.Start();
 
             var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
             foreach (var a in nft.properties)
@@ -1040,7 +1041,7 @@ contract test {
         }
 
         [Test]
-        public void TestNFTWrite()
+        public void NFTWrite()
         {
             var keys = PhantasmaKeys.Generate();
             var keys2 = PhantasmaKeys.Generate();
@@ -1072,7 +1073,10 @@ contract test {
                     global _owner:address;
                     global _unlockStorageMap: storage_map<number, number>;
 
+                    property symbol:string = """ + symbol+ @""";
                     property name:string = """ + name + @""";
+                    property isBurnable:bool = true;
+                    property isTransferable:bool = true;
 
                     nft myNFT<someStruct, number> {
 
@@ -1145,7 +1149,7 @@ contract test {
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                     () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Nexus.CreateToken", keys.Address, symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, */contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
@@ -1207,9 +1211,6 @@ contract test {
                     EndScript());
             block = simulator.EndBlock().First();
 
-            result = block.GetResultForTransaction(tx.Hash);
-            Assert.NotNull(result);
-
             // Read RAM
             simulator.BeginBlock();
             tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
@@ -1230,8 +1231,6 @@ contract test {
             mempool?.SetKeys(keys);
 
             var api = new NexusAPI(simulator.Nexus);
-            api.Mempool = mempool;
-            mempool.Start();
 
             var nft = (TokenDataResult)api.GetNFT(symbol, nftID.ToString(), true);
             foreach (var a in nft.properties)

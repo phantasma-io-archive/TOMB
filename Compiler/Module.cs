@@ -473,7 +473,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("transfer", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.TransferToken");
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("rom", VarKind.Any), new MethodParameter("ram", VarKind.Any), new MethodParameter("seriesID", VarKind.Any) })
                         .SetParameterCallback("rom", ConvertFieldToBytes).SetParameterCallback("ram", ConvertFieldToBytes).SetAlias("Runtime.MintToken");
-                    libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("address", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("token ID", VarKind.Number), new MethodParameter("ram", VarKind.Any) }).SetParameterCallback("ram", ConvertFieldToBytes).SetAlias("Runtime.WriteToken");
+                    libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("address", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number), new MethodParameter("ram", VarKind.Any) }).SetParameterCallback("ram", ConvertFieldToBytes).SetAlias("Runtime.WriteToken");
                     libDecl.AddMethod("readROM", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadTokenROM").SetPostCallback(ConvertGenericResult);
                     libDecl.AddMethod("readRAM", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadTokenRAM").SetPostCallback(ConvertGenericResult);
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
@@ -894,7 +894,17 @@ namespace Phantasma.Tomb.Compiler
             DebugInfo temp;
             Dictionary<string, int> labels;
 
-            script = AssemblerUtils.BuildScript(lines, this.Name, out temp, out labels);
+
+            try
+            {
+                script = AssemblerUtils.BuildScript(lines, this.Name, out temp, out labels);
+            }
+            catch (Exception e)
+            {
+                System.IO.File.WriteAllText("output.asm", string.Join('\n', lines));
+                throw e;
+            }
+
             this.debugInfo = temp;
 
             lines = AssemblerUtils.CommentOffsets(lines, this.debugInfo).ToArray();
