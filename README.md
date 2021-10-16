@@ -27,6 +27,7 @@ TOMB smart contract compiler for Phantasma platform
 - Generic types
 - If ... Else
 - While ... and Do ... While loops
+- Switch .. case
 - Break and Continue
 - Throw Exceptions
 - Uninitialized globals validation
@@ -42,7 +43,6 @@ TOMB smart contract compiler for Phantasma platform
 ## Planned features
 
 - For.. Loops
-- Switch .. case
 - Try .. Catch
 - More...
 - Warnings
@@ -429,6 +429,22 @@ contract test {
 	}
 }
 ```
+
+## Switch case
+Simple contract that sums two numbers and returns the result
+
+```c#
+contract test {
+    public check(x:number): string {
+        switch (x) {
+            case 0: return "zero";
+            case 1: return "one";
+            case 2: return "two";
+            default: return "other";
+        }                  
+	}
+}
+ ```
 
 ## Simple Counter
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
@@ -1045,7 +1061,42 @@ contract test {
 }
 ```
 
+## Fungible Token
+Showcases how to implement a fungible token (eg: the Phantasma equivalent to an Ethereum ERC20).
 
+```c#
+token DOG { // this defines the token symbol as DOG
+	import Runtime;
+
+	property name:string = "Dog Token";
+
+	property isFungible: bool = true;
+
+	property isDivisible: bool = true;
+	property decimals:number = 8; // required only if isDivisible is true
+	
+	property isTransferable: bool = true;
+	property isBurnable: bool = true;
+	
+	property isFinite: bool = false;
+	//property maxSupply: number = 1000000; // required only if isFinite is true
+	
+	global _admin: address;
+	
+	constructor(owner:address)	{
+       _admin := owner;
+	}
+
+	// allows the token to be upgraded later, remove this trigger if you want a imutable fungible token
+	trigger onUpgrade(from:address) 
+	{
+		Runtime.expect(Runtime.isWitness(_admin), "witness failed");
+		return;
+	}
+	
+	// its possible to also add more triggers, custom methods etc
+}
+```
 
 ## NFTs
 Showcases how to implement an NFT, showcasing all details including ROM, RAM and token series.

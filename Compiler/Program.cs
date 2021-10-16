@@ -95,11 +95,6 @@ namespace Phantasma.Tomb.Compiler
 
             foreach (var module in modules)
             {
-                /*if (module.Hidden)
-                {
-                    continue;
-                }*/
-
                 ExportModule(module);
 
                 foreach (var subModule in module.SubModules)

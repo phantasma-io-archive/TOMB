@@ -637,6 +637,7 @@ namespace Phantasma.Tomb.Compiler
             // we need to fetch the global variables from storage and allocate registers for them
             foreach (var variable in this.scope.Parent.Variables.Values)
             {
+                // validate NFT implicit variables
                 if (variable.Storage != VarStorage.Global)
                 {
                     if (variable.Storage == VarStorage.NFT && this.scope.Module.Kind != ModuleKind.NFT)
@@ -647,12 +648,26 @@ namespace Phantasma.Tomb.Compiler
                     continue;
                 }
 
+                // for maps/lists/sets we clear them here. Should not be necessary, but just in case
+                // this is REQUIRED right now until chain implementation of Contract.Kill is improved
+                if (isConstructor && variable.Type.IsStorageBound)
+                {
+                    var storageClassName = variable.Type.ToString().Replace("Storage_", "");
+
+                    output.AppendLine(this, $"// clearing {variable.Name} storage");
+                    output.AppendLine(this, $"LOAD r0 \"{variable.Name}\"");
+                    output.AppendLine(this, $"PUSH r0");
+                    output.AppendLine(this, "LOAD r0 \"" + storageClassName + ".Clear\"");
+                    output.AppendLine(this, $"EXTCALL r0");
+                }
+
                 if (!this.IsNodeUsed(variable))
                 {
                     variable.Register = null;
                     continue;
                 }
 
+                // generate code for loading globals from contract storage via Data.Get extcall
                 if (tempReg1 == null && !isConstructor)
                 {
                     tempReg1 = Compiler.Instance.AllocRegister(output, this, "dataGet");
@@ -667,7 +682,8 @@ namespace Phantasma.Tomb.Compiler
 
                 if (isConstructor)
                 {
-                    continue; // in a constructor we don't need to read the vars from storage as they dont exist yet
+                    // don't do anything more, since in a constructor we don't need to read the vars from storage as they dont exist yet
+                    continue; 
                 }
 
                 //var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
