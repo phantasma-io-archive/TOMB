@@ -855,6 +855,7 @@ namespace Phantasma.Tomb.Compiler
 
                                     case "onWitness":
                                     case "onSeries":
+                                    case "onKill":
                                     case "onUpgrade": // address
                                         CheckParameters(name, parameters, new[] { VarKind.Address });
                                         break;
