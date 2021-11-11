@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Phantasma.Core.Types;
 
 namespace Tests
 {
@@ -1960,5 +1961,69 @@ contract arrays {
 
             }
         }*/
+
+        [Test]
+        public void TestContractTimestamp()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var sourceCode =
+                @"
+                contract test { 
+                    import Time;
+    
+                    global time:timestamp;
+
+                    public constructor(owner:address){
+                        time := Time.now();
+                    }
+                        
+                    public updateTime(newTime:timestamp){
+                        time := newTime;
+                    }  
+
+                    public getTime():timestamp {
+                        return time;
+                    }
+                }";
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            Console.WriteLine("contract asm: " + contract.asm);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            // test dateTime to timestamp
+            Timestamp time = DateTime.Today.AddDays(-1);
+
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "updateTime", time).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "getTime").
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+        }
     }
 }
