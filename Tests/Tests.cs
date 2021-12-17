@@ -2005,7 +2005,6 @@ contract arrays {
             // test dateTime to timestamp
             Timestamp time = DateTime.Today.AddDays(-1);
 
-
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
                     ScriptUtils.BeginScript().
@@ -2024,6 +2023,331 @@ contract arrays {
                     SpendGas(keys.Address).
                     EndScript());
             simulator.EndBlock();
+        }
+
+        [Test]
+        public void TestTimeStampFromNumber()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var sourceCode =
+                @"
+                contract test { 
+                    import Time;
+    
+                    global time:timestamp;
+
+                    public constructor(owner:address){
+                        time := Time.now();
+                    }
+                        
+                    public updateTime(newTime:number){
+                        local newTimer:timestamp := newTime;
+                        time := newTimer;
+                    }  
+
+                    public getTime():timestamp {
+                        return time;
+                    }
+                }";
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            Console.WriteLine("contract asm: " + contract.asm);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            // test dateTime to timestamp
+            //DateTime time = DateTime.Today.AddDays(-1);
+            //DateTimeOffset utcTime2 = time;
+            //BigInteger timeBig = (BigInteger)time.Ticks;
+            //
+            //simulator.BeginBlock();
+            //var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+            //        ScriptUtils.BeginScript().
+            //        AllowGas(keys.Address, Address.Null, 1, 9999).
+            //        CallContract("test", "updateTime", timeBig).
+            //        SpendGas(keys.Address).
+            //        EndScript());
+            //simulator.EndBlock();
+            //
+            //
+            //
+            //
+            //var block = simulator.EndBlock().First();
+            //
+            //var result = block.GetResultForTransaction(tx.Hash);
+            //Assert.NotNull(result);
+            //var obj = VMObject.FromBytes(result);
+            //var ram = obj.AsTimestamp();
+            //Assert.IsTrue(ram == 1);
+
+
+            //var vmObj = simulator.Nexus.RootChain.InvokeContract(simulator.Nexus.RootStorage, "test", "getTime");
+            //var temp = vmObj.AsTimestamp();
+            //Assert.IsTrue(temp == 123);
+
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "getTime").
+                    SpendGas(keys.Address).
+                    EndScript());
+            var block = simulator.EndBlock().First();
+
+            var vmObj = simulator.Nexus.RootChain.InvokeContract(simulator.Nexus.RootStorage, "test", "getTime");
+            var temp = vmObj.AsTimestamp();
+            Console.WriteLine($"\n\n\nTemp:{temp}");
+        }
+
+        [Test]
+        public void simpleTest()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var sourceCode =
+                @"
+                contract test { 
+                    import Time;
+    
+                    global time:number;
+
+                    public constructor(owner:address){
+                        time := 10000;
+                    }
+                        
+                    public updateTime(newTime:number){
+                        time := newTime;
+                    }  
+
+                    public getTime():timestamp {
+                        local myTime:timestamp := time;
+                        return myTime;
+                    }
+                }";
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            Console.WriteLine("contract asm: " + contract.asm);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            DateTime time = DateTime.Today.AddDays(-1);
+            DateTimeOffset utcTime2 = time;
+
+            simulator.BeginBlock();
+            var tx = simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "updateTime", utcTime2.ToUnixTimeSeconds()).
+                    SpendGas(keys.Address).
+                    EndScript());
+            simulator.EndBlock();
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(keys.Address, Address.Null, 1, 9999).
+                    CallContract("test", "getTime").
+                    SpendGas(keys.Address).
+                    EndScript());
+            var block = simulator.EndBlock().First();
+
+            var vmObj = simulator.Nexus.RootChain.InvokeContract(simulator.Nexus.RootStorage, "test", "getTime");
+            var temp = vmObj.AsNumber();
+            Console.WriteLine($"\n\n\nTemp:{temp}");
+
+            var convert = DateTimeOffset.FromUnixTimeSeconds((long)long.Parse(temp.ToDecimal()));
+            Console.WriteLine($"\n\n\nTemp:{convert}");
+
+            //var vmObj = simulator.Nexus.RootChain.InvokeContract(simulator.Nexus.RootStorage, "test", "getTime");
+            //var temp = vmObj.AsNumber();
+            //
+        }
+
+        [Test]
+        public void TestMintInsideOnBurn()
+        {
+            var keys = PhantasmaKeys.Generate();
+            var symbol = "TEST";
+            var name = "Test On Burn";
+            var sourceCode =
+                @"struct someStruct
+                {
+                    created:timestamp;
+                    creator:address;
+                    royalties:number;
+                    name:string;
+                    description:string;
+                    imageURL:string;
+                    infoURL:string;
+                }
+                token " + symbol + @" {
+                    import Runtime;
+                    import Time;
+                    import NFT;
+                    import List;
+                    import Map;
+                    global _address:address;
+                    global _owner:address;
+                    global _unlockStorageMap: storage_map<number, number>;
+                    global _nft_list: storage_map<number, number>;
+
+                    property symbol:string = """ + symbol + @""";
+                    property name:string = """ + name + @""";
+                    property isBurnable:bool = true;
+                    property isTransferable:bool = true;
+
+                    nft myNFT<someStruct, number> {
+
+                        import Call;
+                        import Map;
+
+                        property name:string {
+                            return _ROM.name;
+                        }
+
+                        property description:string {
+                            return _ROM.description;
+                        }
+
+                        property imageURL:string {
+                            return _ROM.imageURL;
+                        }
+
+                        property infoURL:string {
+                            return _ROM.infoURL;
+                        }
+                    }
+
+                    import Call;
+
+                    constructor(owner:address)	{
+                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner:= owner;
+                        NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
+                    }
+
+                    public mint(dest:address):number {
+                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number := NFT.mint(_owner, dest, $THIS_SYMBOL, rom, 0, 0);
+                        _unlockStorageMap.set(tokenID, 0);
+                        _nft_list.set(tokenID, 1);
+                        Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
+                        return tokenID;
+                    }
+
+                    public burn(from:address, symbol:string, id:number) {
+                        NFT.burn(from, symbol, id);
+                    }
+
+                    trigger onBurn(from:address, to:address, symbol:string, tokenID:number)
+                    {
+                        if (symbol != $THIS_SYMBOL) {
+                            return;
+                        }
+
+                        _nft_list.remove(tokenID);
+                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+
+                        local newID:number := NFT.mint(_owner, to, $THIS_SYMBOL, rom, 0, 0);          
+                        _nft_list.set(newID, 1);
+
+                        return;
+                    }
+
+                    public exist(nftID:number): bool {
+                        local myNumber : number := _nft_list.get(nftID);
+                        if ( myNumber != 0 ) {
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }";
+            var nexus = new Nexus("simnet", null, null);
+            nexus.SetOracleReader(new OracleSimulator(nexus));
+            var simulator = new NexusSimulator(nexus, keys, 1234);
+            var user = PhantasmaKeys.Generate();
+
+            simulator.BeginBlock();
+            simulator.MintTokens(keys, user.Address, "KCAL", UnitConversion.ToBigInteger(1000, 10));
+            simulator.EndBlock();
+
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+            //Console.WriteLine("contract asm: " + contract.asm);
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                    //.CallInterop("Runtime.createToken", keys.Address, symbol, contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable,*/ contract.script, contract.abi.ToByteArray())
+                    .SpendGas(keys.Address)
+                    .EndScript());
+            simulator.EndBlock();
+
+            DateTime time = DateTime.Today.AddDays(-1);
+            DateTimeOffset utcTime2 = time;
+
+            simulator.BeginBlock();
+            var tx = simulator.GenerateCustomTransaction(user, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(user.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "mint", user.Address).
+                    SpendGas(user.Address).
+                    EndScript());
+            var block = simulator.EndBlock().FirstOrDefault();
+
+            var callResultBytes = block.GetResultForTransaction(tx.Hash);
+            var callResult = Serialization.Unserialize<VMObject>(callResultBytes);
+            var nftID = callResult.AsNumber();
+
+            Assert.IsTrue(nftID != 0, "NFT error");
+
+            simulator.BeginBlock();
+            simulator.GenerateCustomTransaction(user, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(user.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "burn", user.Address, symbol, nftID).
+                    SpendGas(user.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            simulator.BeginBlock();
+            tx = simulator.GenerateCustomTransaction(user, ProofOfWork.Minimal, () =>
+                    ScriptUtils.BeginScript().
+                    AllowGas(user.Address, Address.Null, 1, 9999).
+                    CallContract(symbol, "exist", nftID).
+                    SpendGas(user.Address).
+                    EndScript());
+            block = simulator.EndBlock().First();
+
+            callResultBytes = block.GetResultForTransaction(tx.Hash);
+            callResult = Serialization.Unserialize<VMObject>(callResultBytes);
+            var exists = callResult.AsBool();
+            Assert.IsFalse(exists, "It shouldn't exist...");
         }
     }
 }
