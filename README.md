@@ -83,16 +83,16 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Call.interop(...:Generic) | Any | TODO|
-| Call.contract(method:String, ...:Generic) | Any | TODO|
-| Call.method(...:Generic) | Any | TODO|
+| Call.contract(method:String, ...:Generic) | Any | This is used to call another contract with a specified method.|
+| Call.method(...:Generic) | Any | To call a method inside the contract, but instead of using "this.methodName()"|
 
 ### Runtime
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Runtime.expect(condition:Bool, error:String) | None | TODO|
-| Runtime.log(message:String) | None | TODO|
-| Runtime.isWitness(address:Address) | Bool | TODO|
-| Runtime.isTrigger() | Bool | TODO|
+| Runtime.expect(condition:Bool, error:String) | None | To check if the condition is true, else returns the error, and the code below, won't be executed.|
+| Runtime.log(message:String) | None | To log a message.|
+| Runtime.isWitness(address:Address) | Bool | Check if is they the owner of that given Address.|
+| Runtime.isTrigger() | Bool | Returns true if a trigger and false otherwise.|
 | Runtime.transactionHash() | Hash | TODO|
 | Runtime.deployContract(from:Address, contract:Module) | None | TODO|
 | Runtime.upgradeContract(from:Address, contract:Module) | None | TODO|
@@ -109,30 +109,30 @@ The following libraries can be imported into a contract.
 ### Token
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None | TODO|
-| Token.exists(symbol:String) | Bool | TODO|
-| Token.getDecimals(symbol:String) | Number | TODO|
-| Token.getFlags(symbol:String) | Enum<TokenFlag> | TODO|
-| Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
-| Token.transferAll(from:Address, to:Address, symbol:String) | None | TODO|
-| Token.mint(from:Address, to:Address, symbol:String, amount:Number) | None | TODO|
-| Token.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | TODO|
-| Token.burn(from:Address, symbol:String, amount:Number) | None | TODO|
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None | Method used to create a new token.|
+| Token.exists(symbol:String) | Bool | Returns true if the token exists and false otherwise.|
+| Token.getDecimals(symbol:String) | Number | Returns the number of decimals of the token.|
+| Token.getFlags(symbol:String) | Enum<TokenFlag> | Returns an Enum with the TokenFlag of the token.|
+| Token.transfer(from:Address, to:Address, symbol:String, amount:Number) | None | Transfers tokens from one Address, to another address with a specific symbol and the desired amount.|
+| Token.transferAll(from:Address, to:Address, symbol:String) | None | Transfer all tokens from one Address, to another address with a specific symbol.|
+| Token.mint(from:Address, to:Address, symbol:String, amount:Number) | None | Mints tokens from one Address, to another address with a specific symbol and the desired amount.|
+| Token.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | Updates the Token/NFT RAM with the given RAM.|
+| Token.burn(from:Address, symbol:String, amount:Number) | None | Burn tokens from the given address, given symbol and the desired amount.|
 | Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number) | None | TODO|
-| Token.getBalance(from:Address, symbol:String) | Number | TODO|
-| Token.isMinter(address:Address, symbol:String) | Bool | TODO|
+| Token.getBalance(from:Address, symbol:String) | Number | Returns the token balance of the specified address.|
+| Token.isMinter(address:Address, symbol:String) | Bool | Returns true if the token is a Minter and false otherwise.|
 
 ### NFT
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| NFT.transfer(from:Address, to:Address, symbol:String, id:Number) | None | TODO|
-| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any, seriesID:Number) | None | TODO|
-| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | TODO|
-| NFT.burn(from:Address, symbol:String, id:Number) | None | TODO|
-| NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | TODO|
-| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | TODO|
-| NFT.readROM<T>(symbol:String, id:Number) | T | TODO|
-| NFT.readRAM<T>(symbol:String, id:Number) | T | TODO|
+| NFT.transfer(from:Address, to:Address, symbol:String, id:Number) | None | Transfer an NFT from one address to another, by the nftID and symbol.|
+| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any, seriesID:Number) | None | Mint an NFT from one address to another, with the specific ROM and RAM, and the seriesID.|
+| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Any) | None | Write NFT is to update the RAM inside the NFT by the nftID.|
+| NFT.burn(from:Address, symbol:String, id:Number) | None | Burn the nft by the NFTID.|
+| NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number) | None | Infuse the NFT with other tokens/NFT with a given amount.|
+| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None | Creates a series of NFTs.|
+| NFT.readROM<T>(symbol:String, id:Number) | T | Returns the ROM by the NFTID.|
+| NFT.readRAM<T>(symbol:String, id:Number) | T | Returns the RAM by the NFTID.|
 
 ### Account
 | Method | Return type | Description|
@@ -159,8 +159,8 @@ The following libraries can be imported into a contract.
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
 | Oracle.read(url:String) | None | TODO|
-| Oracle.price(symbol:String) | None | TODO|
-| Oracle.quote(baseSymbol:String, quoteSymbol:String, amount:Number) | None | TODO|
+| Oracle.price(symbol:String) | None | Retruns the price of the given symbol.|
+| Oracle.quote(baseSymbol:String, quoteSymbol:String, amount:Number) | None | Returns the price converted to the given quote symbol with the given amount.|
 
 ### Storage
 | Method | Return type | Description|
@@ -187,11 +187,11 @@ The following libraries can be imported into a contract.
 ### Array
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Array.get(array:Any, index:Number) | Generic<0> | TODO|
-| Array.set(array:Any, index:Number, value:Generic<0>) | None | TODO|
-| Array.remove(array:Any, index:Number) | None | TODO|
-| Array.clear(array:Any) | None | TODO|
-| Array.count(array:Any) | Number | TODO|
+| Array.get(array:Any, index:Number) | Generic<0> | Returns the element of an array at the given index.|
+| Array.set(array:Any, index:Number, value:Generic<0>) | None | Set the element of an array at the given index with the given value.|
+| Array.remove(array:Any, index:Number) | None | Removes the element of an array at the given index.|
+| Array.clear(array:Any) | None | Clears all the Array entries.|
+| Array.count(array:Any) | Number | Returns the number of elements in the Array.|
 
 ### Utils
 | Method | Return type | Description|
@@ -201,41 +201,41 @@ The following libraries can be imported into a contract.
 ### Leaderboard
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Leaderboard.create(from:Address, boardName:String, capacity:Number) | None | TODO|
-| Leaderboard.getAddress(boardName:String, index:Number) | Address | TODO|
-| Leaderboard.getScoreByIndex(boardName:String, index:Number) | Number | TODO|
-| Leaderboard.getScoreByAddress(boardName:String, target:Address) | Number | TODO|
-| Leaderboard.getSize(boardName:String) | Number | TODO|
-| Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | None | TODO|
-| Leaderboard.reset(from:Address, boardName:String) | None | TODO|
+| Leaderboard.create(from:Address, boardName:String, capacity:Number) | None | To create a new leaderboard by the given address with a board name and a given capacity.|
+| Leaderboard.getAddress(boardName:String, index:Number) | Address | Returns the address of the leaderboard, by the given board name and index.|
+| Leaderboard.getScoreByIndex(boardName:String, index:Number) | Number | Returns the score that position, by the given board name and index.|
+| Leaderboard.getScoreByAddress(boardName:String, target:Address) | Number | Returns the score of the address, by the given board name and the target address.|
+| Leaderboard.getSize(boardName:String) | Number | Returns the size of the Leaderboard, by the given board name.|
+| Leaderboard.insert(from:Address, target:Address, boardName:String, score:Number) | None | To insert a score into the Leaderboard, by the target address, board name and score.|
+| Leaderboard.reset(from:Address, boardName:String) | None | To reset the Leaderboard, by the address and board name.|
 
 ### Market
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Market.sell(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endDate:Timestamp) | None | TODO|
-| Market.buy(from:Address, symbol:String, tokenID:Number) | None | TODO|
-| Market.cancel(symbol:String, tokenID:Number) | None | TODO|
-| Market.hasAuction(symbol:String, tokenID:Number) | Bool | TODO|
-| Market.bid(from:Address, symbol:String, tokenID:Number, price:Number, buyingFee:Number, buyingFeeAddress:Address) | None | TODO|
-| Market.listToken(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number, typeAuction:Number, listingFee:Number, listingFeeAddress:Address) | None | TODO|
-| Market.editAuction(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number) | None | TODO|
+| Market.sell(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endDate:Timestamp) | None | To sell an NFT, by the tokenID.|
+| Market.buy(from:Address, symbol:String, tokenID:Number) | None | To buy an NFT, by the tokenID.|
+| Market.cancel(symbol:String, tokenID:Number) | None | To cancel a Sell.|
+| Market.hasAuction(symbol:String, tokenID:Number) | Bool | Returns true if has an auction for the given tokenID.|
+| Market.bid(from:Address, symbol:String, tokenID:Number, price:Number, buyingFee:Number, buyingFeeAddress:Address) | None | To bid for the given tokenID.|
+| Market.listToken(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number, typeAuction:Number, listingFee:Number, listingFeeAddress:Address) | None | To list the token by the TokenID.|
+| Market.editAuction(from:Address, baseSymbol:String, quoteSymbol:String, tokenID:Number, price:Number, endPrice:Number, startDate:Timestamp, endDate:Timestamp, extensionPeriod:Number) | None | To edit the auction for the given tokenID.|
  
 ### Crowdsale
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Crowdsale.create(from:Address, name:String, SaleFlags flags, startDate:Timestamp, endDate:Timestamp, sellSymbol:String, receiveSymbol:String, price:Number, globalSoftCap:Number, globalHardCap:Number, userSoftCap:Number, userHardCap:Number) | Hash | TODO|
-| Crowdsale.isSaleActive(saleHash:Hash) | bool | TODO|
-| Crowdsale.GetSaleParticipants(saleHash:Hash) | Address[] | TODO|
-| Crowdsale.getSaleWhitelists(saleHash:Hash) | Address[] | TODO|
-| Crowdsale.isWhitelisted(saleHash:Hash, address:Address) | bool | TODO|
-| Crowdsale.addToWhitelist(saleHash:Hash, target:Address) | None | TODO|
-| Crowdsale.removeFromWhitelist(saleHash:Hash, target:Address) | None | TODO|
-| Crowdsale.getPurchasedAmount(saleHash:Hash, address:Address) | Number | TODO|
-| Crowdsale.getSoldAmount(saleHash:Hash) | Number | TODO|
-| Crowdsale.purchase(from:Address, saleHash:Hash, quoteSymbol:string, quoteAmount:Number) | None | TODO|
-| Crowdsale.closeSale(from:Address, saleHash:Hash) | None | TODO|
-| Crowdsale.getLatestSaleHash() | Hash | TODO|
-| Crowdsale.EditSalePrice(saleHash:Hash, price:Number) | None | TODO|
+| Crowdsale.create(from:Address, name:String, SaleFlags flags, startDate:Timestamp, endDate:Timestamp, sellSymbol:String, receiveSymbol:String, price:Number, globalSoftCap:Number, globalHardCap:Number, userSoftCap:Number, userHardCap:Number) | Hash | Returns a Hash of the sale created.|
+| Crowdsale.isSaleActive(saleHash:Hash) | bool | Returns true if the sale is active, false otherwise.|
+| Crowdsale.GetSaleParticipants(saleHash:Hash) | Address[] | Returns an Array of the addressess in by the saleHash.|
+| Crowdsale.getSaleWhitelists(saleHash:Hash) | Address[] | Retruns the list of addresses whitelisted for the sale, by the saleHash.|
+| Crowdsale.isWhitelisted(saleHash:Hash, address:Address) | Bool | Returns true if the user is whitelisted for the sale, false otherwise.|
+| Crowdsale.addToWhitelist(saleHash:Hash, target:Address) | None | To add a Address to the participate in the sale, by the saleHash and target address.|
+| Crowdsale.removeFromWhitelist(saleHash:Hash, target:Address) | None | To remove a Address from the participate in the sale, by the saleHash and target address.|
+| Crowdsale.getPurchasedAmount(saleHash:Hash, address:Address) | Number | Returns the Purchased amount.|
+| Crowdsale.getSoldAmount(saleHash:Hash) | Number | Returns the amount that the sale has been sold.|
+| Crowdsale.purchase(from:Address, saleHash:Hash, quoteSymbol:string, quoteAmount:Number) | None | To purchase the sale.|
+| Crowdsale.closeSale(from:Address, saleHash:Hash) | None | To close a given saleHash.|
+| Crowdsale.getLatestSaleHash() | Hash | Returns the last saleHash.|
+| Crowdsale.EditSalePrice(saleHash:Hash, price:Number) | None | To edit the sale price by the saleHash.|
 
 ### Stake
 | Method | Return type | Description|
@@ -287,80 +287,80 @@ The following libraries can be imported into a contract.
 ### Mail
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Mail.pushMessage(from:Address, target:Address, archiveHash:Hash) | None | TODO|
-| Mail.domainExists(domainName:String) | Bool | TODO|
-| Mail.registerDomain(from:Address, domainName:String) | None | TODO|
-| Mail.unregisterDomain(domainName:String) | None | TODO|
-| Mail.migrateDomain(domainName:String, target:Address) | None | TODO|
-| Mail.joinDomain(from:Address, domainName:String) | None | TODO|
-| Mail.leaveDomain(from:Address, domainName:String) | None | TODO|
-| Mail.getUserDomain(target:Address) | String | TODO|
+| Mail.pushMessage(from:Address, target:Address, archiveHash:Hash) | None | To push a message to the target user mailbox.|
+| Mail.domainExists(domainName:String) | Bool | Returns true if the specified domain exists, false otherwise.|
+| Mail.registerDomain(from:Address, domainName:String) | None | To register a domain, from an address and a domain name.|
+| Mail.unregisterDomain(domainName:String) | None | To unregister a domain name.|
+| Mail.migrateDomain(domainName:String, target:Address) | None | To migrate a domain to a new Address.|
+| Mail.joinDomain(from:Address, domainName:String) | None | To a user join a domain.|
+| Mail.leaveDomain(from:Address, domainName:String) | None | To a user leave a domain.|
+| Mail.getUserDomain(target:Address) | String | To the the user domain.|
 
 ### Time
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Time.now() | Timestamp | TODO|
-| Time.unix(value:Number) | Timestamp | TODO|
+| Time.now() | Timestamp | Returns the current time.|
+| Time.unix(value:Number) | Timestamp | Returns the time for the given value.|
 
 ### Task
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Task.start(method:Method, from:Address, frequency:Number, mode:Enum<TaskMode>, gasLimit:Number) | Task | TODO|
-| Task.stop(task:Address) | None | TODO|
-| Task.current() | Task | TODO|
+| Task.start(method:Method, from:Address, frequency:Number, mode:Enum<TaskMode>, gasLimit:Number) | Task | Start the task by method name, from the given address and frequency(timestamp), the TaskMode and the gasLimit.|
+| Task.stop(task:Address) | None | Stop the task method.|
+| Task.current() | Task | Returns teh current task method.|
 
 ### UID
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| UID.generate() | Number | TODO|
+| UID.generate() | Number | Returns a unique identifier.|
 
 ### Map
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Map.get(key:Generic) | Generic | TODO|
-| Map.set(key:Generic, value:Generic) | None | TODO|
-| Map.remove(key:Generic) | None | TODO|
-| Map.clear() | None | TODO|
-| Map.count() | Number | TODO|
-| Map.has(key:Generic) | Bool | TODO|
+| Map.get(key:Generic) | Generic | Returns the value by the given key.|
+| Map.set(key:Generic, value:Generic) | None | Set's the value to the specified key.|
+| Map.remove(key:Generic) | None | Removes the key from the map.|
+| Map.clear() | None | Clears all the Map entries.|
+| Map.count() | Number | Returns the number of entries in the Map.|
+| Map.has(key:Generic) | Bool | Returns if the key exists in the Map.|
 
 ### List
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| List.get(index:Number) | Generic | TODO|
-| List.add(value:Generic) | None | TODO|
-| List.replace(index:Number, value:Generic) | None | TODO|
-| List.remove(index:Number) | None | TODO|
-| List.count() | Number | TODO|
-| List.clear() | None | TODO|
+| List.get(index:Number) | Generic | Returns the element at the given index.|
+| List.add(value:Generic) | None | To add the value to the list.|
+| List.replace(index:Number, value:Generic) | None | Replaces the value at the given index.|
+| List.remove(index:Number) | None | Removes from the list at a given index.|
+| List.count() | Number | Returns the number of entries in the List.|
+| List.clear() | None | Clears all the entries in the List.|
 
 ### String
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| String.toBytes(target:String) | Bytes | TODO|
-| String.length(target:String) | Number | TODO|
-| String.substr(target:String, index:Number, length:Number) | String | TODO|
-| String.toArray(target:String) | Array<Number> | TODO|
-| String.fromArray(target:Array<Number>) | String | TODO|
+| String.toBytes(target:String) | Bytes | To convert a given string into a byte array, and returns it.|
+| String.length(target:String) | Number | Returns the length of the string.|
+| String.substr(target:String, index:Number, length:Number) | String | Returns the substring of the given string at an index and a length.|
+| String.toArray(target:String) | Array<Number> | To convert the String into an Array of Numbers that represent each Character in the String.|
+| String.fromArray(target:Array<Number>) | String | To convert a given Array<Number> into a String, each number represents a Character.|
 
 ### Decimal
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Decimal.decimals(target:Any) | Number | TODO|
-| Decimal.convert(decimalPlaces:Number, value:Number) | Number | TODO|
+| Decimal.decimals(target:Any) | Number | Returns the number of decimals of the given target.|
+| Decimal.convert(decimalPlaces:Number, value:Number) | Number | Returns the converted value of the given decimal places.|
 
 ### Enum
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Enum.isSet(target:Enum<>, flag:Enum<>) | Bool | TODO|
+| Enum.isSet(target:Enum<>, flag:Enum<>) | Bool | Returns true if the enum is set, false otherwise.|
 
 ### Address
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Address.isNull(target:Address) | Bool | TODO|
-| Address.isUser(target:Address) | Bool | TODO|
-| Address.isSystem(target:Address) | Bool | TODO|
-| Address.isInterop(target:Address) | Bool | TODO|
+| Address.isNull(target:Address) | Bool | Returns true if the address is null, false otherwise.|
+| Address.isUser(target:Address) | Bool | Returns true if the address is a user, false otherwise.|
+| Address.isSystem(target:Address) | Bool | Returns true if the address is a System address, false otherwise.|
+| Address.isInterop(target:Address) | Bool | Returns true if the address is an Internal Operation, false otherwise.|
 
 ### Module
 | Method | Return type | Description|
@@ -371,9 +371,9 @@ The following libraries can be imported into a contract.
 ### Format
 | Method | Return type | Description|
 | ------------- | ------------- |------------- |
-| Format.decimals(value:Number, symbol:String) | String | TODO|
-| Format.symbol(symbol:String) | String | TODO|
-| Format.account(address:Address) | String | TODO|
+| Format.decimals(value:Number, symbol:String) | String | Returns a string with the value formated to the given symbol.|
+| Format.symbol(symbol:String) | String | Returns a string representation of the given symbol.|
+| Format.account(address:Address) | String | Returns a String with the account formated to print.|
 
 ### Available macros
 
@@ -675,7 +675,6 @@ contract test {
 There are also some builtin enums, like TokenFlags.<br/>
 
 ```c#
-
 contract test {
 	import Runtime;
 	import Token;
@@ -709,7 +708,6 @@ contract test {
 
 		// actually do something after passing all validation
 	}
-
 }
 ```
 
@@ -858,7 +856,6 @@ contract test {
 A yet more complex version of the previous examples, showcasing custom description scripts and also struct declarations.
 
 ```c#
-
 struct my_event_data {
 	amount:number;
 	symbol:string;
@@ -965,7 +962,6 @@ contract test {
 	private subCounter(target:address) {
 		_counter -= 1;
 	}
-
 }
 ```
 
@@ -1008,10 +1004,12 @@ contract test {
 }
 ```
 
+
+
+## Multi-signature
 Yet another contract example showcasing triggers.<br/>
 In this example, a multi-signature account is implemented.
 
-## Multi-signature
 ```c#
 contract test {
 
@@ -1236,6 +1234,5 @@ contract test {
 		return temp;
 		
 	}
-
 }
 ```
