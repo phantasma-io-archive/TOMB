@@ -228,7 +228,6 @@ namespace Phantasma.Tomb.CodeGen
 
         }
 
-
         protected override void ProcessABI(ContractInterface abi, DebugInfo debugInfo)
         {
             base.ProcessABI(abi, debugInfo);

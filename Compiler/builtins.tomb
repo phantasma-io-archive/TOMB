@@ -1,0 +1,11 @@
+contract builtins {
+	private math_sqrt(n:number) : number {
+		local root:number := n / 2;
+		while (n < root * root) {
+			root += n / root;
+			root /= 2;
+		}
+		
+		return root;
+	}
+}

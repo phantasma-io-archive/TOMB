@@ -403,9 +403,9 @@ namespace Phantasma.Tomb.CodeGen
                         Compiler.Instance.DeallocRegister(ref regB);
                         return regA;
                     });
+
+                    libDecl.AddMethod("sqrt", MethodImplementationType.LocalCall, VarKind.Number, new[] { new MethodParameter("n", VarKind.Number) }).SetAlias("math_sqrt");
                     break;
-
-
 
                 case "Time":
                     libDecl.AddMethod("now", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { }).SetAlias("Runtime.Time");
@@ -520,7 +520,19 @@ namespace Phantasma.Tomb.CodeGen
 
                 case "Storage":
                     {
-                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String), new MethodParameter("type", VarKind.Number) }).SetAlias("Data.Get");
+                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String)}).SetAlias("Data.Get")
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback(ConvertGenericResult);
+
                         libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String), new MethodParameter("value", VarKind.Any) }).SetAlias("Data.Set");
                         libDecl.AddMethod("delete", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String) }).SetAlias("Data.Delete");
                         var contract = NativeContractKind.Storage.ToString().ToLower();
@@ -532,14 +544,14 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("hasPermission", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("external", VarKind.Address), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.HasPermission));
                         libDecl.AddMethod("addPermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("externalAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.AddPermission));
                         libDecl.AddMethod("deletePermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("externalAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.DeletePermission));
-                        libDecl.AddMethod("migratePermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("oldAddr", VarKind.Address), new MethodParameter("newAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.MigratePermission));
-                        libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.Migrate));
+                        //libDecl.AddMethod("migratePermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("oldAddr", VarKind.Address), new MethodParameter("newAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.MigratePermission));
+                        //libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.Migrate));
                         libDecl.AddMethod("getUsedSpace", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetUsedSpace));
                         libDecl.AddMethod("getAvailableSpace", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetAvailableSpace));
                         // TODO Hash[] GetFiles(Address from) -> libDecl.AddMethod("getFiles", MethodImplementationType.ContractCall, VarKind.Hash, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetFiles));
                         libDecl.AddMethod("getUsedDataQuota", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetUsedDataQuota));
-                        libDecl.AddMethod("writeData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes), new MethodParameter("value", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.GetFiles));
-                        libDecl.AddMethod("deleteData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.GetFiles));
+                        //libDecl.AddMethod("writeData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes), new MethodParameter("value", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.WriteData));
+                        //libDecl.AddMethod("deleteData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.DeleteData));
 
                         break;
                     }
@@ -886,12 +898,12 @@ namespace Phantasma.Tomb.CodeGen
                 subModule.Compile();
             }
 
-            var sb = new CodeGenerator();
-            abi = this.GenerateCode(sb);
+            var codeGen = new CodeGenerator();
+            abi = this.GenerateCode(codeGen);
 
             Compiler.Instance.VerifyRegisters();
 
-            asm = sb.ToString();
+            asm = codeGen.ToString();
 
             var lines = asm.Split('\n');
             DebugInfo temp;
