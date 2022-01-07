@@ -1,11 +1,13 @@
 using Phantasma.Domain;
 using Phantasma.Numerics;
+using Phantasma.Tomb.CodeGen;
+using Phantasma.Tomb.AST;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb
 {
     public enum ExecutionResult
     {

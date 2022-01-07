@@ -1,12 +1,10 @@
 ﻿using Phantasma.Blockchain.Tokens;
 using Phantasma.Domain;
 using Phantasma.VM;
-using System;
+using Phantasma.Tomb.AST;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb.CodeGen
 {
     public class NFT : Contract
     {

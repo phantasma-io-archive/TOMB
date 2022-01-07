@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Phantasma.Tomb.AST;
+using System;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb
 {
     public class CompilerException : Exception
     {

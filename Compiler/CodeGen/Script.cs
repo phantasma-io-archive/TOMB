@@ -1,8 +1,8 @@
 ﻿using Phantasma.Domain;
 using System;
-using System.Collections.Generic;
+using Phantasma.Tomb.AST;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb.CodeGen
 {
     public class Script: Module
     {

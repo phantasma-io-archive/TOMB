@@ -4,11 +4,12 @@ using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
+using Phantasma.Tomb.AST;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb.CodeGen
 {
     public enum ModuleKind
     {

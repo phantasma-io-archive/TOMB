@@ -1,9 +1,10 @@
 using Phantasma.Numerics;
+using Phantasma.Tomb.CodeGen;
 using System;
 using System.IO;
 using System.Text;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb
 {
     class Program
     {
