@@ -183,6 +183,9 @@ namespace Phantasma.Tomb.CodeGen
                     return libDecl;
 
                 case "String":
+                    libDecl.AddMethod("toUpper", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_upper");
+                    libDecl.AddMethod("toLower", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_lower");
+
                     libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
                         SetPreCallback((output, scope, expr) =>
                         {
