@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.CodeGen;
 
 namespace Phantasma.Tomb.AST

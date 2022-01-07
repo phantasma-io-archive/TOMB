@@ -8,6 +8,8 @@ using Phantasma.Tomb.AST;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Tomb.AST.Declarations;
+using Phantasma.Tomb.AST.Expressions;
 
 namespace Phantasma.Tomb.CodeGen
 {

@@ -1,7 +1,9 @@
 ﻿using Phantasma.VM;
 using Phantasma.Tomb.CodeGen;
+using Phantasma.Tomb.AST.Expressions;
 using System;
 using System.Collections.Generic;
+using Phantasma.Tomb.AST.Declarations;
 
 namespace Phantasma.Tomb.AST
 {

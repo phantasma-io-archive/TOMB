@@ -6,6 +6,9 @@ using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Tomb.AST.Declarations;
+using Phantasma.Tomb.AST.Statements;
+using Phantasma.Tomb.AST.Expressions;
 
 namespace Phantasma.Tomb
 {

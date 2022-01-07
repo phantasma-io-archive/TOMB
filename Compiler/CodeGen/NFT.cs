@@ -3,6 +3,7 @@ using Phantasma.Domain;
 using Phantasma.VM;
 using Phantasma.Tomb.AST;
 using System.Collections.Generic;
+using Phantasma.Tomb.AST.Declarations;
 
 namespace Phantasma.Tomb.CodeGen
 {
