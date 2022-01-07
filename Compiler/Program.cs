@@ -77,7 +77,7 @@ namespace Phantasma.Tomb
         {
 #if DEBUG
             ExportLibraryInfo();
-            var sourceFilePath = args.Length > 0 ? args[0] : "katacomb.txt";
+            var sourceFilePath = args.Length > 0 ? args[0] : @"..\..\..\builtins.tomb";
 #else
             var sourceFilePath = args.Length > 0 ? args[0] : "my_contract.tomb";
 #endif
