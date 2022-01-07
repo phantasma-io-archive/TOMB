@@ -1238,4 +1238,4 @@ contract test {
 ```
 
 # More documentation
-For more documentation, code samples and info about the Phantasma Chain features check our official <a href="https://docs.phantasma.io/#tomb-supported_features">Phantasma documentation</a>.
+Check our official <a href="https://docs.phantasma.io/#tomb-supported_features">Phantasma documentation</a> for more info about developing with Phantasma Chain.
