@@ -15,7 +15,7 @@ namespace Phantasma.Tomb.CodeGen
 				case "math_sqrt":
 					return @"
 // ********* math_sqrt Method ***********
-@entry_math_sqrt: // 0
+@entry_tomb_math_sqrt: // 0
 ALIAS r1 $n // 1
 POP $n // 1
 CAST $n $n #Number // 3
@@ -62,7 +62,7 @@ RET // 94
 				case "string_upper":
 					return @"
 // ********* string_upper Method ***********
-@entry_string_upper: // 95
+@entry_tomb_string_upper: // 95
 ALIAS r1 $s // 96
 POP $s // 96
 // Line 15:	{        
@@ -150,7 +150,7 @@ RET // 245
 					return @"
 
 // ********* string_lower Method ***********
-@entry_string_lower: // 246
+@entry_tomb_string_lower: // 246
 ALIAS r1 $s // 247
 POP $s // 247
 // Line 42:	{        

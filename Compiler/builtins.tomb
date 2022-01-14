@@ -1,7 +1,7 @@
 contract builtins {
 	import Array;
 	
-	private math_sqrt(n:number) : number {
+	private tomb_math_sqrt(n:number) : number {
 		local root:number := n / 2;
 		while (n < root * root) {
 			root += n / root;
@@ -11,7 +11,7 @@ contract builtins {
 		return root;
 	}
 	
-	private string_upper(s:string):string
+	private tomb_string_upper(s:string):string
 	{        
 		local my_array: array<number>;		
 		
@@ -38,7 +38,7 @@ contract builtins {
 		return result;
 	}		
 
-	private string_lower(s:string):string 
+	private tomb_string_lower(s:string):string 
 	{        
 		local my_array: array<number>;		
 		

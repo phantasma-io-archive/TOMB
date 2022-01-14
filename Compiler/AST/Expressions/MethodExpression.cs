@@ -178,8 +178,15 @@ namespace Phantasma.Tomb.AST.Expressions
             {
                 case MethodImplementationType.LocalCall:
                     {
-                        output.AppendLine(this, $"CALL @entry_{this.method.Alias}");
-                        output.IncBuiltinReference(this.method.Alias);
+                        if (this.method.Alias.StartsWith("tomb_"))
+                        {
+                            output.AppendLine(this, $"CALL @entry_{this.method.Alias}");
+                            output.IncBuiltinReference(this.method.Alias);
+                        }
+                        else
+                        {
+                            output.AppendLine(this, $"CALL @entry_{this.method.Name}");
+                        }
                         break;
                     }
 
