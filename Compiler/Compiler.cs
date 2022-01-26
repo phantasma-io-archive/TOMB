@@ -869,6 +869,10 @@ namespace Phantasma.Tomb
                                         CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address });
                                         break;
 
+                                    case "onWrite": // address, data
+                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Any });
+                                        break;
+
                                     default:
                                         throw new CompilerException($"Proper trigger support for trigger {name} is not implemented");
                                 }
