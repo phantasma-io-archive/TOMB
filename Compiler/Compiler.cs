@@ -1833,7 +1833,7 @@ namespace Phantasma.Tomb
         {
             var first = FetchToken();
 
-            if (first.kind == TokenKind.Operator && first.value == "!")
+            if (first.kind == TokenKind.Operator && (first.value == "!" || first.value == "-"))
             {
                 var expr = ParseExpression(scope, allowBinary);
                 return new NegationExpression(scope, expr);
