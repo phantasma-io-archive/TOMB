@@ -62,7 +62,7 @@ namespace Phantasma.Tomb.CodeGen
             if (_sb2.Length == 0)
             {
                 _sb2.AppendLine();
-                _sb2.Append("// =======> BUILTINS SECTION"); 
+                _sb2.AppendLine("// =======> BUILTINS SECTION"); 
             }
 
             _sb2.Append(code);

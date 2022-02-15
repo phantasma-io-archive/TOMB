@@ -37,6 +37,26 @@ namespace Phantasma.Tomb.AST.Declarations
         {
             output.AppendLine(this);
             output.AppendLine(this, $"// ********* {this.Name} {this.@interface.Kind} ***********");
+
+            if (this.Name.StartsWith("tomb_"))
+            {
+                var split = this.Name.Split(new char[] { '_' }, 3);
+                if (split.Length != 3)
+                {
+                    throw new CompilerException("Builtin method name not following required convention tomb_LIB_METHOD");
+                }
+
+                output.AppendLine(this, $"// #BUILTIN");
+                output.AppendLine(this, $"// LIBRARY:" + split[1]);
+                output.AppendLine(this, $"// METHOD:" + split[2]);
+                output.AppendLine(this, $"// RETURN:" + this.@interface.ReturnType);
+                output.AppendLine(this, $"// ARGS:");
+                foreach (var arg in this.@interface.Parameters)
+                {
+                    output.AppendLine(this, "// " + arg.Name + ":" + arg.Type);
+                }
+            }
+
             output.AppendLine(this, $"@{GetEntryLabel()}:");
 
             this.@interface.StartAsmLine = output.LineCount;

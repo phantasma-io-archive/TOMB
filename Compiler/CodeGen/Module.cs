@@ -131,6 +131,8 @@ namespace Phantasma.Tomb.CodeGen
 
             var libDecl = new LibraryDeclaration(scope, name);
 
+            Builtins.FillLibrary(libDecl);
+
             VarKind libKind;
             if (Enum.TryParse<VarKind>(name, out libKind) && libKind != VarKind.Bytes && libKind != VarKind.Method && libKind != VarKind.Task && libKind != VarKind.Array)
             {

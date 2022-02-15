@@ -1237,5 +1237,18 @@ contract test {
 }
 ```
 
+# Builtins
+TOMB currently contains several "builtin" methods, aka code written in TOMB language itself and available as library for other contracts to use.
+When compiling code that uses the builtins, the builtin asm is concatened to your contract asm and assembled together, allowing everything to work seamlessy.
+This is a way to share useful code that is used in many contracts but not part of the Phantasma chain native methods.
+
+## Adding new builtins
+In order to create new more builtin methods, do the following steps:
+1. Write code for a new method, making sure the method name follows the following convention: tomb_X_Y(args), where X is the library name to insert the builtin and Y is the method "real" name that will be exposed in the library
+2. Add that code to the builtins [source code](builtins.tomb)
+3. Compile builtins.tomb using TOMB itself.
+4. Open the generated builtins.asm file and copy paste the content into the BUILTIN_ASM static string inside Builtins.cs
+5. Your new method can now be used in any TOMB contract. You can do this change locally in your compiler repo and any contract compiled with it will still work anywhere.
+
 # More documentation
 Check our official <a href="https://docs.phantasma.io/#tomb-supported_features">Phantasma documentation</a> for more info about developing with Phantasma Chain.
