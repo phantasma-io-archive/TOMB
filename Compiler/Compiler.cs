@@ -178,6 +178,11 @@ namespace Phantasma.Tomb
 
             if (token.kind != TokenKind.Type)
             {
+                if (token.value.Equals("None", StringComparison.OrdinalIgnoreCase))
+                {
+                    return VarType.Find(VarKind.None);
+                }
+
                 if (_structs.ContainsKey(token.value))
                 {
                     return VarType.Find(VarKind.Struct, token.value);
