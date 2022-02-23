@@ -1,9 +1,11 @@
+using Phantasma.Domain;
 using Phantasma.Numerics;
+using Phantasma.Tomb.CodeGen;
 using System;
 using System.IO;
 using System.Text;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb
 {
     class Program
     {
@@ -72,13 +74,64 @@ namespace Phantasma.Tomb.Compiler
             }
         }
 
+        static public void ShowWarning(string warning)
+        {
+            var temp = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(warning);
+            Console.ForegroundColor = temp;
+        }
+
         static void Main(string[] args)
         {
+            string sourceFilePath = null;
+
+            int targetProtocolVersion = DomainSettings.LatestKnownProtocol;
+
+            for (int i=0; i<args.Length; i++)
+            {
+                if (i == args.Length - 1)
+                {
+                    sourceFilePath = args[i];
+                    break;
+                }
+
+                var tmp = args[i].Split(':', 2);
+
+                var tag = tmp[0];
+                string value = tmp.Length == 2 ? tmp[1] : null;
+
+                switch (tag)
+                {
+                    case "protocol":
+                        int version = -1;
+                        if (int.TryParse(value, out version) && version > 0)
+                        {
+                            targetProtocolVersion = version;
+                        }
+                        else
+                        {
+                            ShowWarning("Invalid protocol version: " + value);
+                        }
+                        break; 
+
+                    default:
+                        ShowWarning("Unknown option: " + tag);
+                        break;
+                }
+            }
+
 #if DEBUG
             ExportLibraryInfo();
-            var sourceFilePath = args.Length > 0 ? args[0] : "katacomb.txt";
+            if (string.IsNullOrEmpty(sourceFilePath))
+            {
+                sourceFilePath = @"..\..\..\builtins.tomb";
+            }
 #else
-            var sourceFilePath = args.Length > 0 ? args[0] : "my_contract.tomb";
+            if (string.IsNullOrEmpty(sourceFilePath))
+            {
+                sourceFilePath = @"my_contract.tomb";
+            }
 #endif
 
             if (!File.Exists(sourceFilePath))
@@ -90,7 +143,9 @@ namespace Phantasma.Tomb.Compiler
             var sourceCode = File.ReadAllText(sourceFilePath);
 
             Console.WriteLine("Compiling " + sourceFilePath);
-            var compiler = new Compiler();
+            Console.WriteLine("Target protocol version: " + targetProtocolVersion);
+
+            var compiler = new Compiler(targetProtocolVersion);
             var modules = compiler.Process(sourceCode);
 
             foreach (var module in modules)

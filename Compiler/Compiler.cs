@@ -1,11 +1,16 @@
 using Phantasma.Domain;
 using Phantasma.Numerics;
+using Phantasma.Tomb.CodeGen;
+using Phantasma.Tomb.AST;
 using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Tomb.AST.Declarations;
+using Phantasma.Tomb.AST.Statements;
+using Phantasma.Tomb.AST.Expressions;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb
 {
     public enum ExecutionResult
     {
@@ -27,8 +32,11 @@ namespace Phantasma.Tomb.Compiler
 
         public static Compiler Instance { get; private set; }
 
-        public Compiler()
+        public readonly int TargetProtocolVersion;
+
+        public Compiler(int version)
         {
+            TargetProtocolVersion = version;
             Instance = this;
         }
 
@@ -173,6 +181,11 @@ namespace Phantasma.Tomb.Compiler
 
             if (token.kind != TokenKind.Type)
             {
+                if (token.value.Equals("None", StringComparison.OrdinalIgnoreCase))
+                {
+                    return VarType.Find(VarKind.None);
+                }
+
                 if (_structs.ContainsKey(token.value))
                 {
                     return VarType.Find(VarKind.Struct, token.value);
@@ -862,6 +875,10 @@ namespace Phantasma.Tomb.Compiler
 
                                     case "onMigrate": // from, to
                                         CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address });
+                                        break;
+
+                                    case "onWrite": // address, data
+                                        CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Any });
                                         break;
 
                                     default:
@@ -1824,7 +1841,7 @@ namespace Phantasma.Tomb.Compiler
         {
             var first = FetchToken();
 
-            if (first.kind == TokenKind.Operator && first.value == "!")
+            if (first.kind == TokenKind.Operator && (first.value == "!" || first.value == "-"))
             {
                 var expr = ParseExpression(scope, allowBinary);
                 return new NegationExpression(scope, expr);

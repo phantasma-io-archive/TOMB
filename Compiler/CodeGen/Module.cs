@@ -4,12 +4,14 @@ using Phantasma.CodeGen.Assembler;
 using Phantasma.Domain;
 using Phantasma.Numerics;
 using Phantasma.VM;
-using Phantasma.VM.Debug;
+using Phantasma.Tomb.AST;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Tomb.AST.Declarations;
+using Phantasma.Tomb.AST.Expressions;
 
-namespace Phantasma.Tomb.Compiler
+namespace Phantasma.Tomb.CodeGen
 {
     public enum ModuleKind
     {
@@ -129,6 +131,8 @@ namespace Phantasma.Tomb.Compiler
 
             var libDecl = new LibraryDeclaration(scope, name);
 
+            Builtins.FillLibrary(libDecl);
+
             VarKind libKind;
             if (Enum.TryParse<VarKind>(name, out libKind) && libKind != VarKind.Bytes && libKind != VarKind.Method && libKind != VarKind.Task && libKind != VarKind.Array)
             {
@@ -181,6 +185,9 @@ namespace Phantasma.Tomb.Compiler
                     return libDecl;
 
                 case "String":
+                    libDecl.AddMethod("toUpper", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_upper");
+                    libDecl.AddMethod("toLower", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_lower");
+
                     libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
                         SetPreCallback((output, scope, expr) =>
                         {
@@ -373,6 +380,8 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("gasTarget", MethodImplementationType.ExtCall, VarKind.Address, new MethodParameter[] {  }).SetAlias("Runtime.GasTarget");
                     libDecl.AddMethod("context", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.Context");
                     libDecl.AddMethod("previousContext", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.PreviousContext");
+                    libDecl.AddMethod("version", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.Version");
+                    libDecl.AddMethod("getGovernanceValue", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { new MethodParameter("tag", VarKind.String) }).SetAlias("Nexus.GetGovernanceValue");
                     break;
 
                 case "Task":
@@ -401,9 +410,9 @@ namespace Phantasma.Tomb.Compiler
                         Compiler.Instance.DeallocRegister(ref regB);
                         return regA;
                     });
+
+                    libDecl.AddMethod("sqrt", MethodImplementationType.LocalCall, VarKind.Number, new[] { new MethodParameter("n", VarKind.Number) }).SetAlias("math_sqrt");
                     break;
-
-
 
                 case "Time":
                     libDecl.AddMethod("now", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { }).SetAlias("Runtime.Time");
@@ -433,7 +442,7 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("unregisterName", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.UnregisterName));
                         libDecl.AddMethod("registerScript", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abiBytes", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(AccountContract.RegisterScript));
                         libDecl.AddMethod("hasScript", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.HasScript));
-                        libDecl.AddMethod("lookUpAddress", MethodImplementationType.ContractCall, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.LookUpAddress));
+                        //libDecl.AddMethod("lookUpAddress", MethodImplementationType.ContractCall, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.LookUpAddress));
                         libDecl.AddMethod("lookUpScript", MethodImplementationType.ContractCall, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.LookUpScript));
                         libDecl.AddMethod("lookUpABI", MethodImplementationType.ContractCall, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.LookUpABI));
                         libDecl.AddMethod("lookUpName", MethodImplementationType.ContractCall, VarKind.Address, new[] { new MethodParameter("name", VarKind.String) }).SetContract(contract).SetAlias(nameof(AccountContract.LookUpName));
@@ -465,7 +474,7 @@ namespace Phantasma.Tomb.Compiler
                     libDecl.AddMethod("mint", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.MintTokens");
                     libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("address", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("token ID", VarKind.Number), new MethodParameter("ram", VarKind.Any) }).SetParameterCallback("ram", ConvertFieldToBytes).SetAlias("Runtime.WriteToken");
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.BurnTokens");
-                    libDecl.AddMethod("swap", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("targetChain", VarKind.String), new MethodParameter("source", VarKind.Address), new MethodParameter("destination", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.SwapTokens");
+                    libDecl.AddMethod("swap", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("targetChain", VarKind.String), new MethodParameter("source", VarKind.Address), new MethodParameter("destination", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.SwapTokens");
                     libDecl.AddMethod("getBalance", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetBalance");
                     libDecl.AddMethod("isMinter", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address), new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.IsMinter");
                     break;
@@ -518,7 +527,19 @@ namespace Phantasma.Tomb.Compiler
 
                 case "Storage":
                     {
-                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarKind.Any, new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String), new MethodParameter("type", VarKind.Number) }).SetAlias("Data.Get");
+                        libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("field", VarKind.String)}).SetAlias("Data.Get")
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback(ConvertGenericResult);
+
                         libDecl.AddMethod("write", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String), new MethodParameter("value", VarKind.Any) }).SetAlias("Data.Set");
                         libDecl.AddMethod("delete", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("field", VarKind.String) }).SetAlias("Data.Delete");
                         var contract = NativeContractKind.Storage.ToString().ToLower();
@@ -530,14 +551,14 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("hasPermission", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("external", VarKind.Address), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.HasPermission));
                         libDecl.AddMethod("addPermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("externalAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.AddPermission));
                         libDecl.AddMethod("deletePermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("externalAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.DeletePermission));
-                        libDecl.AddMethod("migratePermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("oldAddr", VarKind.Address), new MethodParameter("newAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.MigratePermission));
-                        libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.Migrate));
+                        //libDecl.AddMethod("migratePermission", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("oldAddr", VarKind.Address), new MethodParameter("newAddr", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.MigratePermission));
+                        //libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.Migrate));
                         libDecl.AddMethod("getUsedSpace", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetUsedSpace));
                         libDecl.AddMethod("getAvailableSpace", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetAvailableSpace));
                         // TODO Hash[] GetFiles(Address from) -> libDecl.AddMethod("getFiles", MethodImplementationType.ContractCall, VarKind.Hash, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetFiles));
                         libDecl.AddMethod("getUsedDataQuota", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StorageContract.GetUsedDataQuota));
-                        libDecl.AddMethod("writeData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes), new MethodParameter("value", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.GetFiles));
-                        libDecl.AddMethod("deleteData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.GetFiles));
+                        //libDecl.AddMethod("writeData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes), new MethodParameter("value", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.WriteData));
+                        //libDecl.AddMethod("deleteData", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("target", VarKind.Address), new MethodParameter("key", VarKind.Bytes) }).SetContract(contract).SetAlias(nameof(StorageContract.DeleteData));
 
                         break;
                     }
@@ -689,13 +710,12 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("isMaster", MethodImplementationType.ContractCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.IsMaster));
                         libDecl.AddMethod("getMasterCount", MethodImplementationType.ContractCall, VarKind.Number, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterCount));
                         libDecl.AddMethod("getMasterAddresses", MethodImplementationType.ContractCall, VarKind.Number, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterCount));
-                        // TODO getMasterAddresses -> libDecl.AddMethod("getMasterAddresses", MethodImplementationType.ContractCall, VarKind.Storage_List, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterAddresses));
                         libDecl.AddMethod("getClaimMasterCount", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("claimDate", VarKind.Timestamp) }).SetContract(contract).SetAlias(nameof(StakeContract.GetClaimMasterCount));
                         libDecl.AddMethod("getMasterClaimDate", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("claimDistance", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterClaimDate));
                         libDecl.AddMethod("getMasterDate", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterDate));
                         libDecl.AddMethod("getMasterClaimDateFromReference", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("claimDistance", VarKind.Number), new MethodParameter("referenceTime", VarKind.Timestamp) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterClaimDateFromReference));
                         libDecl.AddMethod("getMasterRewards", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterRewards));
-                        libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.Migrate));
+                        //libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.Migrate));
                         libDecl.AddMethod("masterClaim", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.MasterClaim));
                         libDecl.AddMethod("stake", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("stakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.Stake));
                         libDecl.AddMethod("unstake", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("unstakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.Unstake));
@@ -708,8 +728,8 @@ namespace Phantasma.Tomb.Compiler
                         libDecl.AddMethod("fuelToStake", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("fuelAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.FuelToStake));
                         libDecl.AddMethod("stakeToFuel", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("stakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.StakeToFuel));
                         libDecl.AddMethod("getAddressVotingPower", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetAddressVotingPower));
-                        libDecl.AddMethod("updateRate", MethodImplementationType.ContractCall, VarKind.None, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.UpdateRate));
-                        libDecl.AddMethod("getRate", MethodImplementationType.ContractCall, VarKind.Number, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetRate));
+                        //libDecl.AddMethod("updateRate", MethodImplementationType.ContractCall, VarKind.None, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.UpdateRate));
+                        //libDecl.AddMethod("getRate", MethodImplementationType.ContractCall, VarKind.Number, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetRate));
                         break;
                     }
                 case "Governance":
@@ -884,12 +904,12 @@ namespace Phantasma.Tomb.Compiler
                 subModule.Compile();
             }
 
-            var sb = new CodeGenerator();
-            abi = this.GenerateCode(sb);
+            var codeGen = new CodeGenerator();
+            abi = this.GenerateCode(codeGen);
 
             Compiler.Instance.VerifyRegisters();
 
-            asm = sb.ToString();
+            asm = codeGen.ToString();
 
             var lines = asm.Split('\n');
             DebugInfo temp;

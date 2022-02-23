@@ -1,0 +1,93 @@
+contract builtins {
+	import Array;
+	
+	private tomb_math_sqrt(n:number) : number {
+		local root:number := n / 2;
+		while (n < root * root) {
+			root += n / root;
+			root /= 2;
+		}
+		
+		return root;
+	}
+	
+	private tomb_string_toUpper(s:string):string
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 97) {
+				if (ch <= 122) {				
+					my_array[idx] := ch - 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}		
+
+	private tomb_string_toLower(s:string):string 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch >= 65) {
+				if (ch <= 90) {				
+					my_array[idx] := ch + 32; 
+				}
+			}
+						
+			idx += 1;
+		}
+				
+		// convert the array back into a unicode string
+		local result:string := String.fromArray(my_array); 
+		return result;
+	}		
+	
+	
+	private tomb_string_indexOf(s:string, x:number):number 
+	{        
+		local my_array: array<number>;		
+		
+		// extract chars from string into an array
+		my_array := s.toArray();	
+		
+		local length :number := Array.length(my_array);
+		local idx :number := 0;
+		
+		while (idx < length) {
+			local ch : number := my_array[idx];
+			
+			if (ch == x) {
+				// found, return index
+				return idx;
+			}
+									
+			idx += 1;
+		}
+		
+		return -1;		// not found
+	}		
+
+}

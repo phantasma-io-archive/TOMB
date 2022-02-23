@@ -1,4 +1,7 @@
-﻿namespace Phantasma.Tomb.Compiler
+﻿using Phantasma.Tomb.CodeGen;
+using Phantasma.Tomb.AST;
+
+namespace Phantasma.Tomb
 {
     public static class Extensions
     {
