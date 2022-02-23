@@ -380,6 +380,8 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("gasTarget", MethodImplementationType.ExtCall, VarKind.Address, new MethodParameter[] {  }).SetAlias("Runtime.GasTarget");
                     libDecl.AddMethod("context", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.Context");
                     libDecl.AddMethod("previousContext", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.PreviousContext");
+                    libDecl.AddMethod("version", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.Version");
+                    libDecl.AddMethod("getGovernanceValue", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { new MethodParameter("tag", VarKind.String) }).SetAlias("Nexus.GetGovernanceValue");
                     break;
 
                 case "Task":
