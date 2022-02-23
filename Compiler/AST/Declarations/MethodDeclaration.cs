@@ -66,6 +66,27 @@ namespace Phantasma.Tomb.AST.Declarations
 
             bool isConstructor = this.@interface.Kind == MethodKind.Constructor;
 
+            // protocol version check
+            if (isConstructor)
+            {
+                var varName = "nexus_protocol_version";
+                var tempP = Compiler.Instance.AllocRegister(output, this, varName);
+
+                var warning = $"Current nexus protocol version should be {Compiler.Instance.TargetProtocolVersion} or more";
+
+                output.AppendLine(this, $"// validate protocol version");
+                output.AppendLine(this, $"LOAD r0 \"Runtime.Version\"");
+                output.AppendLine(this, $"EXTCALL r0");
+                output.AppendLine(this, $"POP r0");
+                output.AppendLine(this, $"LOAD {tempP} {Compiler.Instance.TargetProtocolVersion}");
+                output.AppendLine(this, $"LT r0 {tempP} r0");
+                output.AppendLine(this, $"JMPNOT r0 @protocol_version_validated");
+                output.AppendLine(this, $"LOAD r0 \"{warning}\"");
+                output.AppendLine(this, $"THROW r0");
+                output.AppendLine(this, $"@protocol_version_validated: NOP");
+                Compiler.Instance.DeallocRegister(ref tempP);
+            }
+
             // here we generate code that runs at the entry point of this method
             // we need to fetch the global variables from storage and allocate registers for them
             foreach (var variable in this.scope.Parent.Variables.Values)

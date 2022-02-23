@@ -32,8 +32,11 @@ namespace Phantasma.Tomb
 
         public static Compiler Instance { get; private set; }
 
-        public Compiler()
+        public readonly int TargetProtocolVersion;
+
+        public Compiler(int version)
         {
+            TargetProtocolVersion = version;
             Instance = this;
         }
 

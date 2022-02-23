@@ -1103,7 +1103,7 @@ contract test {
                         }
 
                         property unlockCount:number {
-                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                               local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
                             return count;
                         }
                     }
