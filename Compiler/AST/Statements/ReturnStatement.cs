@@ -33,6 +33,7 @@ namespace Phantasma.Tomb.AST.Statements
             var returnType = this.method.@interface.ReturnType;
 
             var simpleReturn = (this.method.ParentScope.Module is Script);
+            var isMulti = this.method.@interface.IsMulti;
 
             if (expression != null)
             {
@@ -48,9 +49,14 @@ namespace Phantasma.Tomb.AST.Statements
                 Compiler.Instance.DeallocRegister(ref reg);
             }
             else
-            if (returnType.Kind != VarKind.None)
+            if (returnType.Kind != VarKind.None && !isMulti)
             {
                 throw new System.Exception($"expected return expression for non-void method: {method.Name}");
+            }
+
+            if (isMulti && expression != null)
+            {
+                return; // for multi methods a return with expression is basically just a push, nothing more..
             }
 
             if (simpleReturn)
