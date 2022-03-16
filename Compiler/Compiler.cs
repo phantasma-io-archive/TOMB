@@ -1148,7 +1148,7 @@ namespace Phantasma.Tomb
                             block.Commands.Add(new ReturnStatement(method, expr));
                             ExpectToken(";");
 
-                            if (!method.@interface.IsMulti)
+                            if (!method.@interface.IsMulti || expr == null)
                             {
                                 terminateEarly = true;
                             }

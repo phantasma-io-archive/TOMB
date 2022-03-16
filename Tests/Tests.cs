@@ -2375,7 +2375,7 @@ contract arrays {
         }
 
         [Test]
-        public void MultiResults()
+        public void MultiResultsSimple()
         {
             var sourceCode =
                 @"
@@ -2383,8 +2383,6 @@ contract test{
     public getStrings(): string* {
          return ""hello"";
          return ""world"";
-         return;
-         return ""bug"";
     }
 }";
 
@@ -2413,6 +2411,25 @@ contract test{
             Assert.IsTrue(x == "hello");
         }
 
+        [Test]
+        public void MultiResultsEarlyReturn()
+        {
+            var sourceCode =
+                @"
+contract test{                   
+    public getStrings(): string* {
+         return ""ok"";
+         return;
+         return ""bug""; // this line should not compile
+    }
+}";
+
+            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+
+            Assert.Catch<CompilerException>(() => {
+                var contract = parser.Process(sourceCode).First();
+            });
+        }
 
     }
 }
