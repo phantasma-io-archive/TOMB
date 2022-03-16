@@ -667,7 +667,7 @@ namespace Phantasma.Tomb
                                     throw new CompilerException("constructor must have only one parameter of type address");
                                 }
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Constructor, VarType.Find(VarKind.None), parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Constructor, VarType.Find(VarKind.None), parameters, scope, false);
 
                                 ExpectToken("{");
 
@@ -702,7 +702,7 @@ namespace Phantasma.Tomb
                                     propertyName = "get" + char.ToUpper(propertyName[0]) + propertyName.Substring(1);
                                 }
 
-                                var method = contract.AddMethod(line, propertyName, true, MethodKind.Property, returnType, parameters, scope);
+                                var method = contract.AddMethod(line, propertyName, true, MethodKind.Property, returnType, parameters, scope, false);
 
                                 var next = FetchToken();
                                 if (next.value == "=")
@@ -754,17 +754,29 @@ namespace Phantasma.Tomb
 
                                 var returnType = VarType.Find(VarKind.None);
 
+                                var isMulti = false;
+
                                 var next = FetchToken();
                                 if (next.value == ":")
                                 {
                                     returnType = ExpectType();
+
+                                    next = FetchToken();
+                                    if (next.value == "*")
+                                    {
+                                        isMulti = true;
+                                    }
+                                    else
+                                    {
+                                        Rewind();
+                                    }
                                 }
                                 else
                                 {
                                     Rewind();
                                 }
 
-                                var method = contract.AddMethod(line, name, token.value == "public", MethodKind.Method, returnType, parameters, scope);
+                                var method = contract.AddMethod(line, name, token.value == "public", MethodKind.Method, returnType, parameters, scope, isMulti);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -797,7 +809,7 @@ namespace Phantasma.Tomb
 
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarType.Find(VarKind.Bool), parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Task, VarType.Find(VarKind.Bool), parameters, scope, false);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -893,7 +905,7 @@ namespace Phantasma.Tomb
 
                                 var scope = new Scope(module.Scope, name, parameters);
 
-                                var method = contract.AddMethod(line, name, true, MethodKind.Trigger, VarType.Find(VarKind.None), parameters, scope);
+                                var method = contract.AddMethod(line, name, true, MethodKind.Trigger, VarType.Find(VarKind.None), parameters, scope, false);
 
                                 ExpectToken("{");
                                 contract.SetMethodBody(name, ParseCommandBlock(scope, method));
@@ -1136,7 +1148,10 @@ namespace Phantasma.Tomb
                             block.Commands.Add(new ReturnStatement(method, expr));
                             ExpectToken(";");
 
-                            terminateEarly = true;
+                            if (!method.@interface.IsMulti)
+                            {
+                                terminateEarly = true;
+                            }
                             break;
                         }
 

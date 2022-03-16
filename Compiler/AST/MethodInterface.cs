@@ -70,7 +70,9 @@ namespace Phantasma.Tomb.AST
         public int StartAsmLine;
         public int EndAsmLine;
 
-        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, string alias = null) 
+        public bool IsMulti; // if true, method will emit multiple return values in the vm result stack
+
+        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, string alias = null, bool isMulti = false) 
         {
             this.Name = name;
             this.Library = library;
@@ -79,9 +81,11 @@ namespace Phantasma.Tomb.AST
             this.IsPublic = isPublic; 
             this.ReturnType = returnType;
             this.Parameters = parameters;
+            this.IsMulti = isMulti;
+
             this.PreCallback = null;
             this.PostCallback = null;
-
+            
             this.Contract = this.Library.Name;
 
             if (alias != null)

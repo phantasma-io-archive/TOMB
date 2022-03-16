@@ -2373,5 +2373,46 @@ contract arrays {
             var exists = callResult.AsBool();
             Assert.IsFalse(exists, "It shouldn't exist...");
         }
+
+        [Test]
+        public void MultiResults()
+        {
+            var sourceCode =
+                @"
+contract test{                   
+    public getStrings(): string* {
+         return ""hello"";
+         return ""world"";
+         return;
+         return ""bug"";
+    }
+}";
+
+            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var getStrings = contract.abi.FindMethod("getStrings");
+            Assert.IsNotNull(getStrings);
+
+            vm = new TestVM(contract, storage, getStrings);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 2);
+
+            var obj = vm.Stack.Pop();
+            var x = obj.AsString();
+            Assert.IsTrue(x == "world");
+
+            obj = vm.Stack.Pop();
+            x = obj.AsString();
+            Assert.IsTrue(x == "hello");
+        }
+
+
     }
 }

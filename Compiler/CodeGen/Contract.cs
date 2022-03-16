@@ -190,7 +190,7 @@ namespace Phantasma.Tomb.CodeGen
             return abi;
         }
 
-        public MethodDeclaration AddMethod(int line, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, Scope scope)
+        public MethodDeclaration AddMethod(int line, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, Scope scope, bool isMulti)
         {
             if (Methods.Count == 0)
             {
@@ -208,7 +208,7 @@ namespace Phantasma.Tomb.CodeGen
                 throw new CompilerException($"Duplicated method name: {name}:{returnType}");
             }
 
-            var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, isPublic, kind, returnType, parameters);
+            var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, isPublic, kind, returnType, parameters, null, isMulti);
             this.Scope.Methods.Add(method);
 
             var decl = new MethodDeclaration(scope, method);
