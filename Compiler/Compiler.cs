@@ -636,6 +636,12 @@ namespace Phantasma.Tomb
                                 var value = (byte)((byte)EventKind.Custom + contract.Events.Count);
 
                                 var eventDecl = new EventDeclaration(module.Scope, eventName, value, eventType, description);
+
+                                if (contract.Events.ContainsKey(eventName))
+                                {
+                                    throw new CompilerException($"duplicated event: {eventName}");
+                                }
+
                                 contract.Events[eventName] = eventDecl;
                             }
                             else
