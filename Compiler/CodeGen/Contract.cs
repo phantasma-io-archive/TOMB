@@ -203,6 +203,11 @@ namespace Phantasma.Tomb.CodeGen
                 throw new CompilerException($"Invalid method definition: {name}:{returnType}");
             }
 
+            if (Methods.ContainsKey(name))
+            {
+                throw new CompilerException($"Duplicated method name: {name}:{returnType}");
+            }
+
             var method = new MethodInterface(this.library, MethodImplementationType.Custom, name, isPublic, kind, returnType, parameters);
             this.Scope.Methods.Add(method);
 

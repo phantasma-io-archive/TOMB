@@ -226,6 +226,28 @@ contract test {
 
 
         [Test]
+        public void DuplicatedMethodNames()
+        {
+            var sourceCode =
+                @"
+contract test {
+    public testme(x:number): number {
+         return 5;
+    }
+
+    public testme(x:number): string {
+         return ""zero"";
+     }}";
+
+            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+
+            Assert.Catch<CompilerException>(() =>
+            {
+                var contract = parser.Process(sourceCode).First();
+            });
+        }
+
+        [Test]
         public void TestCounter()
         {
             var sourceCode =
