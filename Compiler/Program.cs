@@ -86,7 +86,7 @@ namespace Phantasma.Tomb
         {
             string sourceFilePath = null;
 
-            int targetProtocolVersion = DomainSettings.LatestKnownProtocol;
+            int targetProtocolVersion = 0;
 
             for (int i=0; i<args.Length; i++)
             {
