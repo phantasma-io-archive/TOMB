@@ -144,7 +144,7 @@ namespace Phantasma.Tomb
 
             if (token.kind != expectedKind)
             {
-                throw new CompilerException($"expected {expectedKind}, got {token.kind} instead");
+                throw new CompilerException($"expected {expectedKind}, got {token.kind} instead: " + token.value);
             }
 
             return token.value;
@@ -747,7 +747,16 @@ namespace Phantasma.Tomb
                             if (contract != null)
                             {
                                 var line = this.CurrentLine;
-                                var name = ExpectIdentifier();
+
+                                var next = FetchToken();
+
+                                string name = next.value;
+
+                                if (next.value != "constructor")
+                                {
+                                    Rewind();
+                                    name = ExpectIdentifier();
+                                }
 
                                 var parameters = ParseParameters(module.Scope);
                                 var scope = new Scope(module.Scope, name, parameters);
@@ -756,7 +765,7 @@ namespace Phantasma.Tomb
 
                                 var isMulti = false;
 
-                                var next = FetchToken();
+                                next = FetchToken();
                                 if (next.value == ":")
                                 {
                                     returnType = ExpectType();

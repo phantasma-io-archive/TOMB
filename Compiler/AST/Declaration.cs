@@ -9,6 +9,15 @@ namespace Phantasma.Tomb.AST
         {
             Name = name;
             ParentScope = parentScope;
+            ValidateName();
+        }
+
+        protected virtual void ValidateName()
+        {
+            if (!Lexer.IsValidIdentifier(Name))
+            {
+                throw new CompilerException("Invalid identifier: " + Name);
+            }
         }
     }
 }

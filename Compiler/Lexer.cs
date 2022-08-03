@@ -11,9 +11,11 @@ namespace Phantasma.Tomb
 {
     public enum TokenKind
     {
+        Invalid,
         Separator,
         Operator,
         Selector,
+        Keyword,
         Identifier,
         Type,
         String,
@@ -136,16 +138,37 @@ namespace Phantasma.Tomb
                         }
                         else
                         {
-                            this.kind = TokenKind.Identifier;
-
                             foreach (var varType in Lexer.VarTypeNames)
                             {
                                 if (varType == this.value)
                                 {
                                     this.kind = TokenKind.Type;
-                                    break;
+                                    return;
                                 }
                             }
+
+                            foreach (var word in Lexer.Keywords)
+                            {
+                                if (word == this.value)
+                                {
+                                    this.kind = TokenKind.Keyword;
+                                    return;
+                                }
+                            }
+
+                            // otherwise, fall back to identifier
+                            if (Lexer.IsValidIdentifier(this.value))
+                            {
+                                this.kind = TokenKind.Identifier;
+                                return;
+                            }
+
+                            if (!string.IsNullOrEmpty(this.value))
+                            {
+                                throw new CompilerException("Parsing failed, unsupported token: " + this.value);
+                            }
+
+                            this.kind = TokenKind.Invalid;
                         }
                         break;
                 }
@@ -161,6 +184,29 @@ namespace Phantasma.Tomb
 
     public static class Lexer
     {
+        public readonly static string[] Keywords = new string[]
+        {
+            "contract",
+            "global",
+            "local",
+            "struct",
+            "enum",
+            "if",
+            "else",
+            "throw",
+            "import",
+            "const",
+            "private",
+            "public",
+            "return",
+            "script",
+            "token",
+            "nft",
+            "code",
+            //"description", // this should be a keyword, but contracts like Ghostmarket depend on it not being a keyword! 
+            "constructor",
+        };
+
         public readonly static string[] VarTypeNames = Enum.GetNames(typeof(VarKind)).Cast<string>().Select(x => x.ToLower()).ToArray();
 
         internal static bool IsOperatorSymbol(char ch)
@@ -209,6 +255,43 @@ namespace Phantasma.Tomb
             None,
             Single,
             Multi
+        }
+
+        public static bool IsValidIdentifier(string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier))
+            {
+                return false;
+            }
+
+            for (int i=0; i<identifier.Length; i++)
+            {
+                var ch = identifier[i];
+
+                if (char.IsLetter(ch) || ch == '_')
+                {
+                    continue;
+                }
+
+                if (i > 0 && char.IsDigit(ch))
+                {
+                    continue;
+                }
+
+                if (i > 0 && (ch == '[' || ch == ']')) // Array support
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            if (Keywords.Contains(identifier))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static List<LexerToken> Process(string sourceCode)

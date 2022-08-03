@@ -50,6 +50,7 @@ namespace Tests
                 RegisterMethod("Data.Set", Data_Set);
                 RegisterMethod("Data.Get", Data_Get);
                 RegisterMethod("Data.Delete", Data_Delete);
+                RegisterMethod("Runtime.Version", Runtime_Version);
                 contexts = new Dictionary<string, ScriptContext>();
             }
 
@@ -143,7 +144,6 @@ namespace Tests
                 var val = new VMObject();
                 val.SetValue(value_bytes, vmType);
 
-                val.SetValue(value_bytes, vmType);
                 this.Stack.Push(val);
 
                 return ExecutionState.Running;
@@ -174,6 +174,14 @@ namespace Tests
                 var key = SmartContract.GetKeyForField(contractName, field, false);
 
                 this.storage.Remove(key);
+
+                return ExecutionState.Running;
+            }
+
+            private ExecutionState Runtime_Version(VirtualMachine vm)
+            {
+                var val = VMObject.FromObject(7);
+                this.Stack.Push(val);
 
                 return ExecutionState.Running;
             }
@@ -2136,7 +2144,7 @@ contract arrays {
         }
 
         [Test]
-        public void simpleTest()
+        public void SimpleTest()
         {
             var keys = PhantasmaKeys.Generate();
             var sourceCode =

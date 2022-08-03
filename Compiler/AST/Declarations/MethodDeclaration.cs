@@ -22,6 +22,14 @@ namespace Phantasma.Tomb.AST.Declarations
             this.@interface = @interface;
         }
 
+        protected override void ValidateName()
+        {
+            if (Name != "constructor")
+            {
+                base.ValidateName();
+            }
+        }
+
         public override void Visit(Action<Node> callback)
         {
             callback(this);
