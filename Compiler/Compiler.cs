@@ -2050,6 +2050,43 @@ namespace Phantasma.Tomb
                                     return ParseBinaryExpression(scope, op, leftSide, rightSide);
                                 }
 
+                            case "{":
+                                {
+                                    Rewind();
+
+                                    var result = new ArrayExpression(scope);
+                                    do
+                                    {
+                                        var token = FetchToken();
+                                        if (token.value == "}")
+                                        {
+                                            break;
+                                        }
+
+                                        Rewind();
+
+                                        if (result.elements.Count > 0)
+                                        {
+                                            ExpectToken(",");
+                                        }
+
+                                        var element = ExpectExpression(scope);
+
+                                        if (result.elements.Count > 0)
+                                        {
+                                            var firstType = result.elements[0].ResultType;
+                                            if (element.ResultType != firstType)
+                                            {
+                                                throw new CompilerException($"Elements of array initialization must all have type {firstType} but at least one element is of type {element.ResultType}");
+                                            }
+                                        }
+
+                                        result.elements.Add(element);
+
+                                    } while (true);
+                                    return result;
+                                }
+
                             default:
                                 throw new CompilerException($"unexpected token: {first.value}");
                         }
