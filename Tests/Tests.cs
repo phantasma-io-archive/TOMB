@@ -435,7 +435,7 @@ contract test {
             var str = "hello";
 
             var sourceCode =
-@"script test{
+@"contract test{
     public getStrings(): array<string> {
         local result:array<string> := {""A"", ""B"", ""C""};
         return result;
