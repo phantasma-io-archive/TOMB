@@ -50,7 +50,14 @@ namespace Phantasma.Tomb.AST.Expressions
             return (node == this);
         }
 
-        public override VarType ResultType => elements.Count > 0 ? elements[0].ResultType : VarType.Find(VarKind.Unknown);
+        public override VarType ResultType
+        {
+            get
+            {
+                var elementType = elements.Count > 0 ? elements[0].ResultType : VarType.Find(VarKind.Unknown);
+                return VarType.Find(VarKind.Array, elementType);
+            }
+        }
     }
 
 }
