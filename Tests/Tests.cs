@@ -202,7 +202,7 @@ contract test {
         }                  
      }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -247,7 +247,7 @@ contract test {
          return ""zero"";
      }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
 
             Assert.Catch<CompilerException>(() =>
             {
@@ -275,7 +275,7 @@ contract test {
         counter += 1;
      }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -317,7 +317,7 @@ contract test {
                         return Math.min(a, b);
                     }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -349,7 +349,7 @@ contract test {
                 "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -390,7 +390,7 @@ contract test {
                 "return name.length();\n" +
                 "}}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -441,7 +441,7 @@ contract test {
         return result;
     }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -481,7 +481,7 @@ contract test {
                 "return amount.decimals();\n}" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -549,7 +549,7 @@ contract test {
                 "amount := " + valStr + ";\n}" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
 
             try
             {
@@ -586,7 +586,7 @@ contract test {
                 "}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -637,7 +637,7 @@ contract test {
                     "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -685,7 +685,7 @@ contract test {
                     "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -722,7 +722,7 @@ contract test {
                     "}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -782,7 +782,7 @@ contract test {
                     "}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -842,7 +842,7 @@ contract test {
                     "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -903,7 +903,7 @@ contract test {
                 "}\n"+
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1017,7 +1017,7 @@ contract test {
                     }
                 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
@@ -1208,7 +1208,7 @@ contract test {
                     }
                 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
@@ -1354,7 +1354,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1423,7 +1423,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1562,7 +1562,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1620,7 +1620,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1676,7 +1676,7 @@ contract test {
                 "}\n"+
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1732,7 +1732,7 @@ contract test {
                 "}\n"+
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1779,7 +1779,7 @@ contract test {
                 " Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
                 "}\n"+
                 "}\n";
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -1817,7 +1817,7 @@ contract arrays {
 }
 ";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -1851,7 +1851,7 @@ contract arrays {
 }
 ";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -1917,7 +1917,7 @@ contract arrays {
 }
 ";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -1965,7 +1965,7 @@ contract arrays {
         //    api.Mempool = mempool;
         //    mempool.Start();
         //    var sourceCode = System.IO.File.ReadAllLines("/home/merl/source/phantasma/GhostMarketContractPhantasma/GHOST.tomb");
-        //    var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+        //    var parser = new Compiler();
         //    var contract = parser.Process(sourceCode).First();
         //    //Console.WriteLine("contract asm: " + contract.asm);
         //    //System.IO.File.WriteAllText(@"GHOST_series.asm", contract.SubModules.First().asm);
@@ -2056,7 +2056,7 @@ contract arrays {
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2120,7 +2120,7 @@ contract arrays {
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2206,7 +2206,7 @@ contract arrays {
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2362,7 +2362,7 @@ contract arrays {
             simulator.EndBlock();
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
             //Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2429,7 +2429,7 @@ contract test{
     }
 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -2467,11 +2467,45 @@ contract test{
     }
 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new Compiler();
 
             Assert.Catch<CompilerException>(() => {
                 var contract = parser.Process(sourceCode).First();
             });
+        }
+
+        [Test]
+        public void TypeInferenceInVarDecls()
+        {
+            var sourceCode =
+@"contract test{                   
+    public calculate():string {
+         local a := ""hello "";
+         local b := ""world"";
+        return a + b;
+    }
+}";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var method = contract.abi.FindMethod("calculate");
+            Assert.IsNotNull(method);
+
+            vm = new TestVM(contract, storage, method);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var str = obj.AsString();
+
+            Assert.IsTrue(str == "hello world");
         }
 
     }

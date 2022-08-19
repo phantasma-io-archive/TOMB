@@ -34,7 +34,7 @@ namespace Phantasma.Tomb
 
         public readonly int TargetProtocolVersion;
 
-        public Compiler(int version)
+        public Compiler(int version = DomainSettings.LatestKnownProtocol)
         {
             TargetProtocolVersion = version;
             Instance = this;
@@ -1193,8 +1193,18 @@ namespace Phantasma.Tomb
                     case "local":
                         {
                             var varName = ExpectIdentifier();
-                            ExpectToken(":");
-                            var type = ExpectType();
+
+                            var tmp = FetchToken();
+                            VarType type = null;
+
+                            if (tmp.value == ":")
+                            {
+                                type = ExpectType();
+                            }
+                            else
+                            {
+                                Rewind();
+                            }
 
                             var next = FetchToken();
 
@@ -1202,6 +1212,16 @@ namespace Phantasma.Tomb
                             if (next.value == ":=")
                             {
                                 initExpr = ExpectExpression(scope);
+
+                                if (type == null)
+                                {
+                                    type = initExpr.ResultType;
+                                }
+                            }
+                            else
+                            if (type == null)
+                            {
+                                throw new CompilerException($"Type for variable {varName} must be specified!");
                             }
                             else
                             {

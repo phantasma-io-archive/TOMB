@@ -34,6 +34,7 @@ TOMB smart contract compiler for Phantasma platform
 - Custom events
 - Interop and Contract calls
 - Inline asm
+- Type inference in declarations
 - Structs
 - Import libraries (Runtime, Leaderboard, Token, etc)
 - Comments (single and multi line)
@@ -984,13 +985,24 @@ A return without expression will terminate the method execution. <br/>
 
 ```c#
 contract test {
-
-script test{                   
 	// this method returns an array of strings (could also be numbers, structs, etc)
     public getStrings(): string* {
          return "hello";
          return "world";
          return;
+    }
+}
+```
+
+## Type inference in variable declarations
+It is possible to let TOMB compiler auto-detect type of a local variable if you omit the type and provide an initialization expression. <br/>
+
+```c#
+contract test {
+    public calculate():string {
+         local a := "hello ";
+         local b := "world";
+        return a + b;
     }
 }
 ```
