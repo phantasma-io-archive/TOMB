@@ -5,12 +5,12 @@ using System;
 
 namespace Phantasma.Tomb.AST.Expressions
 {
-    public class ArrayExpression : Expression
+    public class ArrayElementExpression : Expression
     {
         public VarDeclaration decl;
         public Expression indexExpression;
 
-        public ArrayExpression(Scope parentScope, VarDeclaration declaration, Expression indexExpression) : base(parentScope)
+        public ArrayElementExpression(Scope parentScope, VarDeclaration declaration, Expression indexExpression) : base(parentScope)
         {
             this.decl = declaration;
             this.indexExpression = indexExpression;

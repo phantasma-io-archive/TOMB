@@ -1633,7 +1633,7 @@ namespace Phantasma.Tomb
                                 }
 
                                 var indexExpression = ParseArrayIndexingExpression(scope, tmp, arrayType.elementType);
-                                return new ArrayExpression(scope, arrayVar, indexExpression);
+                                return new ArrayElementExpression(scope, arrayVar, indexExpression);
                             }
 
                             var varDecl = scope.FindVariable(first.value, false);

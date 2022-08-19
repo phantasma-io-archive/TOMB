@@ -586,9 +586,21 @@ contract test {
 }
 ```
 
+## Array example
+Here is an simple example of how to declare and initialize an array.
+
+```c#
+contract test {
+	import Array;
+	public getStrings(): array<string> {
+        local result:array<string> := {"A", "B", "C"};
+        return result;
+    }
+}
+```
+
 ## String manipulation
-The compiler supports generic types, including maps.<br/>
-Maps are one of the few types that don't have to initialized in the constructor.<br/>
+The compiler supports casting strings into number arrays (unicode values) and number arrays back to strings.<br/>
 
 ```c#
 contract test {

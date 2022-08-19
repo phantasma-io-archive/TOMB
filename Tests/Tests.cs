@@ -430,6 +430,40 @@ contract test {
         }
 
         [Test]
+        public void StringArray()
+        {
+            var str = "hello";
+
+            var sourceCode =
+@"script test{
+    public getStrings(): array<string> {
+        local result:array<string> := {""A"", ""B"", ""C""};
+        return result;
+    }}";
+
+            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var getStrings = contract.abi.FindMethod("getStrings");
+            Assert.IsNotNull(getStrings);
+
+            vm = new TestVM(contract, storage, getStrings);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var array = obj.AsArray(VMType.String);
+
+            Assert.IsTrue(array.Length == 3);
+        }
+
+        [Test]
         public void DecimalsSimple()
         {
             var valStr = "2.4587";
@@ -2216,6 +2250,7 @@ contract arrays {
             //var temp = vmObj.AsNumber();
             //
         }
+
 
         [Test]
         public void TestMintInsideOnBurn()
