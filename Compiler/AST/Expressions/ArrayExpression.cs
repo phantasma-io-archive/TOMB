@@ -26,7 +26,7 @@ namespace Phantasma.Tomb.AST.Expressions
 
             output.AppendLine(this, $"CLEAR {reg}");
 
-            var idxReg = Compiler.Instance.AllocRegister(output, this, "idx");
+            var idxReg = Compiler.Instance.AllocRegister(output, this, "_array_init_idx");
 
             for (int i=0; i<elements.Count; i++)
             {
