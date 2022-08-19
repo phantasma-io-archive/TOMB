@@ -977,6 +977,24 @@ contract test {
 }
 ```
 
+## Returning multiple values
+It is possible in TOMB to return multiple results from a single method.<br/>
+The method return type must be marked with an asterisk, then multiple returns can be issued. <br/>
+A return without expression will terminate the method execution. <br/>
+
+```c#
+contract test {
+
+script test{                   
+	// this method returns an array of strings (could also be numbers, structs, etc)
+    public getStrings(): string* {
+         return "hello";
+         return "world";
+         return;
+    }
+}
+```
+
 ## Tasks
 A task allows a contract method to run periodically without user intervention.<br/>
 Tasks can't have parameters, however you can use Task.current() along with a global Map to associate custom user data to each task.<br/>
