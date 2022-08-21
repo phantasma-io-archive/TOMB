@@ -102,7 +102,7 @@ namespace Phantasma.Tomb
                 this.kind = TokenKind.Selector;
             }
             else
-            if (value == ":=" || value == "and" || value == "or" || value == "xor")
+            if (value == Lexer.AssignmentOperator || value == "and" || value == "or" || value == "xor")
             {
                 this.kind = TokenKind.Operator;
             }
@@ -184,6 +184,10 @@ namespace Phantasma.Tomb
 
     public static class Lexer
     {
+        // WARNING, changing this to just "=" is tempting but won't work yet...
+        // There is a private branch with all the work required to change the operator into the most popular =, contact Sergio for more info
+        public const string AssignmentOperator = ":=";
+
         public readonly static string[] Keywords = new string[]
         {
             "contract",

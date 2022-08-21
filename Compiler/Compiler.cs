@@ -1192,54 +1192,10 @@ namespace Phantasma.Tomb
 
                     case "local":
                         {
-                            var varName = ExpectIdentifier();
-
-                            var tmp = FetchToken();
-                            VarType type = null;
-
-                            if (tmp.value == ":")
+                            AssignStatement initCmd;
+                            ParseVariableDeclaration(scope, out initCmd);
+                            if (initCmd != null)
                             {
-                                type = ExpectType();
-                            }
-                            else
-                            {
-                                Rewind();
-                            }
-
-                            var next = FetchToken();
-
-                            Expression initExpr;
-                            if (next.value == ":=")
-                            {
-                                initExpr = ExpectExpression(scope);
-
-                                if (type == null)
-                                {
-                                    type = initExpr.ResultType;
-                                }
-                            }
-                            else
-                            if (type == null)
-                            {
-                                throw new CompilerException($"Type for variable {varName} must be specified!");
-                            }
-                            else
-                            {
-                                initExpr = null;
-                                Rewind();
-                            }
-
-                            ExpectToken(";");
-
-                            var varDecl = new VarDeclaration(scope, varName, type, VarStorage.Local);
-
-                            scope.AddVariable(varDecl);
-
-                            if (initExpr != null)
-                            {
-                                var initCmd = new AssignStatement();
-                                initCmd.variable = varDecl;
-                                initCmd.valueExpression = initExpr;
                                 block.Commands.Add(initCmd);
                             }
 
@@ -1340,6 +1296,69 @@ namespace Phantasma.Tomb
                             break;
                         }
 
+                    case "for":
+                        {
+                            var forCommand = new ForStatement(scope);
+
+                            ExpectToken("(");
+
+                            ExpectToken("local");
+
+                            AssignStatement initCmd;
+                            forCommand.loopVar = ParseVariableDeclaration(scope, out initCmd);
+                            if (initCmd == null)
+                            {
+                                throw new CompilerException("variable missing initialization statement in for loop");
+                            }
+                            else
+                            {
+                                forCommand.initStatement = initCmd;
+                            }
+
+                            forCommand.condition = ExpectExpression(scope);
+
+                            if (forCommand.condition.ResultType.Kind != VarKind.Bool)
+                            {
+                                throw new CompilerException($"condition must be boolean expression");
+                            }
+
+                            ExpectToken(";");
+
+                            var varName = ExpectIdentifier();
+                            if (varName != forCommand.loopVar.Name)
+                            {
+                                throw new CompilerException($"expected variable {varName} (temporary compiler limitation, no complex for statements supported!)");
+                            }
+
+                            var next = FetchToken();
+
+                            /*if (next.kind == TokenKind.Postfix)
+                            {
+                                forCommand.loopStatement = BuildPostfixStatement(scope, varName, next.value);
+                            }
+                            else*/
+                            if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
+                            {
+                                forCommand.loopStatement = BuildBinaryShortAssigment(scope, varName, next.value);
+                            }
+                            else
+                            {
+                                throw new CompilerException($"expected simple statement using {varName} (temporary compiler limitation, no complex for statements supported!)");
+                            }
+
+                            ExpectToken(")");
+
+                            ExpectToken("{");
+
+                            forCommand.body = ParseCommandBlock(forCommand.Scope, method);
+
+                            ExpectToken("}");
+
+                            block.Commands.Add(forCommand);
+                            break;
+                        }
+
+
                     case "while":
                         {
                             var whileCommand = new WhileStatement(scope);
@@ -1416,44 +1435,7 @@ namespace Phantasma.Tomb
 
                             if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
                             {
-                                var setCommand = new AssignStatement();
-
-                                var varName = token.value;
-                                VarType expressionExpectedType;
-
-                                var indexerPos = varName.IndexOf("[");
-                                if (indexerPos >= 0)
-                                {
-                                    if (!varName.EndsWith("]"))
-                                    {
-                                        throw new CompilerException("expected ] in array indexer");
-                                    }
-
-                                    var tmp = varName.Substring(indexerPos + 1, (varName.Length - indexerPos) - 2);
-
-                                    varName = varName.Substring(0, indexerPos);
-
-                                    setCommand.variable = scope.FindVariable(varName);
-
-                                    var arrayType = setCommand.variable.Type as ArrayVarType;
-
-                                    if (arrayType == null)
-                                    {
-                                        throw new CompilerException($"variable {setCommand.variable} is not an array");
-                                    }
-
-                                    expressionExpectedType = arrayType.elementType;
-                                    setCommand.keyExpression = ParseArrayIndexingExpression(scope, tmp, expressionExpectedType);
-                                }
-                                else
-                                {
-                                    setCommand.variable = scope.FindVariable(varName);
-                                    expressionExpectedType = setCommand.variable.Type;
-                                }
-
-                                var expr = ParseAssignmentExpression(scope, next, setCommand.variable, expressionExpectedType);
-
-                                setCommand.valueExpression = expr;
+                                var setCommand = BuildBinaryShortAssigment(scope, token.value, next.value);
                                 block.Commands.Add(setCommand);
                             }
                             else
@@ -1529,7 +1511,7 @@ namespace Phantasma.Tomb
                                         var assignment = new AssignStatement();
                                         assignment.variable = varDecl;
                                         assignment.keyExpression = new LiteralExpression(scope, "\"" + fieldName + "\"" , fieldDecl.type);
-                                        assignment.valueExpression = ParseAssignmentExpression(scope, next, varDecl, fieldDecl.type);
+                                        assignment.valueExpression = ParseAssignmentExpression(scope, next.value, varDecl, fieldDecl.type);
                                         block.Commands.Add(assignment);
                                     }
                                     else
@@ -1577,22 +1559,130 @@ namespace Phantasma.Tomb
             }
         }
 
-        private Expression ParseAssignmentExpression(Scope scope, LexerToken next, VarDeclaration varDecl, VarType expectedType)
+        private AssignStatement BuildBinaryShortAssigment(Scope scope, string varName, string opStr)
+        {
+            var setCommand = new AssignStatement();
+
+            VarType expressionExpectedType;
+
+            var indexerPos = varName.IndexOf("[");
+            if (indexerPos >= 0)
+            {
+                if (!varName.EndsWith("]"))
+                {
+                    throw new CompilerException("expected ] in array indexer");
+                }
+
+                var tmp = varName.Substring(indexerPos + 1, (varName.Length - indexerPos) - 2);
+
+                varName = varName.Substring(0, indexerPos);
+
+                setCommand.variable = scope.FindVariable(varName);
+
+                var arrayType = setCommand.variable.Type as ArrayVarType;
+
+                if (arrayType == null)
+                {
+                    throw new CompilerException($"variable {setCommand.variable} is not an array");
+                }
+
+                expressionExpectedType = arrayType.elementType;
+                setCommand.keyExpression = ParseArrayIndexingExpression(scope, tmp, expressionExpectedType);
+            }
+            else
+            {
+                setCommand.variable = scope.FindVariable(varName);
+                expressionExpectedType = setCommand.variable.Type;
+            }
+
+            var expr = ParseAssignmentExpression(scope, opStr, setCommand.variable, expressionExpectedType);
+            setCommand.valueExpression = expr;
+
+            return setCommand;
+        }
+
+        private VarDeclaration ParseVariableDeclaration(Scope scope, out AssignStatement assignment)
+        {
+            var varName = ExpectIdentifier();
+
+            var tmp = FetchToken();
+            VarType type = null;
+
+            if (tmp.value == ":")
+            {
+                type = ExpectType();
+            }
+            else
+            {
+                Rewind();
+            }
+
+            var next = FetchToken();
+
+            Expression initExpr;
+            if (next.kind == TokenKind.Operator)
+            {
+                if (next.value == Lexer.AssignmentOperator)
+                {
+                    initExpr = ExpectExpression(scope);
+
+                    if (type == null)
+                    {
+                        type = initExpr.ResultType;
+                    }
+                }
+                else
+                {
+                    throw new CompilerException($"Expected {Lexer.AssignmentOperator} in variable initialization");
+                }
+            }
+            else
+            if (type == null)
+            {
+                throw new CompilerException($"Type for variable {varName} must be specified!");
+            }
+            else
+            {
+                initExpr = null;
+                Rewind();
+            }
+
+            var varDecl = new VarDeclaration(scope, varName, type, VarStorage.Local);
+
+            scope.AddVariable(varDecl);
+
+            if (initExpr != null)
+            {
+                var initCmd = new AssignStatement();
+                initCmd.variable = varDecl;
+                initCmd.valueExpression = initExpr;
+                assignment = initCmd;
+            }
+            else
+            {
+                assignment = null;
+            }
+
+            ExpectToken(";");
+
+            return varDecl;
+        }
+
+        private Expression ParseAssignmentExpression(Scope scope, string opStr, VarDeclaration varDecl, VarType expectedType)
         {
             var expr = ExpectExpression(scope);
-            if (next.value != ":=")
+            if (opStr != Lexer.AssignmentOperator)
             {
-                var str = next.value.Substring(0, next.value.Length - 1);
+                var str = opStr.Substring(0, opStr.Length - 1);
                 var op = ParseOperator(str);
 
                 if (op == OperatorKind.Unknown)
                 {
-                    throw new CompilerException("unknown operator: " + next.value);
+                    throw new CompilerException("unknown operator: " + opStr);
                 }
 
                 expr = new BinaryExpression(scope, op, new VarExpression(scope, varDecl), expr);
             }
-
 
             expr = Expression.AutoCast(expr, expectedType);
 

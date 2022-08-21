@@ -27,6 +27,7 @@ TOMB smart contract compiler for Phantasma platform
 - Generic types
 - If ... Else
 - While ... and Do ... While loops
+- For.. Loops
 - Switch .. case
 - Break and Continue
 - Throw Exceptions
@@ -41,9 +42,13 @@ TOMB smart contract compiler for Phantasma platform
 - Contract tasks
 - ABI generation
 
+## WIP Features (private branchs)
+
+- Postfix operators (++, --)
+- External library declarations
+
 ## Planned features
 
-- For.. Loops
 - Try .. Catch
 - More...
 - Warnings
@@ -615,18 +620,16 @@ contract test {
 		my_array := s.toArray();	
 		
 		local length :number := Array.length(my_array);
-		local idx :number := 0;
 		
-		while (idx < length) {
-			local ch : number := my_array[idx];
+		for (local i = 0; i<length; i+=1)
+		{
+			local ch : number := my_array[i];
 			
 			if (ch >= 97) {
 				if (ch <= 122) {				
-					my_array[idx] := ch - 32; 
+					my_array[i] := ch - 32; 
 				}
 			}
-						
-			idx += 1;
 		}
 				
 		// convert the array back into a unicode string
