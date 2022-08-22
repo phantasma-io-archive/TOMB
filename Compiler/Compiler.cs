@@ -1342,11 +1342,11 @@ namespace Phantasma.Tomb
 
                             var next = FetchToken();
 
-                            /*if (next.kind == TokenKind.Postfix)
+                            if (next.kind == TokenKind.Postfix)
                             {
                                 forCommand.loopStatement = BuildPostfixStatement(scope, varName, next.value);
                             }
-                            else*/
+                            else
                             if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
                             {
                                 forCommand.loopStatement = BuildBinaryShortAssigment(scope, varName, next.value);
@@ -1443,6 +1443,12 @@ namespace Phantasma.Tomb
                         {
                             var next = FetchToken();
 
+                            if (next.kind == TokenKind.Postfix)
+                            {
+                                var setCommand = BuildPostfixStatement(scope, token.value, next.value);
+                                block.Commands.Add(setCommand);
+                            }
+                            else
                             if (next.kind == TokenKind.Operator && next.value.EndsWith("="))
                             {
                                 var setCommand = BuildBinaryShortAssigment(scope, token.value, next.value);
@@ -1567,6 +1573,20 @@ namespace Phantasma.Tomb
             {
                 throw new CompilerException("weird compiler flow detected, contact devs");
             }
+        }
+
+        private AssignStatement BuildPostfixStatement(Scope scope, string varName, string postfixOp)
+        {
+            var setCommand = new AssignStatement();
+
+            var op = postfixOp == "++" ? OperatorKind.Addition : OperatorKind.Subtraction;
+
+            setCommand.variable = scope.FindVariable(varName);
+            var leftSide = new VarExpression(scope, setCommand.variable);
+            var rightSide = new LiteralExpression(scope, "1", VarType.Find(VarKind.Number));
+            setCommand.valueExpression = new BinaryExpression(scope, op, leftSide, rightSide);
+
+            return setCommand;
         }
 
         private AssignStatement BuildBinaryShortAssigment(Scope scope, string varName, string opStr)

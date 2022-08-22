@@ -1,4 +1,4 @@
-﻿using Phantasma.Cryptography;
+using Phantasma.Cryptography;
 using Phantasma.Numerics;
 using Phantasma.Tomb.AST;
 using System;
@@ -27,6 +27,7 @@ namespace Phantasma.Tomb
         Bytes,
         Asm,
         Macro,
+        Postfix,
     }
 
     public struct LexerToken
@@ -46,6 +47,21 @@ namespace Phantasma.Tomb
 
             decimal decval;
 
+            if (value == "|")
+            {
+                throw new Exception("bug");
+            }
+
+            if (value == "++" || value == "--")
+            {
+                this.kind = TokenKind.Postfix;
+            }
+            else
+            if (Lexer.GetOperatorMatches(value) > 0)
+            {
+                this.kind = TokenKind.Operator;
+            }
+            else
             if (value.StartsWith("0x"))
             {
                 this.kind = TokenKind.Bytes;
@@ -102,12 +118,7 @@ namespace Phantasma.Tomb
                 this.kind = TokenKind.Selector;
             }
             else
-            if (value == Lexer.AssignmentOperator || value == "and" || value == "or" || value == "xor")
-            {
-                this.kind = TokenKind.Operator;
-            }
-            else
-            if (BigInteger.IsParsable(value))
+            if (int.TryParse(value, out int temp))
             {
                 this.kind = TokenKind.Number;
             }
@@ -118,7 +129,7 @@ namespace Phantasma.Tomb
             }
             else
             {
-                var first = value.Length > 0 ? value[0]: '\0';
+                var first = value.Length > 0 ? value[0] : '\0';
 
                 switch (first)
                 {
@@ -130,11 +141,6 @@ namespace Phantasma.Tomb
                         if (Lexer.IsSeparatorSymbol(first))
                         {
                             this.kind = TokenKind.Separator;
-                        }
-                        else
-                        if (Lexer.IsOperatorSymbol(first))
-                        {
-                            this.kind = TokenKind.Operator;
                         }
                         else
                         {
@@ -173,7 +179,6 @@ namespace Phantasma.Tomb
                         break;
                 }
             }
-
         }
 
         public override string ToString()
@@ -184,10 +189,6 @@ namespace Phantasma.Tomb
 
     public static class Lexer
     {
-        // WARNING, changing this to just "=" is tempting but won't work yet...
-        // There is a private branch with all the work required to change the operator into the most popular =, contact Sergio for more info
-        public const string AssignmentOperator = ":=";
-
         public readonly static string[] Keywords = new string[]
         {
             "contract",
@@ -213,27 +214,40 @@ namespace Phantasma.Tomb
 
         public readonly static string[] VarTypeNames = Enum.GetNames(typeof(VarKind)).Cast<string>().Select(x => x.ToLower()).ToArray();
 
-        internal static bool IsOperatorSymbol(char ch)
-        {
-            switch (ch)
-            {
-                case '=':
-                case '+':
-                case '-':
-                case '*':
-                case '/':
-                case '%':
-                case '<':
-                case '>':
-                case '!':
-                case ':':
-                //case '&': TODO offset of method
-                case '^':
-                    return true;
+        public readonly static string AssignmentOperator = "=";
 
-                default:
-                    return false;
+        public readonly static string[] ComparisonOperators = new[] { "==", "!=", ">=", "<=", ">", "<" };
+        public readonly static string[] ArithmeticOperators = new[] { "+", "-", "*", "/", "%" };
+        public readonly static string[] LogicalOperators = new[] { "!", "^", "&&", "||" };
+        public readonly static string[] BitshiftOperators = new[] { ">>", "<<" };
+        public readonly static string[] CompoundAssigmentOperators = ArithmeticOperators.Select(x => x + "=").ToArray(); // generates +=, -= etc
+
+        public readonly static string[] Operators = new[] { AssignmentOperator }.
+            Concat(ComparisonOperators).
+            Concat(ArithmeticOperators).
+            Concat(LogicalOperators).
+            Concat(BitshiftOperators).
+            Concat(CompoundAssigmentOperators).
+            ToArray();
+
+        internal static int GetOperatorMatches(string val)
+        {
+            if (string.IsNullOrEmpty(val))
+            {
+                return 0;
             }
+
+            int result = 0;
+
+            for (int i = 0; i < Operators.Length; i++)
+            {
+                if (Operators[i].StartsWith(val))
+                {
+                    result++;
+                }
+            }
+
+            return result;
         }
 
         internal static bool IsSeparatorSymbol(char ch)
@@ -241,6 +255,7 @@ namespace Phantasma.Tomb
             switch (ch)
             {
                 case ';':
+                case ':':
                 case ',':
                 case '{':
                 case '}':
@@ -268,7 +283,7 @@ namespace Phantasma.Tomb
                 return false;
             }
 
-            for (int i=0; i<identifier.Length; i++)
+            for (int i = 0; i < identifier.Length; i++)
             {
                 var ch = identifier[i];
 
@@ -318,7 +333,33 @@ namespace Phantasma.Tomb
             LexerToken prevToken = new LexerToken(0, 0, "");
             LexerToken curToken = prevToken;
 
-            int lastType = -1;
+            Action finishToken = () =>
+            {
+                if (sb.Length == 0)
+                {
+                    return;
+                }
+
+                var val = sb.ToString();
+
+                prevToken = curToken;
+                curToken = new LexerToken(tokenX, tokenY, val);
+                tokens.Add(curToken);
+                sb.Clear();
+
+                insideNumber = false;
+
+                if (val == "{" && prevToken.value == "asm")
+                {
+                    insideAsm = true;
+                    sb.Append(LexerToken.AsmTag); // hack for lexer Token to detect this later as "asm"
+                }
+
+                tokenX = col;
+                tokenY = line;
+            };
+
+
             char lastChar = '\0';
             while (i < sourceCode.Length)
             {
@@ -330,7 +371,8 @@ namespace Phantasma.Tomb
                 {
                     sb.Append(ch);
 
-                    if (ch == '"') { 
+                    if (ch == '"')
+                    {
                         insideString = false;
                     }
 
@@ -403,10 +445,9 @@ namespace Phantasma.Tomb
                     case '\t':
                     case ' ':
                         {
-                            lastType = -1;
+                            finishToken();
                             break;
                         }
-
 
                     case '\r':
                         break;
@@ -417,77 +458,67 @@ namespace Phantasma.Tomb
                         break;
 
                     default:
-                        int curType;
-
-                        if (ch == '/')
-                        {
-                            curType =0;
-                        }
 
                         if (ch == '\"')
                         {
+                            finishToken();
+
+                            sb.Append(ch);
                             insideString = true;
-                            curType = 0;
                         }
                         else
-                        if (insideString)
+                        if (IsSeparatorSymbol(ch))
                         {
-                            curType = 0;
-                        }
-                        else
-                        if (IsSeparatorSymbol(ch) && (ch != '.' || !insideNumber))
-                        {
-                            curType = 2;
-                        }
-                        else
-                        if (IsOperatorSymbol(ch))
-                        {
-                            curType = 1;
-                        }
-                        else
-                        {
-                            curType = 0;
-                        }
-
-                        if (sb.Length > 0 && curType != lastType)
-                        {
-                            var val = sb.ToString();
-
-                            prevToken = curToken;
-                            curToken = new LexerToken(tokenX, tokenY, val);
-                            tokens.Add(curToken);
-                            sb.Clear();
-
-                            insideNumber = false;
-
-
-                            if (val == "{" && prevToken.value == "asm")
+                            if (ch == '.' && insideNumber)
                             {
-                                insideAsm = true;
-                                sb.Append(LexerToken.AsmTag); // hack for lexer Token to detect this later as "asm"
+                                sb.Append(ch);
+                            }
+                            else
+                            {
+                                finishToken();
+                                sb.Append(ch);
+
+                                finishToken();
+                            }
+                        }
+                        else
+                        {
+                            var prev = sb.ToString();
+                            var prevOpMatches = GetOperatorMatches(prev);
+
+                            var chOpMatches = GetOperatorMatches("" + ch);
+
+                            if (prevOpMatches == 0 && chOpMatches > 0)
+                            {
+                                finishToken();
+                            }
+                            else
+                            if (prevOpMatches > 0 && chOpMatches == 0)
+                            {
+                                if (!Operators.Contains(prev))
+                                {
+                                    throw new Exception("Possible operator bug in lexer?");
+                                }
+
+                                finishToken();
+                            }
+
+                            sb.Append(ch);
+
+                            var tmp = sb.ToString();
+                            var opMatches = insideNumber ? 0 : GetOperatorMatches(tmp);
+
+                            if (opMatches == 1 && Operators.Contains(tmp))
+                            {
+                                finishToken();
                             }
                         }
 
-                        if (sb.Length == 0)
-                        {
-                            tokenX = col;
-                            tokenY = line;
-                        }
-
-
-                        if (sb.Length == 0 && char.IsDigit(ch))
+                        if (sb.Length != 0 && char.IsDigit(ch))
                         {
                             insideNumber = true;
                         }
 
-                        sb.Append(ch);
-
-                        if (curType == 2)
-                        {
-                            curType = -1;
-                        }
-
-                        lastType = curType;
                         break;
                 }
 

@@ -10,7 +10,6 @@ TOMB smart contract compiler for Phantasma platform
   </a>
 </p>
 
-
 ## Supported features
 
 - Smart contracts and Non-contract Scripts (eg: transactions, raw invokes)
@@ -64,6 +63,11 @@ TOMB smart contract compiler for Phantasma platform
 - Better Math Library, implement methods like, Math.Ceil() | Math.floor()
 - Multiple file support (Before compiling it, to make the code easier to write.)
 - Implement a null types
+
+## Important Note 
+
+For developers who used previous TOMB versions, the assigment operator has been changed from := to =
+Also the operators "and" and "or" were changed to "&&" and "||" respectively.
 
 ## Literals
 

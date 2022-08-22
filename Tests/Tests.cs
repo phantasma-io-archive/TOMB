@@ -264,7 +264,7 @@ contract test {
     global counter: number;
     
     constructor(owner:address)	{
-        counter:= 0; 
+        counter= 0; 
     }
     
     public increment() {
@@ -272,7 +272,7 @@ contract test {
             throw ""invalid state"";
         }   
                 
-        counter += 1;
+        counter++;
      }}";
 
             var parser = new Compiler();
@@ -313,8 +313,8 @@ contract test {
             @"
 contract test {
     public countStuff():number {
-        local x:number := 0;
-        for (local i:=0; i<9; i+=1)
+        local x:number = 0;
+        for (local i=0; i<9; i+=1)
         {
             x+=2;
         }
@@ -458,7 +458,7 @@ contract test {
                 "contract test{\n" +
                 "global name: string;\n" +
                 "constructor(owner:address)	{\n" +
-                "name:= \"" + str + "\";\n}" +
+                "name= \"" + str + "\";\n}" +
                 "public getLength():number {\n" +
                 "return name.length();\n" +
                 "}}\n";
@@ -510,7 +510,7 @@ contract test {
             var sourceCode =
 @"contract test{
     public getStrings(): array<string> {
-        local result:array<string> := {""A"", ""B"", ""C""};
+        local result:array<string> = {""A"", ""B"", ""C""};
         return result;
     }}";
 
@@ -547,7 +547,7 @@ contract test {
                 "contract test{\n" +
                 $"global amount: decimal<{decimals}>;\n" +
                 "constructor(owner:address)	{\n" +
-                "amount := "+valStr+";\n}" +
+                "amount = "+valStr+";\n}" +
                 "public getValue():number {\n" +
                 "return amount;\n}" +
                 "public getLength():number {\n" +
@@ -619,7 +619,7 @@ contract test {
                 "contract test{\n" +
                 $"global amount: decimal<3>;\n" +
                 "constructor(owner:address)	{\n" +
-                "amount := " + valStr + ";\n}" +
+                "amount = " + valStr + ";\n}" +
                 "}\n";
 
             var parser = new Compiler();
@@ -651,7 +651,7 @@ contract test {
                 "contract test{",
                 $"global state: MyEnum;",
                 "constructor(owner:address)	{" ,
-                "state := MyEnum.B;}" ,
+                "state = MyEnum.B;}" ,
                 "public getValue():MyEnum {" ,
                 "return state;}" ,
                 "public isSet(val:MyEnum):bool {" ,
@@ -706,7 +706,7 @@ contract test {
                     "   global _feesSymbol:string;",
                     $"  property feesSymbol:string = _feesSymbol;",
                     "   constructor(owner:address)	{" ,
-                    "       _feesSymbol := \"KCAL\";" ,
+                    "       _feesSymbol = \"KCAL\";" ,
                     "}}"
             };
 
@@ -754,7 +754,7 @@ contract test {
                     "global _contractPaused:bool;",
                     "property name: string = \"Ghost\";	",
                     "   constructor(owner:address)	{" ,
-                    "       _contractPaused:= false;" ,
+                    "       _contractPaused= false;" ,
                     "}}"
             };
 
@@ -787,10 +787,10 @@ contract test {
                     "   global _feesSymbol:string;",
                     $"  property feesSymbol:string = _feesSymbol;",
                     "   constructor(owner:address)	{" ,
-                    "       _feesSymbol := \"KCAL\";" ,
+                    "       _feesSymbol = \"KCAL\";" ,
                     "}",
                     "public updateFeesSymbol(feesSymbol:string) {",
-                    "   _feesSymbol:= feesSymbol;",
+                    "   _feesSymbol= feesSymbol;",
                     "}",
                     "}"
             };
@@ -850,8 +850,8 @@ contract test {
                     "	global _infuseMultiplier:number;",
                     "	property name:string = \"test\";",
                     "	property infuseMultiplier:number = _infuseMultiplier;",
-                    "	constructor (owner:address) { _infuseMultiplier := 1;	}",
-                    "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier := infuseMultiplier;	}",
+                    "	constructor (owner:address) { _infuseMultiplier = 1;	}",
+                    "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier = infuseMultiplier;	}",
                     "}"
             };
 
@@ -911,7 +911,7 @@ contract test {
                     "   global _feesAddress:address;",
                     $"  property feesAddress:address = _feesAddress;",
                     "   constructor(owner:address)	{" ,
-                    "       _feesAddress := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
+                    "       _feesAddress = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
                     "}}"
             };
 
@@ -967,8 +967,8 @@ contract test {
                 "global _address:address;" +
                 "global _owner:address;" +
                 "constructor(owner:address)	{\n" +
-                "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                "_owner:= owner;\n" +
+                "_address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                "_owner= owner;\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
@@ -1059,33 +1059,33 @@ contract test {
                         }
 
                         property unlockCount:number {
-                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                            local count:number = Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
                             return count;
                         }
                     }
 
                     import Call;
                     constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
+                        _address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner= owner;
                         NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
                     }
 
                     public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number = NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
                         Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
                         return tokenID;
                     }
 
                     public readName(nftID:number): string {
-                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        local romInfo:someStruct = NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
                         return romInfo.name;
                     }
 
                     public readOwner(nftID:number): address {
-                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        local nftInfo:NFT = NFT.read($THIS_SYMBOL, nftID);
                         return nftInfo.owner;
                     }
                 }";
@@ -1240,43 +1240,43 @@ contract test {
                         }
 
                         property unlockCount:number {
-                               local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                               local count:number = Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
                             return count;
                         }
                     }
 
                     import Call;
                     constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
+                        _address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner= owner;
                         NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
                     }
 
                     public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number = NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
                         Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
                         return tokenID;
                     }
 
                     public updateNFT(from:address, nftID:number) {
-                        local symbol : string := $THIS_SYMBOL;
+                        local symbol : string = $THIS_SYMBOL;
                         NFT.write(from, $THIS_SYMBOL, nftID, 1);
                     }
 
                     public readNFTRAM(nftID:number): number{
-                        local ramInfo : number := NFT.readRAM<number>($THIS_SYMBOL, nftID);
+                        local ramInfo : number = NFT.readRAM<number>($THIS_SYMBOL, nftID);
                         return ramInfo;
                     }
 
                     public readName(nftID:number): string {
-                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        local romInfo:someStruct = NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
                         return romInfo.name;
                     }
 
                     public readOwner(nftID:number): address {
-                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        local nftInfo:NFT = NFT.read($THIS_SYMBOL, nftID);
                         return nftInfo.owner;
                     }
                 }";
@@ -1414,8 +1414,8 @@ contract test {
                 "global _address:address;" +
                 "global _owner:address;" +
                 "constructor(owner:address)	{\n" +
-                "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                "_owner:= owner;\n" +
+                "_address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                "_owner= owner;\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
@@ -1629,7 +1629,7 @@ contract test {
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
-                " local test:string := _storageMap.get(5);\n" +
+                " local test:string = _storageMap.get(5);\n" +
                 " Runtime.log(\"this log: \");\n" +
                 " Runtime.log(test);\n" +
                 "}\n" +
@@ -1684,7 +1684,7 @@ contract test {
                 "global _storageMap: storage_map<number, my_struct>;\n" +
                 "public createStruct(key:number, s:string, val:number)\n" +
                 "{\n" +
-                "local temp: my_struct := Struct.my_struct(s, val);\n" +
+                "local temp: my_struct = Struct.my_struct(s, val);\n" +
                 "_storageMap.set(key, temp);\n" +
                 "}\n" +
                 "public getStruct(key:number):my_struct\n" +
@@ -1737,11 +1737,11 @@ contract test {
                 "global someSecret: string;\n" +
                 "global result: string;\n" +
                 "constructor(owner:address)	{\n" +
-                "someString := \"somestring\";\n" +
-                "someSecret := \"somesecret123456somesecret123456\";\n" +
-                "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
-                "local decrypted: bytes := Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
-                "result := decrypted.toString();\n" +
+                "someString = \"somestring\";\n" +
+                "someSecret = \"somesecret123456somesecret123456\";\n" +
+                "local encrypted: bytes = Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
+                "local decrypted: bytes = Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
+                "result = decrypted.toString();\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
@@ -1791,13 +1791,13 @@ contract test {
                 "global result: string;\n" +
                 "global _lockedStorageMap: storage_map<number, bytes>;\n" +
                 "constructor(owner:address)	{\n" +
-                "someString := \"qwerty\";\n" +
-                "someSecret := \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
-                "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
+                "someString = \"qwerty\";\n" +
+                "someSecret = \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
+                "local encrypted: bytes = Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
                 "_lockedStorageMap.set(10, encrypted);\n" +
-                "local encryptedContentBytes:bytes := _lockedStorageMap.get(10);\n" +
-                "local decrypted: bytes := Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
-                "result := decrypted.toString();\n" +
+                "local encryptedContentBytes:bytes = _lockedStorageMap.get(10);\n" +
+                "local decrypted: bytes = Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
+                "result = decrypted.toString();\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
@@ -1846,9 +1846,9 @@ contract test {
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
-                " local test: bool := _storageMap.has(5);\n" +
+                " local test: bool = _storageMap.has(5);\n" +
                 " Runtime.expect(test, \"key 5 doesn't exist! \");\n" +
-                " local test2: bool := _storageMap.has(6);\n" +
+                " local test2: bool = _storageMap.has(6);\n" +
                 " Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
                 "}\n"+
                 "}\n";
@@ -1884,7 +1884,7 @@ contract arrays {
 
 	public test(x:number):number {
 		local my_array: array<number>;		
-		my_array[1] := x;			
+		my_array[1] = x;			
 		return Array.length(my_array);		
 	}	
 }
@@ -1917,8 +1917,8 @@ contract arrays {
 contract arrays {
 	public test(x:number, idx:number):number {
 		local my_array: array<number>;		
-		my_array[idx] := x;			
-		local num:number := my_array[idx];		
+		my_array[idx] = x;			
+		local num:number = my_array[idx];		
 		return num + 1;
 	}	
 }
@@ -1954,9 +1954,9 @@ contract arrays {
 
 	public test(s:string, idx:number):string {        
 		local my_array: array<number>;		
-		my_array := s.toArray();	
-        my_array[idx] := 42; // replace char in this index with an asterisk (ascii table 42)
-		local result:string := String.fromArray(my_array);		
+		my_array = s.toArray();	
+        my_array[idx] = 42; // replace char in this index with an asterisk (ascii table 42)
+		local result:string = String.fromArray(my_array);		
 		return result;
 	}	
 
@@ -1965,17 +1965,17 @@ contract arrays {
 		local my_array: array<number>;		
 		
 		// extract chars from string into an array
-		my_array := s.toArray();	
+		my_array = s.toArray();	
 		
-		local length :number := Array.length(my_array);
-		local idx :number := 0;
+		local length :number = Array.length(my_array);
+		local idx :number = 0;
 		
 		while (idx < length) {
-			local ch : number := my_array[idx];
+			local ch : number = my_array[idx];
 			
 			if (ch >= 97) {
 				if (ch <= 122) {				
-					my_array[idx] := ch - 32; 
+					my_array[idx] = ch - 32; 
 				}
 			}
 						
@@ -1983,7 +1983,7 @@ contract arrays {
 		}
 				
 		// convert the array back into a unicode string
-		local result:string := String.fromArray(my_array); 
+		local result:string = String.fromArray(my_array); 
 		return result;
 	}	
 
@@ -2113,11 +2113,11 @@ contract arrays {
                     global time:timestamp;
 
                     public constructor(owner:address){
-                        time := Time.now();
+                        time = Time.now();
                     }
                         
                     public updateTime(newTime:timestamp){
-                        time := newTime;
+                        time = newTime;
                     }  
 
                     public getTime():timestamp {
@@ -2176,12 +2176,12 @@ contract arrays {
                     global time:timestamp;
 
                     public constructor(owner:address){
-                        time := Time.now();
+                        time = Time.now();
                     }
                         
                     public updateTime(newTime:number){
-                        local newTimer:timestamp := newTime;
-                        time := newTimer;
+                        local newTimer:timestamp = newTime;
+                        time = newTimer;
                     }  
 
                     public getTime():timestamp {
@@ -2262,15 +2262,15 @@ contract arrays {
                     global time:number;
 
                     public constructor(owner:address){
-                        time := 10000;
+                        time = 10000;
                     }
                         
                     public updateTime(newTime:number){
-                        time := newTime;
+                        time = newTime;
                     }  
 
                     public getTime():timestamp {
-                        local myTime:timestamp := time;
+                        local myTime:timestamp = time;
                         return myTime;
                     }
                 }";
@@ -2383,14 +2383,14 @@ contract arrays {
                     import Call;
 
                     constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
+                        _address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner= owner;
                         NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
                     }
 
                     public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        local tokenID:number := NFT.mint(_owner, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number = NFT.mint(_owner, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
                         _nft_list.set(tokenID, 1);
                         Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
@@ -2408,16 +2408,16 @@ contract arrays {
                         }
 
                         _nft_list.remove(tokenID);
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
 
-                        local newID:number := NFT.mint(_owner, to, $THIS_SYMBOL, rom, 0, 0);          
+                        local newID:number = NFT.mint(_owner, to, $THIS_SYMBOL, rom, 0, 0);          
                         _nft_list.set(newID, 1);
 
                         return;
                     }
 
                     public exist(nftID:number): bool {
-                        local myNumber : number := _nft_list.get(nftID);
+                        local myNumber : number = _nft_list.get(nftID);
                         if ( myNumber != 0 ) {
                             return true;
                         }
@@ -2553,8 +2553,8 @@ contract test{
             var sourceCode =
 @"contract test{                   
     public calculate():string {
-         local a := ""hello "";
-         local b := ""world"";
+         local a = ""hello "";
+         local b = ""world"";
         return a + b;
     }
 }";
