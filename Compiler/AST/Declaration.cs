@@ -14,7 +14,7 @@ namespace Phantasma.Tomb.AST
 
         protected virtual void ValidateName()
         {
-            if (!Lexer.IsValidIdentifier(Name))
+            if (!Lexer.Instance.IsValidIdentifier(Name))
             {
                 throw new CompilerException("Invalid identifier: " + Name);
             }
