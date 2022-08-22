@@ -10,6 +10,16 @@ TOMB smart contract compiler for Phantasma platform
   </a>
 </p>
 
+
+## Supported languages
+
+TOMB generates code that runs in the PhantasmaVM, and supports multiple programming languages.
+
+| Language  | File Extension | Status | Description |
+| ------------- | ------------- | ------------- | ------------- |
+| TOMB lang  | .tomb  | Fully working | The original language supported by TOMB (the rest of this document samples use it) |
+| Solidity  | .tomb  | Working (around 70% features support) | The language originally created for Ethereum EVM |
+
 ## Supported features
 
 - Smart contracts and Non-contract Scripts (eg: transactions, raw invokes)
