@@ -309,7 +309,7 @@ contract test {
         [Test]
         public void ForLoop()
         {
-            var sourceCode =            
+            var sourceCode =
             @"
 contract test {
     public countStuff():number {
@@ -337,6 +337,47 @@ contract test {
             Assert.IsTrue(vm.Stack.Count == 1);
             var val = vm.Stack.Pop().AsNumber();
             Assert.IsTrue(val == 18);
+        }
+
+        [Test]
+        public void IfChained()
+        {
+            var sourceCode =
+            @"
+contract test {
+    public sign(x:number): number {
+        if (x > 0)
+        {
+            return 1;
+        }
+        else
+        if (x < 0)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}";
+
+            var parser = new Compiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            var countStuff = contract.abi.FindMethod("sign");
+            Assert.IsNotNull(countStuff);
+
+            var vm = new TestVM(contract, storage, countStuff);
+            vm.Stack.Push(VMObject.FromObject(-3));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+            var val = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(val == -1);
         }
 
         [Test]

@@ -1226,11 +1226,21 @@ namespace Phantasma.Tomb
 
                             if (next.value == "else")
                             {
-                                ExpectToken("{");
+                                bool skipBraces = false;
+
+                                var ahead = FetchToken();
+                                if (ahead.value == "if")
+                                {
+                                    skipBraces = true;
+                                }
+
+                                Rewind();
+
+                                if (!skipBraces) ExpectToken("{");
 
                                 ifCommand.@else = ParseCommandBlock(ifCommand.Scope, method);
 
-                                ExpectToken("}");
+                                if (!skipBraces) ExpectToken("}");
                             }
                             else
                             {

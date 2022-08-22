@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29806.167
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.CodeGen", "..\PhantasmaChain\Phantasma.CodeGen\Phantasma.CodeGen.csproj", "{F1D4D9D8-3AEA-4BC3-A8D8-33F15B8BAC7A}"
 EndProject
@@ -30,6 +30,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.API", "..\PhantasmaChain\Phantasma.API\Phantasma.API.csproj", "{F5674CBB-29DC-43AF-A302-3B383378185A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.P2P", "..\PhantasmaChain\Phantasma.P2P\Phantasma.P2P.csproj", "{A4A248D8-4217-481C-BEBE-1D2FA2BF72E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Neo", "..\PhantasmaChain\Phantasma.Neo\Phantasma.Neo.csproj", "{95125A19-2F6A-4DE1-864B-15DF61390F5D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Ethereum", "..\PhantasmaChain\Phantasma.Ethereum\Phantasma.Ethereum.csproj", "{4D26B061-740C-4E09-B225-BFA0670E5D66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +97,14 @@ Global
 		{A4A248D8-4217-481C-BEBE-1D2FA2BF72E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4A248D8-4217-481C-BEBE-1D2FA2BF72E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4A248D8-4217-481C-BEBE-1D2FA2BF72E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95125A19-2F6A-4DE1-864B-15DF61390F5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95125A19-2F6A-4DE1-864B-15DF61390F5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95125A19-2F6A-4DE1-864B-15DF61390F5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95125A19-2F6A-4DE1-864B-15DF61390F5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D26B061-740C-4E09-B225-BFA0670E5D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D26B061-740C-4E09-B225-BFA0670E5D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D26B061-740C-4E09-B225-BFA0670E5D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D26B061-740C-4E09-B225-BFA0670E5D66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
