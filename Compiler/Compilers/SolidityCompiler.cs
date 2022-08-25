@@ -59,6 +59,12 @@ namespace Phantasma.Tomb.Compilers
 
                             if (dir == "Phantasma")
                             {
+                                var ext = Path.GetExtension(filePath);
+                                if (ext != ".tomb")
+                                {
+                                    throw new CompilerException($"Phantasma imports must have .tomb extension instead of " + ext);
+                                }
+
                                 var libName = Path.GetFileNameWithoutExtension(filePath);
                                 importedLibraries.Add(libName);
                             }
@@ -73,7 +79,7 @@ namespace Phantasma.Tomb.Compilers
 
                     case "contract":
                         {
-                            var contractName = ExpectIdentifier();
+                            var contractName = ExpectIdentifier().ToLower();
 
                             if (!ValidationUtils.IsValidIdentifier(contractName))
                             {
@@ -84,8 +90,7 @@ namespace Phantasma.Tomb.Compilers
 
                             foreach (var libName in importedLibraries)
                             {
-                                var libDecl = Contract.LoadLibrary(libName, module.Scope, module.Kind);
-                                module.Libraries[libName] = libDecl;
+                                ImportLibrary(module, libName);
                             }
 
                             ExpectToken("{");
@@ -109,6 +114,8 @@ namespace Phantasma.Tomb.Compilers
 
         private void ParseModule(Module module)
         {
+            var constructorInitializations = new List<Expression>();
+
             do
             {
                 var token = FetchToken();
@@ -118,6 +125,74 @@ namespace Phantasma.Tomb.Compilers
                     case "}":
                         Rewind();
                         return;
+
+                    case "mapping":
+                        {
+                            ExpectToken("(");
+
+                            var map_key = ExpectType();
+
+                            ExpectToken("=>");
+
+                            var map_val = ExpectType();
+
+                            ExpectToken(")");
+
+                            var varName = ExpectIdentifier();
+
+                            ExpectToken(";");
+
+                            var varDecl = new MapDeclaration(module.Scope, varName, map_key, map_val);
+
+                            module.Scope.AddVariable(varDecl);
+
+                            ImportLibrary(module, "Map");
+
+                            break;
+                        }
+
+                    case "constructor":
+                        {
+                            var contract = module as Contract;
+                            if (contract != null)
+                            {
+                                var line = this.CurrentLine;
+                                var name = SmartContract.ConstructorName;
+                                var parameters = ParseParameters(module.Scope);
+                                var scope = new Scope(module.Scope, name, parameters);
+
+                                if (parameters.Length != 1 || parameters[0].Type.Kind != VarKind.Address)
+                                {
+                                    throw new CompilerException("constructor must have only one parameter of type address");
+                                }
+
+                                var method = contract.AddMethod(line, name, true, MethodKind.Constructor, VarType.Find(VarKind.None), parameters, scope, false);
+
+                                VarType returnType;
+                                var constructorAttrs = ParseFunctionAttributes(out returnType);
+
+                                if (returnType != VarType.Find(VarKind.None))
+                                {
+                                    throw new CompilerException("constructor can't have a return type");
+                                }
+
+                                if (!constructorAttrs.Any(x => x.Equals("public")))
+                                {
+                                    throw new CompilerException("constructor must be declared public");
+                                }
+
+                                ExpectToken("{");
+
+                                contract.SetMethodBody(name, ParseCommandBlock(scope, method));
+                                ExpectToken("}");
+                                break;
+                            }
+                            else
+                            {
+                                throw new CompilerException("unexpected token: " + token.value);
+                            }
+
+                        }
 
                     case "function":
                         {
@@ -159,13 +234,42 @@ namespace Phantasma.Tomb.Compilers
                         {
                             if (token.kind == TokenKind.Type)
                             {
-                                var type = TypeFromToken(token);
+                                var varType = TypeFromToken(token);
+
+                                var varAttrs = ParseVarAttributes();
+
                                 var varName = ExpectIdentifier();
 
-                                var varDecl = new VarDeclaration(module.Scope, varName, type, VarStorage.Global);
+                                if (varAttrs.Any(x => x.Equals("public")))
+                                {
+                                    ExpectToken(Lexer.AssignmentOperator);
+
+                                    var propertyName = "get" + char.ToUpper(varName[0]) + varName.Substring(1);
+
+                                    var contract = module as Contract;
+                                    var parameters = new MethodParameter[0];
+                                    var scope = new Scope(module.Scope, propertyName, parameters);
+
+                                    var method = contract.AddMethod(token.line, propertyName, true, MethodKind.Property, varType, parameters, scope, false);
+                                    
+                                    var literal = ExpectExpression(scope);
+
+                                    if (literal.ResultType != varType)
+                                    {
+                                        throw new CompilerException($"Expected expression of type {varType} for property {propertyName}, found {literal.ResultType} instead");
+                                    }
+
+                                    var block = new StatementBlock(scope);
+                                    block.Commands.Add(new ReturnStatement(method, literal));
+                                    contract.SetMethodBody(propertyName, block);
+                                }
+                                else
+                                {
+                                    var varDecl = new VarDeclaration(module.Scope, varName, varType, VarStorage.Global);
+                                    module.Scope.AddVariable(varDecl);
+                                }
 
                                 ExpectToken(";");
-                                module.Scope.AddVariable(varDecl);
 
                                 break;
                             }
@@ -272,6 +376,7 @@ namespace Phantasma.Tomb.Compilers
                     {
                         // case "payable": NOTE this one makes no sense in TOMB
                         case "view":
+                        case "constant":
                         case "pure":
                         case "public":
                         case "private":
@@ -287,7 +392,32 @@ namespace Phantasma.Tomb.Compilers
 
 
             return list.ToArray();
+        }
 
+        private string[] ParseVarAttributes()
+        {
+            var list = new List<string>();
+
+            do
+            {
+                var token = FetchToken();
+
+                switch (token.value)
+                {
+                    case "public":
+                    case "private":
+                    case "constant":
+                        list.Add(token.value);
+                        break;
+
+                    default:
+                        {
+                            Rewind();
+                            return list.ToArray();
+                        }
+                }
+
+            } while (true);
         }
 
         private StatementBlock ParseCommandBlock(Scope scope, MethodDeclaration method)
@@ -636,6 +766,37 @@ namespace Phantasma.Tomb.Compilers
                             break;
                         }
 
+                    case "require":
+                        {
+                            ExpectToken("(");
+                            var expr = ExpectExpression(scope);
+                            ExpectToken(")");
+                            ExpectToken(";");
+
+                            if (expr.ResultType != VarType.Find(VarKind.Bool))
+                            {
+                                throw new CompilerException("Require argument must be a boolean expression");
+                            }
+
+                            var lib = ImportLibrary(scope.Module, "Runtime");
+
+                            var exprStr = $"\"{expr}\""; // convert the expression to a string literal, to use as message
+
+                            var callExpr = new MethodCallExpression(scope);
+                            callExpr.method = lib.FindMethod("expect");
+                            callExpr.arguments = new List<Expression>()
+                            {
+                                expr,
+                                new LiteralExpression(scope, exprStr, VarType.Find(VarKind.String))
+                            };
+
+                            var methodCall = new MethodCallStatement();
+                            methodCall.expression = callExpr;                            
+
+                            block.Commands.Add(methodCall);
+                            break;
+                        }
+
                     default:
                         if (token.kind == TokenKind.Identifier)
                         {
@@ -840,5 +1001,18 @@ namespace Phantasma.Tomb.Compilers
             return varDecl;
         }
 
+        private LibraryDeclaration ImportLibrary(Module module, string libName)
+        {
+            if (module.Libraries.ContainsKey(libName))
+            {
+                return module.Libraries[libName];
+            }
+            else
+            {
+                var libDecl = Contract.LoadLibrary(libName, module.Scope, module.Kind);
+                module.Libraries[libName] = libDecl;
+                return libDecl;
+            }
+        }
     }
 }

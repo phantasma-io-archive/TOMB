@@ -70,10 +70,8 @@ namespace Phantasma.Tomb
 
             this.tokens = Lexer.Process(sourceCode);
 
-            /*foreach (var token in tokens)
-            {
-                Console.WriteLine(token);
-            }*/
+            // uncomment this line to print all lexer tokens
+            //foreach (var token in tokens) Console.WriteLine(token);
 
             this.lines = sourceCode.Replace("\r", "").Split('\n');
 
@@ -329,7 +327,7 @@ namespace Phantasma.Tomb
             return setCommand;
         }
 
-        protected AssignStatement BuildBinaryShortAssigment(Scope scope, string varName, string opStr)
+        protected Statement BuildBinaryShortAssigment(Scope scope, string varName, string opStr)
         {
             var setCommand = new AssignStatement();
 
@@ -347,13 +345,48 @@ namespace Phantasma.Tomb
 
                 varName = varName.Substring(0, indexerPos);
 
-                setCommand.variable = scope.FindVariable(varName);
+                var targetVarDecl = scope.FindVariable(varName);
+
+                setCommand.variable = targetVarDecl;
 
                 var arrayType = setCommand.variable.Type as ArrayVarType;
 
                 if (arrayType == null)
                 {
-                    throw new CompilerException($"variable {setCommand.variable} is not an array");
+                    var primitiveType = setCommand.variable.Type as PrimitiveVarType;
+                    switch (primitiveType.Kind)
+                    {
+                        case VarKind.Storage_Map:
+                            {
+                                var mapDecl = targetVarDecl as MapDeclaration;
+                                var mapLib = scope.Module.FindLibrary("Map");
+                                mapLib = mapLib.PatchMap(mapDecl);
+
+                                var methodCall = new MethodCallStatement();
+
+                                var keyExpr = ParseArrayIndexingExpression(scope, tmp, VarType.Find(VarKind.Any));
+
+                                var valExpr = ParseExpression(scope);
+
+                                var callExpr = new MethodCallExpression(scope);
+                                callExpr.method = mapLib.FindMethod("set");
+                                callExpr.arguments = new List<Expression>()
+                                {
+                                    new LiteralExpression(scope, $"\"{mapDecl.Name}\"", VarType.Find(VarKind.String)),
+                                    keyExpr,
+                                    valExpr
+                                };
+
+                                callExpr.PatchGenerics();
+                                methodCall.expression = callExpr;
+
+                                return methodCall;
+                            }
+
+
+                        default:
+                            throw new CompilerException($"variable {setCommand.variable} cannot be indexed");
+                    }
                 }
 
                 expressionExpectedType = arrayType.elementType;
@@ -443,7 +476,35 @@ namespace Phantasma.Tomb
 
                                 if (arrayType == null)
                                 {
-                                    throw new CompilerException($"variable {arrayVar} is not an array");
+                                    var primitiveType = arrayVar.Type as PrimitiveVarType;
+                                    switch (primitiveType.Kind)
+                                    {
+                                        case VarKind.Storage_Map:
+                                            {
+                                                var mapDecl = arrayVar as MapDeclaration;
+                                                var mapLib = scope.Module.FindLibrary("Map");
+                                                mapLib = mapLib.PatchMap(mapDecl);
+
+                                                var methodCall = new MethodCallExpression(scope);
+
+                                                var keyExpr = ParseArrayIndexingExpression(scope, tmp, VarType.Find(VarKind.Any));
+
+                                                methodCall.method = mapLib.FindMethod("get");
+
+                                                methodCall.arguments = new List<Expression>()
+                                                {
+                                                    new LiteralExpression(scope, $"\"{mapDecl.Name}\"", VarType.Find(VarKind.String)),
+                                                    keyExpr
+                                                };
+
+                                                methodCall.PatchGenerics();
+
+                                                return methodCall;
+                                            }
+
+                                        default:
+                                            throw new CompilerException($"variable {arrayVar} cannot be indexed");
+                                    }
                                 }
 
                                 var indexExpression = ParseArrayIndexingExpression(scope, tmp, arrayType.elementType);
@@ -604,6 +665,12 @@ namespace Phantasma.Tomb
                 if (leftSide.ResultType.Kind == VarKind.Timestamp && rightSide.ResultType.Kind == VarKind.Number && op == OperatorKind.Addition)
                 {
                     rightSide = new CastExpression(scope, VarType.Find(VarKind.Timestamp), rightSide);
+                }
+                else
+                if (leftSide.ResultType.Kind == VarKind.Generic || rightSide.ResultType.Kind == VarKind.Generic)
+                {
+                    throw new Exception("Compiler bug, probably missing a call to PatchGenerics() in a methodcallexpression somewhere?");
+                    // DO NOTHING, we could issue an warning here (better would be to resolve the generic type into primitive if possible)
                 }
                 else
                 {
@@ -852,9 +919,9 @@ namespace Phantasma.Tomb
             return null;
         }
 
-        protected MethodExpression ParseMethodExpression(Scope scope, LibraryDeclaration library, VarDeclaration implicitArg = null, bool implicitAsLiteral = true)
+        protected MethodCallExpression ParseMethodExpression(Scope scope, LibraryDeclaration library, VarDeclaration implicitArg = null, bool implicitAsLiteral = true)
         {
-            var expr = new MethodExpression(scope);
+            var expr = new MethodCallExpression(scope);
 
             var methodName = ExpectIdentifier();
 
@@ -990,6 +1057,41 @@ namespace Phantasma.Tomb
             var fieldName = ExpectIdentifier();
             var expr = new StructFieldExpression(scope, varDecl, fieldName);
             return expr;
+        }
+
+        protected Expression ParseVariableInitialization(Scope scope, ref VarType type)
+        {
+            var next = FetchToken();
+
+            Expression initExpr;
+            if (next.kind == TokenKind.Operator)
+            {
+                if (next.value == Lexer.AssignmentOperator)
+                {
+                    initExpr = ExpectExpression(scope);
+
+                    if (type == null)
+                    {
+                        type = initExpr.ResultType;
+                    }
+                }
+                else
+                {
+                    throw new CompilerException($"Expected {Lexer.AssignmentOperator} in variable initialization");
+                }
+            }
+            else
+            if (type == null)
+            {
+                throw new CompilerException($"Type for variable must be specified!");
+            }
+            else
+            {
+                initExpr = null;
+                Rewind();
+            }
+
+            return initExpr;
         }
 
         protected virtual OperatorKind ParseOperator(string opStr)

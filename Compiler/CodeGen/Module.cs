@@ -866,7 +866,7 @@ namespace Phantasma.Tomb.CodeGen
             return reg;
         }
 
-        private static Register ConvertGenericResult(CodeGenerator output, Scope scope, MethodExpression method, Register reg) 
+        private static Register ConvertGenericResult(CodeGenerator output, Scope scope, MethodCallExpression method, Register reg) 
         {
             if (method.ResultType.IsWeird)
             {

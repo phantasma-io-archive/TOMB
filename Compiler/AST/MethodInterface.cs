@@ -64,8 +64,8 @@ namespace Phantasma.Tomb.AST
         public string Alias;
         public string Contract;
         public MethodImplementationType Implementation;
-        public Func<CodeGenerator, Scope, MethodExpression, Register> PreCallback;
-        public Func<CodeGenerator, Scope, MethodExpression, Register, Register> PostCallback;
+        public Func<CodeGenerator, Scope, MethodCallExpression, Register> PreCallback;
+        public Func<CodeGenerator, Scope, MethodCallExpression, Register, Register> PostCallback;
 
         public int StartAsmLine;
         public int EndAsmLine;
@@ -139,13 +139,13 @@ namespace Phantasma.Tomb.AST
             return this;
         }
 
-        public MethodInterface SetPreCallback(Func<CodeGenerator, Scope, MethodExpression, Register> callback)
+        public MethodInterface SetPreCallback(Func<CodeGenerator, Scope, MethodCallExpression, Register> callback)
         {
             this.PreCallback = callback;
             return this;
         }
 
-        public MethodInterface SetPostCallback(Func<CodeGenerator, Scope, MethodExpression, Register, Register> callback)
+        public MethodInterface SetPostCallback(Func<CodeGenerator, Scope, MethodCallExpression, Register, Register> callback)
         {
             this.PostCallback = callback;
             return this;

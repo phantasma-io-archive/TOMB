@@ -1378,35 +1378,7 @@ namespace Phantasma.Tomb.Compilers
                 Rewind();
             }
 
-            var next = FetchToken();
-
-            Expression initExpr;
-            if (next.kind == TokenKind.Operator)
-            {
-                if (next.value == Lexer.AssignmentOperator)
-                {
-                    initExpr = ExpectExpression(scope);
-
-                    if (type == null)
-                    {
-                        type = initExpr.ResultType;
-                    }
-                }
-                else
-                {
-                    throw new CompilerException($"Expected {Lexer.AssignmentOperator} in variable initialization");
-                }
-            }
-            else
-            if (type == null)
-            {
-                throw new CompilerException($"Type for variable {varName} must be specified!");
-            }
-            else
-            {
-                initExpr = null;
-                Rewind();
-            }
+            Expression initExpr = ParseVariableInitialization(scope, ref type);
 
             var varDecl = new VarDeclaration(scope, varName, type, VarStorage.Local);
 

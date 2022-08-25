@@ -16,7 +16,8 @@ namespace Phantasma.Tomb.AST.Expressions
 
         public override string ToString()
         {
-            return decl.ToString();
+            return decl.Name;
+            //return decl.ToString();
         }
 
         public override T AsLiteral<T>()

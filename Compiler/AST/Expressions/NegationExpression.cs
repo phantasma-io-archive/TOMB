@@ -48,6 +48,11 @@ namespace Phantasma.Tomb.AST.Expressions
         {
             return (node == this) || expr.IsNodeUsed(node);
         }
+
+        public override string ToString()
+        {
+            return "!" + expr.ToString();
+        }
     }
 
 }

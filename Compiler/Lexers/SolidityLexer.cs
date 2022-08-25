@@ -20,16 +20,17 @@ namespace Phantasma.Tomb.Lexers
             "public",
             "return",
             "pragma",
+            "mapping",
             // TODO add more keywords
          };
 
         private readonly static string[] _varTypeNames = new[] { 
-            "int", "uint", "int256", "uint256", "bool", "address", "string"}; 
+            "int", "uint", "int256", "uint256", "uint8", "bool", "address", "string"}; 
         public override string AssignmentOperator => "=";
 
         private readonly string[] _comparisonOperators = new[] { "==", "!=", ">=", "<=", ">", "<" };
         private readonly string[] _arithmeticOperators = new[] { "+", "-", "*", "/", "%" };
-        private readonly string[] _logicalOperators = new[] { "!", "^", "&&", "||" };
+        private readonly string[] _logicalOperators = new[] { "!", "^", "&&", "||", "=>" };
         private readonly string[] _bitshiftOperators = new[] { ">>", "<<" };
         private readonly string[] _compoundAssigmentOperators;
         private readonly char[] _separators = new[] { ';', ':', ',', '{', '}', '(', ')', '.' };
@@ -121,7 +122,7 @@ namespace Phantasma.Tomb.Lexers
                 kind = TokenKind.Selector;
             }
             else
-            if (int.TryParse(value, out int temp))
+            if (BigInteger.TryParse(value, out BigInteger temp))
             {
                 kind = TokenKind.Number;
             }
@@ -172,6 +173,13 @@ namespace Phantasma.Tomb.Lexers
                                 goto Finish;
                             }
 
+                            if (IsPragmaVersion(value))
+                            {
+                                value = $"\"{value}\"";
+                                kind = TokenKind.String;
+                                goto Finish;
+                            }
+
                             if (!string.IsNullOrEmpty(value))
                             {
                                 throw new CompilerException("Parsing failed, unsupported token: " + value);
@@ -185,6 +193,26 @@ namespace Phantasma.Tomb.Lexers
 
             Finish:
             return new LexerToken(column, line, value, kind);
+        }
+
+
+        public static bool IsPragmaVersion(string value)
+        {
+            var count = 0;
+            foreach (var ch in value)
+            {
+                if (ch == '.')
+                {
+                    count++;
+                }
+                else 
+                if (!char.IsDigit(ch))
+                {
+                    return false;
+                }
+            }
+
+            return count > 0;
         }
     }
 }

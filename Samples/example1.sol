@@ -1,7 +1,7 @@
-//pragma solidity ^0.4.10;
+pragma solidity ^0.4.10;
 
-import "Phantasma/Runtime.sol";
-import "Phantasma/Random.sol";
+import "Phantasma/Runtime.tomb";
+import "Phantasma/Random.tomb";
 
 //the very first example
 contract example1 {

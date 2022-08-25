@@ -18,7 +18,7 @@ namespace Phantasma.Tomb.AST.Expressions
 
         public override string ToString()
         {
-            return decl.ToString();
+            return $"{decl}[{indexExpression}]";
         }
 
         public override Register GenerateCode(CodeGenerator output)

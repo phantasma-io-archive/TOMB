@@ -132,7 +132,7 @@ namespace Phantasma.Tomb.Lexers
                 kind = TokenKind.Selector;
             }
             else
-            if (int.TryParse(value, out int temp))
+            if (BigInteger.TryParse(value, out BigInteger temp))
             {
                 kind = TokenKind.Number;
             }
