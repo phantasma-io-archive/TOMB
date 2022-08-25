@@ -1312,9 +1312,7 @@ In order to create new more builtin methods, do the following steps:
 # Solidity support
 
 The current support for Solidity is experimental, and some features of the language are still not supported.
-
-## Phantasma specific features
-It's possible to use Solidity import keyword to import any of the Phantasma features (eg: Runtime, Token, etc).
+Regarding Phantasma specific features, it's possible to use Solidity import keyword to import any of the Phantasma features (eg: Runtime, Token, etc).
 
 The following table lists a list of Solidity features and how it maps to Phantasma features
 | Solidity Feature  | Phantasma equivalent | Notes |
