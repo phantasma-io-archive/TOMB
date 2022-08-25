@@ -1311,8 +1311,21 @@ In order to create new more builtin methods, do the following steps:
 
 # Solidity support
 
-## Phantasma specific features 
+The current support for Solidity is experimental, and some features of the language are still not supported.
+
+## Phantasma specific features
 It's possible to use Solidity import keyword to import any of the Phantasma features (eg: Runtime, Token, etc).
+
+The following table lists a list of Solidity features and how it maps to Phantasma features
+| Solidity Feature  | Phantasma equivalent | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| mapping(x => y)  | storage_map<x,y>   | Fully working |  
+| uint8, int256, etc  | number  | Unsigned types are not supported yet by the compiler (will default to signed) |
+| string public constant name = "hello";  | property name:string = "hello";  | Fully working |  
+| import "Phantasma/Runtime.tomb"; | import Runtime;  | Fully working |  
+| function something(uint x) public view returns (uint)| function something(x:number): number;  | Fully working |  
+| constructor(address owner) public  | constructor(owner:address)   | Constructors in Solidity can have multiple args, but in Phantasma only a single address |  
+| event Something(uint x)  | event Something:number = "{x} happened"   | Not implemented yet|  
 
 # More documentation
 Check our official <a href="https://docs.phantasma.io/#tomb-supported_features">Phantasma documentation</a> for more info about developing with Phantasma Chain.
