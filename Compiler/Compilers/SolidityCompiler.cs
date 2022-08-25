@@ -13,6 +13,7 @@ using Phantasma.Tomb.CodeGen;
 using Phantasma.Tomb.Lexers;
 using System.Reflection.Metadata;
 using Phantasma.Tomb.AST.Expressions;
+using System.IO;
 
 namespace Phantasma.Tomb.Compilers
 {
@@ -30,6 +31,8 @@ namespace Phantasma.Tomb.Compilers
 
         protected override void GenerateModules()
         {
+            var importedLibraries = new List<string>();
+
             while (HasTokens())
             {
                 var firstToken = FetchToken();
@@ -46,6 +49,28 @@ namespace Phantasma.Tomb.Compilers
                             break;
                         }
 
+                    case "import":
+                        {
+                            var filePath = ExpectString();
+
+                            filePath = filePath.Substring(1, filePath.Length - 2);
+
+                            var dir = Path.GetDirectoryName(filePath);
+
+                            if (dir == "Phantasma")
+                            {
+                                var libName = Path.GetFileNameWithoutExtension(filePath);
+                                importedLibraries.Add(libName);
+                            }
+                            else
+                            {
+                                throw new CompilerException("Importing solidity files not supported yet");
+                            }
+
+                            ExpectToken(";");
+                            break;
+                        }
+
                     case "contract":
                         {
                             var contractName = ExpectIdentifier();
@@ -56,6 +81,13 @@ namespace Phantasma.Tomb.Compilers
                             }
 
                             module = new Contract(contractName, ModuleKind.Contract);
+
+                            foreach (var libName in importedLibraries)
+                            {
+                                var libDecl = Contract.LoadLibrary(libName, module.Scope, module.Kind);
+                                module.Libraries[libName] = libDecl;
+                            }
+
                             ExpectToken("{");
                             ParseModule(module);
                             ExpectToken("}");

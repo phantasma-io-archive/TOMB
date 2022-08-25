@@ -1309,5 +1309,10 @@ In order to create new more builtin methods, do the following steps:
 4. Open the generated builtins.asm file and copy paste the content into the BUILTIN_ASM static string inside Builtins.cs
 5. Your new method can now be used in any TOMB contract. You can do this change locally in your compiler repo and any contract compiled with it will still work anywhere.
 
+# Solidity support
+
+## Phantasma specific features 
+It's possible to use Solidity import keyword to import any of the Phantasma features (eg: Runtime, Token, etc).
+
 # More documentation
 Check our official <a href="https://docs.phantasma.io/#tomb-supported_features">Phantasma documentation</a> for more info about developing with Phantasma Chain.
