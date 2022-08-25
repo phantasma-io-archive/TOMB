@@ -1318,7 +1318,7 @@ It's possible to use Solidity import keyword to import any of the Phantasma feat
 
 The following table lists a list of Solidity features and how it maps to Phantasma features
 | Solidity Feature  | Phantasma equivalent | Notes |
-| ------------- | ------------- | ------------- | ------------- |
+| ------------- | ------------- | -------------|
 | mapping(x => y)  | storage_map<x,y>   | Fully working |  
 | uint8, int256, etc  | number  | Unsigned types are not supported yet by the compiler (will default to signed) |
 | string public constant name = "hello";  | property name:string = "hello";  | Fully working |  
