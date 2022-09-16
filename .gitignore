@@ -6,3 +6,5 @@ Publish/
 *.user
 
 Compiler/Properties/launchSettings.json
+
+.idea/
