@@ -21,8 +21,8 @@ namespace Phantasma.Tomb
     {
         Break,
         Yield,
-    }
-
+    }   
+    
     public class CompilerAttribute : Attribute
     {
         public string Extension { get; set; }
