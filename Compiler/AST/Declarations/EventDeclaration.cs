@@ -1,15 +1,13 @@
-﻿using Phantasma.Blockchain;
-using Phantasma.CodeGen.Assembler;
-using Phantasma.Cryptography;
-using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.Tomb.CodeGen;
-using Phantasma.VM;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Numerics;
+using Phantasma.Core.Domain;
+using Phantasma.Tomb.CodeGen;
+using Phantasma.Core.Cryptography;
+using Phantasma.Business.Blockchain;
+using Phantasma.Business.CodeGen.Assembler;
 
 namespace Phantasma.Tomb.AST.Declarations
 {
@@ -224,7 +222,7 @@ namespace Phantasma.Tomb.AST.Declarations
 
             public override IToken FetchToken(string symbol)
             {
-                return new Blockchain.Tokens.TokenInfo(symbol, symbol, Address.FromHash("test"), 0, 8, TokenFlags.Fungible | TokenFlags.Divisible, new byte[] { (byte)Opcode.RET}, ContractInterface.Empty);
+                return new TokenInfo(symbol, symbol, Address.FromHash("test"), 0, 8, TokenFlags.Fungible | TokenFlags.Divisible, new byte[] { (byte)Opcode.RET}, ContractInterface.Empty);
             }
 
             public override string OutputAddress(Address address)

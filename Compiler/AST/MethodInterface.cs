@@ -1,9 +1,9 @@
-﻿using Phantasma.VM;
+﻿using System;
+using System.Collections.Generic;
 using Phantasma.Tomb.CodeGen;
 using Phantasma.Tomb.AST.Expressions;
-using System;
-using System.Collections.Generic;
 using Phantasma.Tomb.AST.Declarations;
+using Phantasma.Core.Domain;
 
 namespace Phantasma.Tomb.AST
 {

@@ -1,13 +1,14 @@
-using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.Tomb.CodeGen;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Collections.Generic;
+
+using Phantasma.Tomb.CodeGen;
+
 using Module = Phantasma.Tomb.CodeGen.Module;
+using Phantasma.Core.Numerics;
 
 namespace Phantasma.Tomb
 {

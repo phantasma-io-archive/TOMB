@@ -1,11 +1,10 @@
-using Phantasma.Domain;
-using Phantasma.VM;
-using Phantasma.Tomb.AST;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Business.VM;
+using Phantasma.Core.Domain;
+using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
-using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.AST.Expressions;
 
 namespace Phantasma.Tomb.CodeGen

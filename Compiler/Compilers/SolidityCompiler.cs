@@ -1,19 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Phantasma.Domain;
-using Phantasma.Neo.VM.Types;
-using Phantasma.Numerics;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.CodeGen;
 using Phantasma.Tomb.Lexers;
-using System.Reflection.Metadata;
 using Phantasma.Tomb.AST.Expressions;
-using System.IO;
+using Phantasma.Core.Domain;
 
 namespace Phantasma.Tomb.Compilers
 {

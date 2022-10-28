@@ -1,8 +1,7 @@
-﻿using Phantasma.Blockchain.Tokens;
-using Phantasma.Domain;
-using Phantasma.VM;
+﻿using System.Collections.Generic;
+using Phantasma.Business.Blockchain.Tokens;
+using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
-using System.Collections.Generic;
 using Phantasma.Tomb.AST.Declarations;
 
 namespace Phantasma.Tomb.CodeGen

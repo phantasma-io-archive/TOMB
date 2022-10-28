@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Phantasma.Domain;
-using Phantasma.Numerics;
-
 using Phantasma.Tomb.CodeGen;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.AST.Expressions;
 using Phantasma.Tomb.Lexers;
+using Phantasma.Core.Domain;
+using Phantasma.Core.Numerics;
 
 namespace Phantasma.Tomb.Compilers
 {

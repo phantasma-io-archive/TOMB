@@ -1,4 +1,4 @@
-﻿using Phantasma.VM;
+﻿using Phantasma.Core.Domain;
 using Phantasma.Tomb.CodeGen;
 
 using System;
