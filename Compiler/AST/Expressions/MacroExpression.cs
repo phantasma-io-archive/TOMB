@@ -1,10 +1,10 @@
-﻿using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.Tomb.CodeGen;
+﻿using Phantasma.Tomb.CodeGen;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Core.Domain;
+using Phantasma.Core.Numerics;
 
 namespace Phantasma.Tomb.AST.Expressions
 {

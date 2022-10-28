@@ -1,5 +1,3 @@
-using Phantasma.Cryptography;
-using Phantasma.Numerics;
 using Phantasma.Tomb.AST;
 using System;
 using System.Collections.Generic;

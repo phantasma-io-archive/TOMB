@@ -1,5 +1,4 @@
 ﻿using Phantasma.Tomb.CodeGen;
-using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

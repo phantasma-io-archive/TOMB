@@ -1,14 +1,13 @@
-﻿using Phantasma.Domain;
-using Phantasma.Neo.VM.Types;
-using Phantasma.Tomb.AST;
+﻿using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Expressions;
 using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.CodeGen;
-using Phantasma.VM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Business.VM;
+using Phantasma.Core.Domain;
 
 /* NOTE - In order to implement support for another programming language:
  * 1) derive a class from this and implement the abstract method GenerateModules

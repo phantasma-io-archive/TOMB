@@ -1,7 +1,7 @@
-﻿using Phantasma.VM;
-using Phantasma.Tomb.CodeGen;
+﻿using Phantasma.Tomb.CodeGen;
 
 using System;
+using Phantasma.Core.Domain;
 
 namespace Phantasma.Tomb.AST.Expressions
 {

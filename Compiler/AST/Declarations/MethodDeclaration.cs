@@ -1,10 +1,10 @@
-﻿using Phantasma.Domain;
-using Phantasma.Tomb.AST.Statements;
+﻿using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.CodeGen;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Core.Domain;
 
 namespace Phantasma.Tomb.AST.Declarations
 {
@@ -150,7 +150,7 @@ namespace Phantasma.Tomb.AST.Declarations
 
                 //var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
-                VM.VMType vmType = MethodInterface.ConvertType(variable.Type);
+                VMType vmType = MethodInterface.ConvertType(variable.Type);
 
                 output.AppendLine(this, $"// reading global: {variable.Name}");
                 output.AppendLine(this, $"LOAD r0 {(int)vmType}");
