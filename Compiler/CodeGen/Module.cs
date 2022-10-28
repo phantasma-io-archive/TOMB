@@ -1,13 +1,13 @@
-using Phantasma.Blockchain.Contracts;
-using Phantasma.Blockchain.Tokens;
-using Phantasma.CodeGen.Assembler;
-using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.VM;
-using Phantasma.Tomb.AST;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Phantasma.Business.Blockchain.Contracts;
+using Phantasma.Business.Blockchain.Tokens;
+using Phantasma.Business.CodeGen.Assembler;
+using Phantasma.Business.VM;
+using Phantasma.Core.Domain;
+using Phantasma.Core.Numerics;
+using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Expressions;
 
@@ -866,7 +866,7 @@ namespace Phantasma.Tomb.CodeGen
             return reg;
         }
 
-        private static Register ConvertGenericResult(CodeGenerator output, Scope scope, MethodExpression method, Register reg) 
+        private static Register ConvertGenericResult(CodeGenerator output, Scope scope, MethodCallExpression method, Register reg) 
         {
             if (method.ResultType.IsWeird)
             {

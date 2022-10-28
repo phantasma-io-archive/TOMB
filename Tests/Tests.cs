@@ -1,25 +1,22 @@
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using Phantasma.API;
-using Phantasma.Storage;
-using Phantasma.Blockchain;
-using Phantasma.CodeGen.Assembler;
-using Phantasma.Core.Log;
-using Phantasma.Core.Utils;
-using Phantasma.Cryptography;
-using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.Simulator;
-using Phantasma.Tomb;
-using Phantasma.Tomb.AST;
-using Phantasma.Tomb.CodeGen;
-using Phantasma.VM;
-using Phantasma.VM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Phantasma.Core.Types;
+using Phantasma.Tomb.Compilers;
+using Phantasma.Core.Utils;
+using Phantasma.Tomb;
+using Phantasma.Tomb.CodeGen;
+using Phantasma.Business.VM;
+using Phantasma.Business.Blockchain;
+using Phantasma.Core.Domain;
+using System.Numerics;
+using Phantasma.Core.Cryptography;
+using Phantasma.Business.CodeGen.Assembler;
+using Phantasma.Business.VM.Utils;
+using Phantasma.Core.Numerics;
 
 namespace Tests
 {
@@ -50,6 +47,7 @@ namespace Tests
                 RegisterMethod("Data.Set", Data_Set);
                 RegisterMethod("Data.Get", Data_Get);
                 RegisterMethod("Data.Delete", Data_Delete);
+                RegisterMethod("Runtime.Version", Runtime_Version);
                 contexts = new Dictionary<string, ScriptContext>();
             }
 
@@ -143,7 +141,6 @@ namespace Tests
                 var val = new VMObject();
                 val.SetValue(value_bytes, vmType);
 
-                val.SetValue(value_bytes, vmType);
                 this.Stack.Push(val);
 
                 return ExecutionState.Running;
@@ -177,6 +174,14 @@ namespace Tests
 
                 return ExecutionState.Running;
             }
+
+            private ExecutionState Runtime_Version(VirtualMachine vm)
+            {
+                var val = VMObject.FromObject(7);
+                this.Stack.Push(val);
+
+                return ExecutionState.Running;
+            }
         }
 
         [Test]
@@ -194,7 +199,7 @@ contract test {
         }                  
      }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -239,7 +244,7 @@ contract test {
          return ""zero"";
      }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
 
             Assert.Catch<CompilerException>(() =>
             {
@@ -256,7 +261,7 @@ contract test {
     global counter: number;
     
     constructor(owner:address)	{
-        counter:= 0; 
+        counter= 0; 
     }
     
     public increment() {
@@ -264,10 +269,10 @@ contract test {
             throw ""invalid state"";
         }   
                 
-        counter += 1;
+        counter++;
      }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -298,6 +303,79 @@ contract test {
             Assert.IsTrue(storage.Count == 1);
         }
 
+        [Test]
+        public void ForLoop()
+        {
+            var sourceCode =
+            @"
+contract test {
+    public countStuff():number {
+        local x:number = 0;
+        for (local i=0; i<9; i+=1)
+        {
+            x+=2;
+        }
+        return x;
+    }
+}";
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            var countStuff = contract.abi.FindMethod("countStuff");
+            Assert.IsNotNull(countStuff);
+
+            var vm = new TestVM(contract, storage, countStuff);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+            var val = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(val == 18);
+        }
+
+        [Test]
+        public void IfChained()
+        {
+            var sourceCode =
+            @"
+contract test {
+    public sign(x:number): number {
+        if (x > 0)
+        {
+            return 1;
+        }
+        else
+        if (x < 0)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}";
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            var countStuff = contract.abi.FindMethod("sign");
+            Assert.IsNotNull(countStuff);
+
+            var vm = new TestVM(contract, storage, countStuff);
+            vm.Stack.Push(VMObject.FromObject(-3));
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+            var val = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(val == -1);
+        }
 
         [Test]
         public void MinMax()
@@ -309,7 +387,7 @@ contract test {
                         return Math.min(a, b);
                     }}";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -341,7 +419,7 @@ contract test {
                 "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -377,12 +455,12 @@ contract test {
                 "contract test{\n" +
                 "global name: string;\n" +
                 "constructor(owner:address)	{\n" +
-                "name:= \"" + str + "\";\n}" +
+                "name= \"" + str + "\";\n}" +
                 "public getLength():number {\n" +
                 "return name.length();\n" +
                 "}}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -421,6 +499,41 @@ contract test {
             Assert.IsTrue(len == expectedLength);
         }
 
+        // TODO this test needs a new version of the nuget packages
+        [Test]
+        public void StringArray()
+        {
+            var str = "hello";
+
+            var sourceCode =
+@"contract test{
+    public getStrings(): array<string> {
+        local result:array<string> = {""A"", ""B"", ""C""};
+        return result;
+    }}";
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var getStrings = contract.abi.FindMethod("getStrings");
+            Assert.IsNotNull(getStrings);
+
+            vm = new TestVM(contract, storage, getStrings);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+// TODO
+//            var array = obj.AsArray(VMType.String);
+//          Assert.IsTrue(array.Length == 3);
+        }
+
         [Test]
         public void DecimalsSimple()
         {
@@ -432,14 +545,14 @@ contract test {
                 "contract test{\n" +
                 $"global amount: decimal<{decimals}>;\n" +
                 "constructor(owner:address)	{\n" +
-                "amount := "+valStr+";\n}" +
+                "amount = "+valStr+";\n}" +
                 "public getValue():number {\n" +
                 "return amount;\n}" +
                 "public getLength():number {\n" +
                 "return amount.decimals();\n}" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -504,10 +617,10 @@ contract test {
                 "contract test{\n" +
                 $"global amount: decimal<3>;\n" +
                 "constructor(owner:address)	{\n" +
-                "amount := " + valStr + ";\n}" +
+                "amount = " + valStr + ";\n}" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
 
             try
             {
@@ -536,7 +649,7 @@ contract test {
                 "contract test{",
                 $"global state: MyEnum;",
                 "constructor(owner:address)	{" ,
-                "state := MyEnum.B;}" ,
+                "state = MyEnum.B;}" ,
                 "public getValue():MyEnum {" ,
                 "return state;}" ,
                 "public isSet(val:MyEnum):bool {" ,
@@ -544,7 +657,7 @@ contract test {
                 "}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -591,11 +704,11 @@ contract test {
                     "   global _feesSymbol:string;",
                     $"  property feesSymbol:string = _feesSymbol;",
                     "   constructor(owner:address)	{" ,
-                    "       _feesSymbol := \"KCAL\";" ,
+                    "       _feesSymbol = \"KCAL\";" ,
                     "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -639,11 +752,11 @@ contract test {
                     "global _contractPaused:bool;",
                     "property name: string = \"Ghost\";	",
                     "   constructor(owner:address)	{" ,
-                    "       _contractPaused:= false;" ,
+                    "       _contractPaused= false;" ,
                     "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -672,15 +785,15 @@ contract test {
                     "   global _feesSymbol:string;",
                     $"  property feesSymbol:string = _feesSymbol;",
                     "   constructor(owner:address)	{" ,
-                    "       _feesSymbol := \"KCAL\";" ,
+                    "       _feesSymbol = \"KCAL\";" ,
                     "}",
                     "public updateFeesSymbol(feesSymbol:string) {",
-                    "   _feesSymbol:= feesSymbol;",
+                    "   _feesSymbol= feesSymbol;",
                     "}",
                     "}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -735,12 +848,12 @@ contract test {
                     "	global _infuseMultiplier:number;",
                     "	property name:string = \"test\";",
                     "	property infuseMultiplier:number = _infuseMultiplier;",
-                    "	constructor (owner:address) { _infuseMultiplier := 1;	}",
-                    "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier := infuseMultiplier;	}",
+                    "	constructor (owner:address) { _infuseMultiplier = 1;	}",
+                    "	public updateInfuseMultiplier(infuseMultiplier:number) 	{	_infuseMultiplier = infuseMultiplier;	}",
                     "}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -796,11 +909,11 @@ contract test {
                     "   global _feesAddress:address;",
                     $"  property feesAddress:address = _feesAddress;",
                     "   constructor(owner:address)	{" ,
-                    "       _feesAddress := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
+                    "       _feesAddress = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;" ,
                     "}}"
             };
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -835,7 +948,7 @@ contract test {
 
             Assert.IsTrue(newVal == expectedVal);
         }
-
+/*
         [Test]
         public void IsWitness()
         {
@@ -852,8 +965,8 @@ contract test {
                 "global _address:address;" +
                 "global _owner:address;" +
                 "constructor(owner:address)	{\n" +
-                "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                "_owner:= owner;\n" +
+                "_address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                "_owner= owner;\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
@@ -861,7 +974,7 @@ contract test {
                 "}\n"+
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -884,6 +997,7 @@ contract test {
             Assert.That(ex.Message, Is.EqualTo("add block @ main failed, reason: witness failed"));
         }
 
+        
         [Test]
         public void NFTs()
         {
@@ -944,38 +1058,38 @@ contract test {
                         }
 
                         property unlockCount:number {
-                            local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                            local count:number = Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
                             return count;
                         }
                     }
 
                     import Call;
                     constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
+                        _address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner= owner;
                         NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
                     }
 
                     public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number = NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
                         Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
                         return tokenID;
                     }
 
                     public readName(nftID:number): string {
-                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        local romInfo:someStruct = NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
                         return romInfo.name;
                     }
 
                     public readOwner(nftID:number): address {
-                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        local nftInfo:NFT = NFT.read($THIS_SYMBOL, nftID);
                         return nftInfo.owner;
                     }
                 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
@@ -983,7 +1097,7 @@ contract test {
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                     () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable,*/ contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
@@ -1125,48 +1239,48 @@ contract test {
                         }
 
                         property unlockCount:number {
-                               local count:number := Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
+                               local count:number = Call.interop<number>(""Map.Get"",  ""ATEST"", ""_unlockStorageMap"", _tokenID, $TYPE_OF(number));
                             return count;
                         }
                     }
 
                     import Call;
                     constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
+                        _address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner= owner;
                         NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
                     }
 
                     public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        local tokenID:number := NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number = NFT.mint(_address, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
                         Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
                         return tokenID;
                     }
 
                     public updateNFT(from:address, nftID:number) {
-                        local symbol : string := $THIS_SYMBOL;
+                        local symbol : string = $THIS_SYMBOL;
                         NFT.write(from, $THIS_SYMBOL, nftID, 1);
                     }
 
                     public readNFTRAM(nftID:number): number{
-                        local ramInfo : number := NFT.readRAM<number>($THIS_SYMBOL, nftID);
+                        local ramInfo : number = NFT.readRAM<number>($THIS_SYMBOL, nftID);
                         return ramInfo;
                     }
 
                     public readName(nftID:number): string {
-                        local romInfo:someStruct := NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
+                        local romInfo:someStruct = NFT.readROM<someStruct>($THIS_SYMBOL, nftID);
                         return romInfo.name;
                     }
 
                     public readOwner(nftID:number): address {
-                        local nftInfo:NFT := NFT.read($THIS_SYMBOL, nftID);
+                        local nftInfo:NFT = NFT.read($THIS_SYMBOL, nftID);
                         return nftInfo.owner;
                     }
                 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract..asm);
             //System.IO.File.WriteAllText(@"/tmp/asm.asm", contract.SubModules.First().asm);
@@ -1174,7 +1288,7 @@ contract test {
             simulator.BeginBlock();
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                     () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable, */contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
@@ -1299,8 +1413,8 @@ contract test {
                 "global _address:address;" +
                 "global _owner:address;" +
                 "constructor(owner:address)	{\n" +
-                "_address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                "_owner:= owner;\n" +
+                "_address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
+                "_owner= owner;\n" +
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
@@ -1312,7 +1426,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1381,7 +1495,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1514,13 +1628,13 @@ contract test {
                 "}\n" +
                 "public doStuff(from:address)\n" +
                 "{\n" +
-                " local test:string := _storageMap.get(5);\n" +
+                " local test:string = _storageMap.get(5);\n" +
                 " Runtime.log(\"this log: \");\n" +
                 " Runtime.log(test);\n" +
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1547,6 +1661,7 @@ contract test {
             public BigInteger value;
         }
 
+        
         [Test]
         public void StorageMapAndStruct()
         {
@@ -1554,7 +1669,7 @@ contract test {
             var keys2 = PhantasmaKeys.Generate();
 
             var nexus = new Nexus("simnet", null, null);
-            nexus.SetOracleReader(new OracleSimulator(nexus));
+            //nexus.SetOracleReader(new OracleSimulator(nexus));
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
             var sourceCode =
@@ -1569,7 +1684,7 @@ contract test {
                 "global _storageMap: storage_map<number, my_struct>;\n" +
                 "public createStruct(key:number, s:string, val:number)\n" +
                 "{\n" +
-                "local temp: my_struct := Struct.my_struct(s, val);\n" +
+                "local temp: my_struct = Struct.my_struct(s, val);\n" +
                 "_storageMap.set(key, temp);\n" +
                 "}\n" +
                 "public getStruct(key:number):my_struct\n" +
@@ -1578,7 +1693,7 @@ contract test {
                 "}\n" +
                 "}\n";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             simulator.BeginBlock();
@@ -1602,162 +1717,163 @@ contract test {
             var temp = vmObj.AsStruct<My_Struct>();
             Assert.IsTrue(temp.name == "hello");
             Assert.IsTrue(temp.value == 123);
-        }
+        }*/
 
-        [Test]
-        public void AES()
-        {
-            var keys = PhantasmaKeys.Generate();
-            var keys2 = PhantasmaKeys.Generate();
 
-            var nexus = new Nexus("simnet", null, null);
-            nexus.SetOracleReader(new OracleSimulator(nexus));
-            var simulator = new NexusSimulator(nexus, keys, 1234);
+        /*        [Test]
+                public void AES()
+                {
+                    var keys = PhantasmaKeys.Generate();
+                    var keys2 = PhantasmaKeys.Generate();
 
-            var sourceCode =
-                "contract test {\n" +
-                "import Runtime;\n" +
-                "import Cryptography;\n" +
-                "global someString: string;\n" +
-                "global someSecret: string;\n" +
-                "global result: string;\n" +
-                "constructor(owner:address)	{\n" +
-                "someString := \"somestring\";\n" +
-                "someSecret := \"somesecret123456somesecret123456\";\n" +
-                "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
-                "local decrypted: bytes := Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
-                "result := decrypted.toString();\n" +
-                "}\n" +
-                "public doStuff(from:address)\n" +
-                "{\n" +
-                " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
-                "}\n"+
-                "}\n";
+                    var nexus = new Nexus("simnet", null, null);
+                    nexus.SetOracleReader(new OracleSimulator(nexus));
+                    var simulator = new NexusSimulator(nexus, keys, 1234);
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
-            var contract = parser.Process(sourceCode).First();
+                    var sourceCode =
+                        "contract test {\n" +
+                        "import Runtime;\n" +
+                        "import Cryptography;\n" +
+                        "global someString: string;\n" +
+                        "global someSecret: string;\n" +
+                        "global result: string;\n" +
+                        "constructor(owner:address)	{\n" +
+                        "someString = \"somestring\";\n" +
+                        "someSecret = \"somesecret123456somesecret123456\";\n" +
+                        "local encrypted: bytes = Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n"+
+                        "local decrypted: bytes = Cryptography.AESDecrypt(encrypted, someSecret.toBytes());\n"+
+                        "result = decrypted.toString();\n" +
+                        "}\n" +
+                        "public doStuff(from:address)\n" +
+                        "{\n" +
+                        " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
+                        "}\n"+
+                        "}\n";
 
-            simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
-                    .SpendGas(keys.Address)
-                    .EndScript());
-            simulator.EndBlock();
+                    var parser = new TombLangCompiler();
+                    var contract = parser.Process(sourceCode).First();
 
-            simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                    ScriptUtils.BeginScript().
-                    AllowGas(keys.Address, Address.Null, 1, 9999).
-                    CallContract("test", "doStuff", keys.Address).
-                    SpendGas(keys.Address).
-                    EndScript());
-            simulator.EndBlock();
-        }
+                    simulator.BeginBlock();
+                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                            () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                            .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                            .SpendGas(keys.Address)
+                            .EndScript());
+                    simulator.EndBlock();
 
-        [Test]
-        public void AESAndStorageMap()
-        {
-            var keys = PhantasmaKeys.Generate();
-            var keys2 = PhantasmaKeys.Generate();
+                    simulator.BeginBlock();
+                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                            ScriptUtils.BeginScript().
+                            AllowGas(keys.Address, Address.Null, 1, 9999).
+                            CallContract("test", "doStuff", keys.Address).
+                            SpendGas(keys.Address).
+                            EndScript());
+                    simulator.EndBlock();
+                }
 
-            var nexus = new Nexus("simnet", null, null);
-            nexus.SetOracleReader(new OracleSimulator(nexus));
-            var simulator = new NexusSimulator(nexus, keys, 1234);
+                [Test]
+                public void AESAndStorageMap()
+                {
+                    var keys = PhantasmaKeys.Generate();
+                    var keys2 = PhantasmaKeys.Generate();
 
-            var sourceCode =
-                "contract test {\n" +
-                "import Runtime;\n" +
-                "import Storage;\n" +
-                "import Map;\n" +
-                "import Cryptography;\n" +
-                "global someString: string;\n" +
-                "global someSecret: string;\n" +
-                "global result: string;\n" +
-                "global _lockedStorageMap: storage_map<number, bytes>;\n" +
-                "constructor(owner:address)	{\n" +
-                "someString := \"qwerty\";\n" +
-                "someSecret := \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
-                "local encrypted: bytes := Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
-                "_lockedStorageMap.set(10, encrypted);\n" +
-                "local encryptedContentBytes:bytes := _lockedStorageMap.get(10);\n" +
-                "local decrypted: bytes := Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
-                "result := decrypted.toString();\n" +
-                "}\n" +
-                "public doStuff(from:address)\n" +
-                "{\n" +
-                " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
-                "}\n"+
-                "}\n";
+                    var nexus = new Nexus("simnet", null, null);
+                    nexus.SetOracleReader(new OracleSimulator(nexus));
+                    var simulator = new NexusSimulator(nexus, keys, 1234);
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
-            var contract = parser.Process(sourceCode).First();
+                    var sourceCode =
+                        "contract test {\n" +
+                        "import Runtime;\n" +
+                        "import Storage;\n" +
+                        "import Map;\n" +
+                        "import Cryptography;\n" +
+                        "global someString: string;\n" +
+                        "global someSecret: string;\n" +
+                        "global result: string;\n" +
+                        "global _lockedStorageMap: storage_map<number, bytes>;\n" +
+                        "constructor(owner:address)	{\n" +
+                        "someString = \"qwerty\";\n" +
+                        "someSecret = \"d25a4cdb3f1b347efabb56da18069dfe\";\n" +
+                        "local encrypted: bytes = Cryptography.AESEncrypt(someString.toBytes(), someSecret.toBytes());\n" +
+                        "_lockedStorageMap.set(10, encrypted);\n" +
+                        "local encryptedContentBytes:bytes = _lockedStorageMap.get(10);\n" +
+                        "local decrypted: bytes = Cryptography.AESDecrypt(encryptedContentBytes, someSecret.toBytes());\n" +
+                        "result = decrypted.toString();\n" +
+                        "}\n" +
+                        "public doStuff(from:address)\n" +
+                        "{\n" +
+                        " Runtime.expect(result == someString, \"decrypted content does not equal original\");\n" +
+                        "}\n"+
+                        "}\n";
 
-            simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
-                    .SpendGas(keys.Address)
-                    .EndScript());
-            simulator.EndBlock();
+                    var parser = new TombLangCompiler();
+                    var contract = parser.Process(sourceCode).First();
 
-            simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                    ScriptUtils.BeginScript().
-                    AllowGas(keys.Address, Address.Null, 1, 9999).
-                    CallContract("test", "doStuff", keys.Address).
-                    SpendGas(keys.Address).
-                    EndScript());
-            simulator.EndBlock();
-        }
+                    simulator.BeginBlock();
+                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                            () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                            .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                            .SpendGas(keys.Address)
+                            .EndScript());
+                    simulator.EndBlock();
 
-        [Test]
-        public void StorageMapHas()
-        {
-            var keys = PhantasmaKeys.Generate();
-            var keys2 = PhantasmaKeys.Generate();
+                    simulator.BeginBlock();
+                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                            ScriptUtils.BeginScript().
+                            AllowGas(keys.Address, Address.Null, 1, 9999).
+                            CallContract("test", "doStuff", keys.Address).
+                            SpendGas(keys.Address).
+                            EndScript());
+                    simulator.EndBlock();
+                }
 
-            var nexus = new Nexus("simnet", null, null);
-            nexus.SetOracleReader(new OracleSimulator(nexus));
-            var simulator = new NexusSimulator(nexus, keys, 1234);
+                [Test]
+                public void StorageMapHas()
+                {
+                    var keys = PhantasmaKeys.Generate();
+                    var keys2 = PhantasmaKeys.Generate();
 
-            var sourceCode =
-                "contract test {\n" +
-                "import Runtime;\n" +
-                "import Map;\n" +
-                "global _storageMap: storage_map<number, string>;\n" +
-                "constructor(owner:address)	{\n" +
-                "_storageMap.set(5, \"test1\");\n"+
-                "}\n" +
-                "public doStuff(from:address)\n" +
-                "{\n" +
-                " local test: bool := _storageMap.has(5);\n" +
-                " Runtime.expect(test, \"key 5 doesn't exist! \");\n" +
-                " local test2: bool := _storageMap.has(6);\n" +
-                " Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
-                "}\n"+
-                "}\n";
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
-            var contract = parser.Process(sourceCode).First();
-            Console.WriteLine("contract asm: " + contract.asm);
+                    var nexus = new Nexus("simnet", null, null);
+                    nexus.SetOracleReader(new OracleSimulator(nexus));
+                    var simulator = new NexusSimulator(nexus, keys, 1234);
 
-            simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                    () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                    .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
-                    .SpendGas(keys.Address)
-                    .EndScript());
-            simulator.EndBlock();
+                    var sourceCode =
+                        "contract test {\n" +
+                        "import Runtime;\n" +
+                        "import Map;\n" +
+                        "global _storageMap: storage_map<number, string>;\n" +
+                        "constructor(owner:address)	{\n" +
+                        "_storageMap.set(5, \"test1\");\n"+
+                        "}\n" +
+                        "public doStuff(from:address)\n" +
+                        "{\n" +
+                        " local test: bool = _storageMap.has(5);\n" +
+                        " Runtime.expect(test, \"key 5 doesn't exist! \");\n" +
+                        " local test2: bool = _storageMap.has(6);\n" +
+                        " Runtime.expect(test2 == false, \"key 6 does exist, but should not! \");\n" +
+                        "}\n"+
+                        "}\n";
+                    var parser = new TombLangCompiler();
+                    var contract = parser.Process(sourceCode).First();
+                    Console.WriteLine("contract asm: " + contract.asm);
 
-            simulator.BeginBlock();
-            simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
-                    ScriptUtils.BeginScript().
-                    AllowGas(keys.Address, Address.Null, 1, 9999).
-                    CallContract("test", "doStuff", keys.Address).
-                    SpendGas(keys.Address).
-                    EndScript());
-            simulator.EndBlock();
-        }
+                    simulator.BeginBlock();
+                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
+                            () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
+                            .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
+                            .SpendGas(keys.Address)
+                            .EndScript());
+                    simulator.EndBlock();
+
+                    simulator.BeginBlock();
+                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal, () =>
+                            ScriptUtils.BeginScript().
+                            AllowGas(keys.Address, Address.Null, 1, 9999).
+                            CallContract("test", "doStuff", keys.Address).
+                            SpendGas(keys.Address).
+                            EndScript());
+                    simulator.EndBlock();
+                }*/
 
         [Test]
         public void ArraySimple()
@@ -1769,13 +1885,13 @@ contract arrays {
 
 	public test(x:number):number {
 		local my_array: array<number>;		
-		my_array[1] := x;			
+		my_array[1] = x;			
 		return Array.length(my_array);		
 	}	
 }
 ";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -1802,14 +1918,14 @@ contract arrays {
 contract arrays {
 	public test(x:number, idx:number):number {
 		local my_array: array<number>;		
-		my_array[idx] := x;			
-		local num:number := my_array[idx];		
+		my_array[idx] = x;			
+		local num:number = my_array[idx];		
 		return num + 1;
 	}	
 }
 ";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -1839,9 +1955,9 @@ contract arrays {
 
 	public test(s:string, idx:number):string {        
 		local my_array: array<number>;		
-		my_array := s.toArray();	
-        my_array[idx] := 42; // replace char in this index with an asterisk (ascii table 42)
-		local result:string := String.fromArray(my_array);		
+		my_array = s.toArray();	
+        my_array[idx] = 42; // replace char in this index with an asterisk (ascii table 42)
+		local result:string = String.fromArray(my_array);		
 		return result;
 	}	
 
@@ -1850,17 +1966,17 @@ contract arrays {
 		local my_array: array<number>;		
 		
 		// extract chars from string into an array
-		my_array := s.toArray();	
+		my_array = s.toArray();	
 		
-		local length :number := Array.length(my_array);
-		local idx :number := 0;
+		local length :number = Array.length(my_array);
+		local idx :number = 0;
 		
 		while (idx < length) {
-			local ch : number := my_array[idx];
+			local ch : number = my_array[idx];
 			
 			if (ch >= 97) {
 				if (ch <= 122) {				
-					my_array[idx] := ch - 32; 
+					my_array[idx] = ch - 32; 
 				}
 			}
 						
@@ -1868,14 +1984,14 @@ contract arrays {
 		}
 				
 		// convert the array back into a unicode string
-		local result:string := String.fromArray(my_array); 
+		local result:string = String.fromArray(my_array); 
 		return result;
 	}	
 
 }
 ";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -1923,7 +2039,7 @@ contract arrays {
         //    api.Mempool = mempool;
         //    mempool.Start();
         //    var sourceCode = System.IO.File.ReadAllLines("/home/merl/source/phantasma/GhostMarketContractPhantasma/GHOST.tomb");
-        //    var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+        //    var parser = new TombLangCompiler();
         //    var contract = parser.Process(sourceCode).First();
         //    //Console.WriteLine("contract asm: " + contract.asm);
         //    //System.IO.File.WriteAllText(@"GHOST_series.asm", contract.SubModules.First().asm);
@@ -1984,7 +2100,7 @@ contract arrays {
                 Console.WriteLine($"res {a.Key}:{a.Value}");
 
             }
-        }*/
+        }
 
         [Test]
         public void TestContractTimestamp()
@@ -1998,11 +2114,11 @@ contract arrays {
                     global time:timestamp;
 
                     public constructor(owner:address){
-                        time := Time.now();
+                        time = Time.now();
                     }
                         
                     public updateTime(newTime:timestamp){
-                        time := newTime;
+                        time = newTime;
                     }  
 
                     public getTime():timestamp {
@@ -2014,7 +2130,7 @@ contract arrays {
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2061,12 +2177,12 @@ contract arrays {
                     global time:timestamp;
 
                     public constructor(owner:address){
-                        time := Time.now();
+                        time = Time.now();
                     }
                         
                     public updateTime(newTime:number){
-                        local newTimer:timestamp := newTime;
-                        time := newTimer;
+                        local newTimer:timestamp = newTime;
+                        time = newTimer;
                     }  
 
                     public getTime():timestamp {
@@ -2078,7 +2194,7 @@ contract arrays {
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2136,7 +2252,7 @@ contract arrays {
         }
 
         [Test]
-        public void simpleTest()
+        public void SimpleTest()
         {
             var keys = PhantasmaKeys.Generate();
             var sourceCode =
@@ -2147,15 +2263,15 @@ contract arrays {
                     global time:number;
 
                     public constructor(owner:address){
-                        time := 10000;
+                        time = 10000;
                     }
                         
                     public updateTime(newTime:number){
-                        time := newTime;
+                        time = newTime;
                     }  
 
                     public getTime():timestamp {
-                        local myTime:timestamp := time;
+                        local myTime:timestamp = time;
                         return myTime;
                     }
                 }";
@@ -2164,7 +2280,7 @@ contract arrays {
             var simulator = new NexusSimulator(nexus, keys, 1234);
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
             Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2208,6 +2324,7 @@ contract arrays {
             //var temp = vmObj.AsNumber();
             //
         }
+
 
         [Test]
         public void TestMintInsideOnBurn()
@@ -2267,14 +2384,14 @@ contract arrays {
                     import Call;
 
                     constructor(owner:address)	{
-                        _address := @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
-                        _owner:= owner;
+                        _address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;
+                        _owner= owner;
                         NFT.createSeries(owner, $THIS_SYMBOL, 0, 999, TokenSeries.Unique, myNFT);
                     }
 
                     public mint(dest:address):number {
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
-                        local tokenID:number := NFT.mint(_owner, dest, $THIS_SYMBOL, rom, 0, 0);
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local tokenID:number = NFT.mint(_owner, dest, $THIS_SYMBOL, rom, 0, 0);
                         _unlockStorageMap.set(tokenID, 0);
                         _nft_list.set(tokenID, 1);
                         Call.interop<none>(""Map.Set"",  ""_unlockStorageMap"", tokenID, 111);
@@ -2292,16 +2409,16 @@ contract arrays {
                         }
 
                         _nft_list.remove(tokenID);
-                        local rom:someStruct := Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
+                        local rom:someStruct = Struct.someStruct(Time.now(), _address, 1, ""hello"", ""desc"", ""imgURL"", ""info"");
 
-                        local newID:number := NFT.mint(_owner, to, $THIS_SYMBOL, rom, 0, 0);          
+                        local newID:number = NFT.mint(_owner, to, $THIS_SYMBOL, rom, 0, 0);          
                         _nft_list.set(newID, 1);
 
                         return;
                     }
 
                     public exist(nftID:number): bool {
-                        local myNumber : number := _nft_list.get(nftID);
+                        local myNumber : number = _nft_list.get(nftID);
                         if ( myNumber != 0 ) {
                             return true;
                         }
@@ -2319,7 +2436,7 @@ contract arrays {
             simulator.EndBlock();
 
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
             //Console.WriteLine("contract asm: " + contract.asm);
 
@@ -2327,7 +2444,7 @@ contract arrays {
             simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
                     () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
                     //.CallInterop("Runtime.createToken", keys.Address, symbol, contract.script, contract.abi.ToByteArray())
-                    .CallInterop("Nexus.CreateToken", keys.Address, /*symbol, name, 0, 0, TokenFlags.Burnable | TokenFlags.Transferable,*/ contract.script, contract.abi.ToByteArray())
+                    .CallInterop("Nexus.CreateToken", keys.Address, contract.script, contract.abi.ToByteArray())
                     .SpendGas(keys.Address)
                     .EndScript());
             simulator.EndBlock();
@@ -2372,7 +2489,7 @@ contract arrays {
             callResult = Serialization.Unserialize<VMObject>(callResultBytes);
             var exists = callResult.AsBool();
             Assert.IsFalse(exists, "It shouldn't exist...");
-        }
+        }*/
 
         [Test]
         public void MultiResultsSimple()
@@ -2386,7 +2503,7 @@ contract test{
     }
 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
             var contract = parser.Process(sourceCode).First();
 
             var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
@@ -2424,11 +2541,45 @@ contract test{
     }
 }";
 
-            var parser = new Compiler(DomainSettings.LatestKnownProtocol);
+            var parser = new TombLangCompiler();
 
             Assert.Catch<CompilerException>(() => {
                 var contract = parser.Process(sourceCode).First();
             });
+        }
+
+        [Test]
+        public void TypeInferenceInVarDecls()
+        {
+            var sourceCode =
+@"contract test{                   
+    public calculate():string {
+         local a = ""hello "";
+         local b = ""world"";
+        return a + b;
+    }
+}";
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var method = contract.abi.FindMethod("calculate");
+            Assert.IsNotNull(method);
+
+            vm = new TestVM(contract, storage, method);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var str = obj.AsString();
+
+            Assert.IsTrue(str == "hello world");
         }
 
     }

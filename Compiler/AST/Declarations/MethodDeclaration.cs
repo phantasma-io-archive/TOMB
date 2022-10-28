@@ -1,4 +1,4 @@
-﻿using Phantasma.Domain;
+﻿using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.CodeGen;
 
@@ -20,6 +20,14 @@ namespace Phantasma.Tomb.AST.Declarations
             this.body = null;
             this.scope = scope;
             this.@interface = @interface;
+        }
+
+        protected override void ValidateName()
+        {
+            if (Name != "constructor")
+            {
+                base.ValidateName();
+            }
         }
 
         public override void Visit(Action<Node> callback)
@@ -142,7 +150,7 @@ namespace Phantasma.Tomb.AST.Declarations
 
                 //var fieldKey = SmartContract.GetKeyForField(this.scope.Root.Name, variable.Name, false);
 
-                VM.VMType vmType = MethodInterface.ConvertType(variable.Type);
+                VMType vmType = MethodInterface.ConvertType(variable.Type);
 
                 output.AppendLine(this, $"// reading global: {variable.Name}");
                 output.AppendLine(this, $"LOAD r0 {(int)vmType}");

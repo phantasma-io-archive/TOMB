@@ -1,9 +1,14 @@
-using Phantasma.Domain;
-using Phantasma.Numerics;
-using Phantasma.Tomb.CodeGen;
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Collections.Generic;
+
+using Phantasma.Tomb.CodeGen;
+
+using Module = Phantasma.Tomb.CodeGen.Module;
+using Phantasma.Core.Numerics;
 
 namespace Phantasma.Tomb
 {
@@ -82,11 +87,43 @@ namespace Phantasma.Tomb
             Console.ForegroundColor = temp;
         }
 
+        static IEnumerable<KeyValuePair<string, Type>> GetTypesWithHelpAttribute(Assembly assembly)
+        {
+            foreach (Type type in assembly.GetTypes())
+            {
+                var attr = type.GetCustomAttributes(typeof(CompilerAttribute), true);
+                if (attr.Length > 0)
+                {
+                    var myAttribute = attr[0] as CompilerAttribute;
+
+                    yield return new KeyValuePair<string, Type>(myAttribute.Extension, type);
+                }
+            }
+        }
+
+        static Compiler FindCompilerForFile(string fileName, int targetProtocolVersion)
+        {
+            var extension = Path.GetExtension(fileName);
+
+            var compilerTypes = GetTypesWithHelpAttribute(Assembly.GetExecutingAssembly());
+
+            foreach (var entry in compilerTypes)
+            {
+                if (entry.Key == extension)
+                {
+                    var targetCompilerType = entry.Value;
+                    return (Compiler) Activator.CreateInstance(targetCompilerType, new object[] { targetProtocolVersion });
+                }
+            }
+
+            return null;
+        }
+
         static void Main(string[] args)
         {
             string sourceFilePath = null;
 
-            int targetProtocolVersion = DomainSettings.LatestKnownProtocol;
+            int targetProtocolVersion = 0;
 
             for (int i=0; i<args.Length; i++)
             {
@@ -122,7 +159,6 @@ namespace Phantasma.Tomb
             }
 
 #if DEBUG
-            ExportLibraryInfo();
             if (string.IsNullOrEmpty(sourceFilePath))
             {
                 sourceFilePath = @"..\..\..\builtins.tomb";
@@ -145,7 +181,13 @@ namespace Phantasma.Tomb
             Console.WriteLine("Compiling " + sourceFilePath);
             Console.WriteLine("Target protocol version: " + targetProtocolVersion);
 
-            var compiler = new Compiler(targetProtocolVersion);
+            var compiler = FindCompilerForFile(sourceFilePath, targetProtocolVersion);
+            if (compiler == null)
+            {
+                Console.WriteLine("No compiler found for file: " + sourceFilePath);
+                return;
+            }
+
             var modules = compiler.Process(sourceCode);
 
             foreach (var module in modules)
@@ -159,6 +201,11 @@ namespace Phantasma.Tomb
             }
 
             Console.WriteLine("Success!");
+
+#if DEBUG
+            //ExportLibraryInfo();
+#endif
+
         }
     }
 }

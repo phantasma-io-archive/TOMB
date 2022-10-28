@@ -3,10 +3,11 @@ using Phantasma.Tomb.CodeGen;
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Phantasma.Tomb.AST.Expressions
 {
-    public class MethodExpression : Expression
+    public class MethodCallExpression : Expression
     {
         public MethodInterface method;
         public List<Expression> arguments = new List<Expression>();
@@ -15,7 +16,7 @@ namespace Phantasma.Tomb.AST.Expressions
 
         public override VarType ResultType => method.ReturnType;
 
-        public MethodExpression(Scope parentScope) : base(parentScope)
+        public MethodCallExpression(Scope parentScope) : base(parentScope)
         {
 
         }
@@ -235,6 +236,25 @@ namespace Phantasma.Tomb.AST.Expressions
             }
 
             return reg;
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.Append(method.Name);
+            sb.Append('(');
+
+            int count = 0;
+            foreach (var arg in arguments)
+            {
+                if (count > 0) sb.Append(", ");
+                sb.Append(arg.ToString());
+                count++;
+            }
+
+            sb.Append(')');
+            return sb.ToString();
         }
     }
 

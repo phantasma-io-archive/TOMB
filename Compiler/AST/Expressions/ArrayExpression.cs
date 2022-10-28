@@ -1,56 +1,61 @@
-﻿using Phantasma.Tomb.AST.Declarations;
-using Phantasma.Tomb.CodeGen;
-
+﻿using Phantasma.Tomb.CodeGen;
 using System;
+using System.Collections.Generic;
 
 namespace Phantasma.Tomb.AST.Expressions
 {
     public class ArrayExpression : Expression
     {
-        public VarDeclaration decl;
-        public Expression indexExpression;
+        public List<Expression> elements;
 
-        public ArrayExpression(Scope parentScope, VarDeclaration declaration, Expression indexExpression) : base(parentScope)
+        public ArrayExpression(Scope parentScope) : base(parentScope)
         {
-            this.decl = declaration;
-            this.indexExpression = indexExpression;
+            this.elements = new List<Expression>();
         }
 
         public override string ToString()
         {
-            return decl.ToString();
+            return $"array[{ResultType}: {elements.Count}]";
         }
 
         public override Register GenerateCode(CodeGenerator output)
         {
-            if (decl.Register == null)
+            var reg = Compiler.Instance.AllocRegister(output, this, this.NodeID);
+
+            output.AppendLine(this, $"CLEAR {reg}");
+
+            var idxReg = Compiler.Instance.AllocRegister(output, this, "_array_init_idx");
+
+            for (int i=0; i<elements.Count; i++)
             {
-                throw new CompilerException(this, $"var not initialized:" + decl.Name);
+                var reg2 = elements[i].GenerateCode(output);
+                output.AppendLine(this, $"LOAD {idxReg} {i}");
+                output.AppendLine(this, $"PUT {reg2} {reg} {idxReg}");
+                Compiler.Instance.DeallocRegister(ref reg2);
             }
 
-            var dstReg = Compiler.Instance.AllocRegister(output, this);
-            var idxReg = indexExpression.GenerateCode(output);
-
-            output.AppendLine(this, $"GET {decl.Register} {dstReg} {idxReg}");
-
             Compiler.Instance.DeallocRegister(ref idxReg);
-
-            return dstReg;
+            return reg;
         }
 
         public override void Visit(Action<Node> callback)
         {
             callback(this);
-            decl.Visit(callback);
-            indexExpression.Visit(callback);
         }
 
         public override bool IsNodeUsed(Node node)
         {
-            return (node == this) || node == decl;
+            return (node == this);
         }
 
-        public override VarType ResultType => decl.Type is ArrayVarType ? ((ArrayVarType)decl.Type).elementType : VarType.Find(VarKind.Unknown);
+        public override VarType ResultType
+        {
+            get
+            {
+                var elementType = elements.Count > 0 ? elements[0].ResultType : VarType.Find(VarKind.Unknown);
+                return VarType.Find(VarKind.Array, elementType);
+            }
+        }
     }
 
 }

@@ -6,7 +6,7 @@ namespace Phantasma.Tomb.AST.Statements
 {
     public class MethodCallStatement : Statement
     {
-        public MethodExpression expression;
+        public MethodCallExpression expression;
 
         public MethodCallStatement() : base()
         {

@@ -11,6 +11,15 @@ TOMB smart contract compiler for Phantasma platform
 </p>
 
 
+## Supported languages
+
+TOMB generates code that runs in the PhantasmaVM, and supports multiple programming languages.
+
+| Language  | File Extension | Status | Description |
+| ------------- | ------------- | ------------- | ------------- |
+| TOMB lang  | .tomb  | Fully working | The original language supported by TOMB (the rest of this document samples use it) |
+| Solidity  | .tomb  | Working (around 70% features support) | The language originally created for Ethereum EVM |
+
 ## Supported features
 
 - Smart contracts and Non-contract Scripts (eg: transactions, raw invokes)
@@ -27,6 +36,7 @@ TOMB smart contract compiler for Phantasma platform
 - Generic types
 - If ... Else
 - While ... and Do ... While loops
+- For.. Loops
 - Switch .. case
 - Break and Continue
 - Throw Exceptions
@@ -34,15 +44,20 @@ TOMB smart contract compiler for Phantasma platform
 - Custom events
 - Interop and Contract calls
 - Inline asm
+- Type inference in declarations
 - Structs
 - Import libraries (Runtime, Leaderboard, Token, etc)
 - Comments (single and multi line)
 - Contract tasks
 - ABI generation
 
+## WIP Features (private branchs)
+
+- Postfix operators (++, --)
+- External library declarations
+
 ## Planned features
 
-- For.. Loops
 - Try .. Catch
 - More...
 - Warnings
@@ -53,11 +68,16 @@ TOMB smart contract compiler for Phantasma platform
 - Call a function from anywhere in the code
 - Create Classes that can be manipulated
 - Change Struct values of an instanciated struct without needing to recreated
-- Fix if's and else's and add else if, also add && and ||
+- Add && and || (currently its or, and)
 - Better support for Arrays, methods like, Array.shuffle() | Array.push() | Array.add() | Array.pop() | Array.shift()
 - Better Math Library, implement methods like, Math.Ceil() | Math.floor()
 - Multiple file support (Before compiling it, to make the code easier to write.)
 - Implement a null types
+
+## Important Note 
+
+For developers who used previous TOMB versions, the assigment operator has been changed from := to =
+Also the operators "and" and "or" were changed to "&&" and "||" respectively.
 
 ## Literals
 
@@ -586,9 +606,21 @@ contract test {
 }
 ```
 
+## Array example
+Here is an simple example of how to declare and initialize an array.
+
+```c#
+contract test {
+	import Array;
+	public getStrings(): array<string> {
+        local result:array<string> := {"A", "B", "C"};
+        return result;
+    }
+}
+```
+
 ## String manipulation
-The compiler supports generic types, including maps.<br/>
-Maps are one of the few types that don't have to initialized in the constructor.<br/>
+The compiler supports casting strings into number arrays (unicode values) and number arrays back to strings.<br/>
 
 ```c#
 contract test {
@@ -602,18 +634,16 @@ contract test {
 		my_array := s.toArray();	
 		
 		local length :number := Array.length(my_array);
-		local idx :number := 0;
 		
-		while (idx < length) {
-			local ch : number := my_array[idx];
+		for (local i = 0; i<length; i+=1)
+		{
+			local ch : number := my_array[i];
 			
 			if (ch >= 97) {
 				if (ch <= 122) {				
-					my_array[idx] := ch - 32; 
+					my_array[i] := ch - 32; 
 				}
 			}
-						
-			idx += 1;
 		}
 				
 		// convert the array back into a unicode string
@@ -965,6 +995,35 @@ contract test {
 }
 ```
 
+## Returning multiple values
+It is possible in TOMB to return multiple results from a single method.<br/>
+The method return type must be marked with an asterisk, then multiple returns can be issued. <br/>
+A return without expression will terminate the method execution. <br/>
+
+```c#
+contract test {
+	// this method returns an array of strings (could also be numbers, structs, etc)
+    public getStrings(): string* {
+         return "hello";
+         return "world";
+         return;
+    }
+}
+```
+
+## Type inference in variable declarations
+It is possible to let TOMB compiler auto-detect type of a local variable if you omit the type and provide an initialization expression. <br/>
+
+```c#
+contract test {
+    public calculate():string {
+         local a := "hello ";
+         local b := "world";
+        return a + b;
+    }
+}
+```
+
 ## Tasks
 A task allows a contract method to run periodically without user intervention.<br/>
 Tasks can't have parameters, however you can use Task.current() along with a global Map to associate custom user data to each task.<br/>
@@ -1249,6 +1308,22 @@ In order to create new more builtin methods, do the following steps:
 3. Compile builtins.tomb using TOMB itself.
 4. Open the generated builtins.asm file and copy paste the content into the BUILTIN_ASM static string inside Builtins.cs
 5. Your new method can now be used in any TOMB contract. You can do this change locally in your compiler repo and any contract compiled with it will still work anywhere.
+
+# Solidity support
+
+The current support for Solidity is experimental, and some features of the language are still not supported.
+Regarding Phantasma specific features, it's possible to use Solidity import keyword to import any of the Phantasma features (eg: Runtime, Token, etc).
+
+The following table lists a list of Solidity features and how it maps to Phantasma features
+| Solidity Feature  | Phantasma equivalent | Notes |
+| ------------- | ------------- | -------------|
+| mapping(x => y)  | storage_map<x,y>   | Fully working |  
+| uint8, int256, etc  | number  | Unsigned types are not supported yet by the compiler (will default to signed) |
+| string public constant name = "hello";  | property name:string = "hello";  | Fully working |  
+| import "Phantasma/Runtime.tomb"; | import Runtime;  | Fully working |  
+| function something(uint x) public view returns (uint)| function something(x:number): number;  | Fully working |  
+| constructor(address owner) public  | constructor(owner:address)   | Constructors in Solidity can have multiple args, but in Phantasma only a single address |  
+| event Something(uint x)  | event Something:number = "{x} happened"   | Not implemented yet|  
 
 # More documentation
 Check our official <a href="https://docs.phantasma.io/#tomb-supported_features">Phantasma documentation</a> for more info about developing with Phantasma Chain.

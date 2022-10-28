@@ -1,8 +1,9 @@
-﻿using Phantasma.Numerics;
+﻿using System.Numerics;
 using Phantasma.Tomb.CodeGen;
 
 using System;
 using System.Globalization;
+using Phantasma.Core.Numerics;
 
 namespace Phantasma.Tomb.AST.Expressions
 {

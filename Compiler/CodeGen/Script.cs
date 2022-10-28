@@ -1,8 +1,8 @@
-﻿using Phantasma.Domain;
-using System;
+﻿using System;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Statements;
 using Phantasma.Tomb.AST.Declarations;
+using Phantasma.Core.Domain;
 
 namespace Phantasma.Tomb.CodeGen
 {
