@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TombCompiler": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Code\\Nachomen\\Contract\\nacho_nft.tomb C:\\Code\\Moonjar\\Contract\\moonjar.tomb"
+    }
+  }
+}
