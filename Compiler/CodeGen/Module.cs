@@ -569,7 +569,7 @@ namespace Phantasma.Tomb.CodeGen
                         var nameExpr = method.arguments[0] as LiteralExpression;
                         if (nameExpr != null && nameExpr.type.Kind == VarKind.String)
                         {
-                            var address = SmartContract.GetAddressForName(nameExpr.value);
+                            var address = SmartContract.GetAddressFromContractName(nameExpr.value);
                             var hex = Base16.Encode(address.ToByteArray());
                             output.AppendLine(method, $"LOAD {reg} 0x{hex}");
                             return reg;
