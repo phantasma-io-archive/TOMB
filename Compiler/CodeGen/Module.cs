@@ -460,8 +460,8 @@ namespace Phantasma.Tomb.CodeGen
 
 
                 case "Random":
-                    libDecl.AddMethod("generate", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.Random");
-                    libDecl.AddMethod("seed", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("seed", VarKind.Number) }).SetAlias("Runtime.SetSeed");
+                    libDecl.AddMethod("generate", MethodImplementationType.LocalCall, VarKind.Number, new MethodParameter[] { }).SetAlias("random_generate");
+                    libDecl.AddMethod("seed", MethodImplementationType.LocalCall, VarKind.None, new[] { new MethodParameter("seed", VarKind.Number) }).SetAlias("random_seed");
                     break;
 
                 case "Token":
