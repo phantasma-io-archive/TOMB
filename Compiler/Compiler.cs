@@ -1139,10 +1139,10 @@ namespace Phantasma.Tomb
                 case ">>":
                     return OperatorKind.ShiftRight;
 
-                case "or":
+                case "||":
                     return OperatorKind.Or;
 
-                case "and":
+                case "&&":
                     return OperatorKind.And;
 
                 case "xor":
