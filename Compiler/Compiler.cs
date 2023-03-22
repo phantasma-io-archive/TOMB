@@ -862,12 +862,14 @@ namespace Phantasma.Tomb
                                     var leftSide = ExpectExpression(scope);
                                     ExpectToken(")");
                                     var op = FetchToken();
-                                    if (op.kind != TokenKind.Operator)
+                                    if (op.kind == TokenKind.Operator)
                                     {
-                                        throw new CompilerException($"expected operator, got {op.kind} instead");
+                                        var rightSide = ExpectExpression(scope);
+                                        return ParseBinaryExpression(scope, op, leftSide, rightSide);
                                     }
-                                    var rightSide = ExpectExpression(scope);
-                                    return ParseBinaryExpression(scope, op, leftSide, rightSide);
+
+                                    Rewind();
+                                    return leftSide;
                                 }
 
                             case "{":
@@ -1139,10 +1141,10 @@ namespace Phantasma.Tomb
                 case ">>":
                     return OperatorKind.ShiftRight;
 
-                case "or":
+                case "||":
                     return OperatorKind.Or;
 
-                case "and":
+                case "&&":
                     return OperatorKind.And;
 
                 case "xor":
