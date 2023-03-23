@@ -25,7 +25,7 @@ namespace Phantasma.Tomb.AST.Expressions
 
         public override T AsLiteral<T>()
         {
-            if (this.type.Kind == VarKind.String && typeof(T) == typeof(string))
+            if ((this.type.Kind == VarKind.String || this.type.Kind == VarKind.Method) && typeof(T) == typeof(string))
             {
                 return (T)(object)this.value;
             }

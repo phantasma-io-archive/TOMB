@@ -333,7 +333,37 @@ namespace Phantasma.Tomb.CodeGen
                 case "Call":
                     libDecl.AddMethod("interop", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
                     libDecl.AddMethod("contract", MethodImplementationType.ContractCall, VarType.Generic(0), new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
-                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("method", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("method", VarKind.Method), new MethodParameter("...", VarKind.Any) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var contract = scope.Module as Contract;
+                        if (contract == null)
+                        {
+                            throw new CompilerException("Cannot use Call.method outside of a contract");
+                        }
+
+                        var methodName = expr.arguments[0].AsLiteral<string>();
+                        var method = contract.FindMethod(methodName);
+                        if (method == null)
+                        {
+                            throw new CompilerException($"Cannot find local method '{methodName}' in contract '{contract.Name}'");
+                        }
+
+                        var label = method.GetEntryLabel();
+
+                        // push the method arguments into the stack, in the proper order
+                        for (int i = expr.arguments.Count - 1; i >= 1; i--)
+                        {
+                            var argReg = expr.arguments[i].GenerateCode(output);
+                            output.AppendLine(expr, $"PUSH {argReg}");
+                            Compiler.Instance.DeallocRegister(ref argReg);
+                        }
+
+                        var reg = Compiler.Instance.AllocRegister(output, expr, expr.NodeID);
+                        output.AppendLine(expr, $"CALL @{label}");
+                        output.AppendLine(expr, $"POP {reg}");
+                        return reg;
+                    });
                     break;
 
                 case "Chain":

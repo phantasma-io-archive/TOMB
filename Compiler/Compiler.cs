@@ -924,7 +924,17 @@ namespace Phantasma.Tomb
         {
             var expr = new MethodCallExpression(scope);
 
-            var methodName = ExpectIdentifier();
+            string methodName;
+
+            if (library != null && library.Name == "Call")
+            {
+                var tmp = FetchToken();
+                methodName = tmp.value;
+            }
+            else
+            {
+                methodName = ExpectIdentifier();
+            }
 
             expr.method = library.FindMethod(methodName);
 
