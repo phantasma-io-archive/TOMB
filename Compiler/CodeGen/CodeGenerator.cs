@@ -7,7 +7,7 @@ namespace Phantasma.Tomb.CodeGen
     public class CodeGenerator
     {
         private StringBuilder _sb = new StringBuilder();
-        private StringBuilder _sb2 = new StringBuilder(); // used for builtins
+        private StringBuilder _includedBuiltinCodeBuffer = new StringBuilder(); // used for builtins
 
         public static Scope currentScope = null;
         public static int currentSourceLine = 0;
@@ -55,22 +55,23 @@ namespace Phantasma.Tomb.CodeGen
                 return;
             }
 
-            var code = Builtins.GetBuiltinMethodCode(builtinMethodName);
+            var builtin = Builtins.GetMethod(builtinMethodName);
+            var code = builtin.Code;
 
             _builtinMethodMap[builtinMethodName] = code;
 
-            if (_sb2.Length == 0)
+            if (_includedBuiltinCodeBuffer.Length == 0)
             {
-                _sb2.AppendLine();
-                _sb2.AppendLine("// =======> BUILTINS SECTION"); 
+                _includedBuiltinCodeBuffer.AppendLine();
+                _includedBuiltinCodeBuffer.AppendLine("// =======> BUILTINS SECTION"); 
             }
 
-            _sb2.Append(code);
+            _includedBuiltinCodeBuffer.Append(code);
         }
 
         public override string ToString()
         {
-            return _sb.ToString() + _sb2.ToString();
+            return _sb.ToString() + _includedBuiltinCodeBuffer.ToString();
         }
 
     }

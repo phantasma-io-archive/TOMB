@@ -1,23 +1,22 @@
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Phantasma.Core.Types;
+
 using Phantasma.Tomb.Compilers;
 using Phantasma.Core.Utils;
 using Phantasma.Tomb;
 using Phantasma.Tomb.CodeGen;
 using Phantasma.Business.VM;
-using Phantasma.Business.Blockchain;
 using Phantasma.Core.Domain;
-using System.Numerics;
 using Phantasma.Core.Cryptography;
 using Phantasma.Business.CodeGen.Assembler;
 using Phantasma.Business.VM.Utils;
 using Phantasma.Core.Numerics;
-using static Tests.Tests;
+using Phantasma.Business.Blockchain.VM;
 
 namespace Tests
 {
@@ -49,6 +48,8 @@ namespace Tests
                 RegisterMethod("Data.Get", Data_Get);
                 RegisterMethod("Data.Delete", Data_Delete);
                 RegisterMethod("Runtime.Version", Runtime_Version);
+                RegisterMethod("Runtime.TransactionHash", Runtime_TransactionHash);
+                RegisterMethod("Runtime.Context", Runtime_Context);
                 contexts = new Dictionary<string, ScriptContext>();
             }
 
@@ -178,11 +179,28 @@ namespace Tests
 
             private ExecutionState Runtime_Version(VirtualMachine vm)
             {
-                var val = VMObject.FromObject(7);
+                var val = VMObject.FromObject(DomainSettings.LatestKnownProtocol);
                 this.Stack.Push(val);
 
                 return ExecutionState.Running;
             }
+
+            private ExecutionState Runtime_TransactionHash(VirtualMachine vm)
+            {
+                var val = VMObject.FromObject(Hash.FromString("F6C095A0ED5984F76994EDD8BA555EC10A4B601337B0A15F94162DCD38348534"));
+                this.Stack.Push(val);
+
+                return ExecutionState.Running;
+            }
+
+            private ExecutionState Runtime_Context(VirtualMachine vm)
+            {
+                var val = VMObject.FromObject("test");
+                this.Stack.Push(val);
+
+                return ExecutionState.Running;
+            }
+
         }
 
         [Test]
@@ -541,6 +559,60 @@ contract test {
 
             Assert.IsTrue(len == expectedLength);
         }
+
+        [Test]
+        public void RandomNumber()
+        {
+            var str = "hello";
+
+            var sourceCode =
+                @"
+contract test {
+	import Random;
+	import Hash;
+	import Runtime;
+
+	global my_state: number;
+
+	public mutateState():number
+	{
+        // use the current transaction hash to provide a random seed. This makes the result deterministic during node consensus
+        // 	optionally we can use other value, depending on your needs, eg: Random.seed(16676869); 
+        local tx_hash:hash = Runtime.transactionHash();
+        local mySeed:number = tx_hash.toNumber();
+		Random.seed(mySeed);
+		my_state = Random.generate() % 10; // Use modulus operator to constrain the random number to a specific range
+		return my_state;
+	}
+
+}";
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var mutateState = contract.abi.FindMethod("mutateState");
+            Assert.IsNotNull(mutateState);
+
+            vm = new TestVM(contract, storage, mutateState);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(storage.Count == 2);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var state = obj.AsNumber();
+
+            var expectedState = -4;
+
+            Assert.IsTrue(state == expectedState);
+        }
+
 
         // TODO this test needs a new version of the nuget packages
         [Test]

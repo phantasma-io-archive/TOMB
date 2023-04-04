@@ -476,7 +476,7 @@ contract test {
 
 	constructor(owner:address)
 	{
-		counter:= 0;
+		counter = 0;
 	}
 
 	public increment()
@@ -504,7 +504,7 @@ contract test {
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 		local temp: number;
-		temp := counters.get(from);
+		temp = counters.get(from);
 		temp += 1;
 		counters.set(from, temp);
 	}
@@ -520,7 +520,7 @@ contract test {
 
 	constructor(owner:address)
 	{
-		val := "hello";
+		val = "hello";
 		val += " world";
 	}
 
@@ -541,7 +541,7 @@ contract test {
 
 	constructor(owner:address)
 	{
-		val := 2.1425;
+		val = 2.1425;
 	}
 
 	public getValue():number
@@ -576,7 +576,7 @@ contract test {
 
 	constructor(owner:address)
 	{
-		state := MyEnum.B;
+		state = MyEnum.B;
 	}
 
 	public getValue():MyEnum
@@ -613,7 +613,7 @@ Here is an simple example of how to declare and initialize an array.
 contract test {
 	import Array;
 	public getStrings(): array<string> {
-        local result:array<string> := {"A", "B", "C"};
+        local result:array<string> = {"A", "B", "C"};
         return result;
     }
 }
@@ -631,23 +631,23 @@ contract test {
 		local my_array: array<number>;		
 		
 		// extract chars from string into an array
-		my_array := s.toArray();	
+		my_array = s.toArray();	
 		
-		local length :number := Array.length(my_array);
+		local length :number = Array.length(my_array);
 		
 		for (local i = 0; i<length; i+=1)
 		{
-			local ch : number := my_array[i];
+			local ch : number = my_array[i];
 			
 			if (ch >= 97) {
 				if (ch <= 122) {				
-					my_array[i] := ch - 32; 
+					my_array[i] = ch - 32; 
 				}
 			}
 		}
 				
 		// convert the array back into a unicode string
-		local result:string := String.fromArray(my_array); 
+		local result:string = String.fromArray(my_array); 
 		return result;
 	}	
 }
@@ -660,18 +660,19 @@ If a seed is not specified, then the current transaction hash will be used as se
 ```c#
 contract test {
 	import Random;
+	import Hash;
+	import Runtime;
 
 	global my_state: number;
 
-	constructor(owner:address)
-	{
-		Random.seed(16676869); // optionally we can specify a seed, this will make the next sequence of random numbers to be deterministic
-		my_state := mutateState();
-	}
-
 	public mutateState():number
 	{
-		my_state := Random.generate() % 1024; // Use modulus operator to constrain the random number to a specific range
+        // use the current transaction hash to provide a random seed. This makes the result deterministic during node consensus
+        // 	optionally we can use other value, depending on your needs, eg: Random.seed(16676869); 
+        local tx_hash:hash = Runtime.transactionHash();
+        local mySeed:number = tx_hash.toNumber();
+		Random.seed(mySeed);
+		my_state = Random.generate() % 10; // Use modulus operator to constrain the random number to a specific range
 		return my_state;
 	}
 }
@@ -690,10 +691,10 @@ contract test {
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 
-		local price: number := 10;
+		local price: number = 10;
 		price *= quantity;
 
-		local thisAddr:address := $THIS_ADDRESS;
+		local thisAddr:address = $THIS_ADDRESS;
 		Token.transfer(from, thisAddr, "SOUL", price);
 
 		// TODO after payment give something to 'from' address
@@ -713,10 +714,10 @@ contract test {
 	{
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 
-		local flags:TokenFlags := Token.getFlags(symbol);
+		local flags:TokenFlags = Token.getFlags(symbol);
 
 		if (flags.isSet(TokenFlags.Fungible)) {
-			local thisAddr:address := $THIS_ADDRESS;
+			local thisAddr:address = $THIS_ADDRESS;
 			Token.transfer(from, thisAddr, "SOUL", price);
 		}
 	}
@@ -753,8 +754,8 @@ contract test {
 
 	public calculatePrice(x:number): number
 	{		
-		local price: number := 10;
-		price := this.sum(price, x); // here we use 'this' for calling another method
+		local price: number = 10;
+		price = this.sum(price, x); // here we use 'this' for calling another method
 
 		return price;
 	}
@@ -773,7 +774,7 @@ script startup {
 	import Call;
 
 	code(target:address) {
-		local temp:number := 50000;
+		local temp:number = 50000;
 		Call.contract("Stake", "Unstake", target, temp);
 	}
 }
@@ -794,9 +795,9 @@ script deploy {
     import Module;
 
     code() {
-        local maxSupply:number := 50000;
-        local decimals:number := 1;
-		local flags:TokenFlags := TokenFlags.None;
+        local maxSupply:number = 50000;
+        local decimals:number = 1;
+		local flags:TokenFlags = TokenFlags.None;
         Token.create(@P2KAkQRrL62zYvb5198CHBLiKHKr4bJvAG7aXwV69rtbeSz, "GHOST",  "Ghost Token", maxSupply, decimals, flags, Module.getScript(GHOST),  Module.getABI(GHOST));
     }
 }
@@ -816,7 +817,7 @@ script token_minter {
 	import Token;
 
 	code(source:address, target:address) {
-		local rom_data:my_rom_data := Struct.my_rom_data("hello", 123);
+		local rom_data:my_rom_data = Struct.my_rom_data("hello", 123);
 		NFT.mint(source, target, "LOL", rom_data, "ram_can_be_anything");
 	}
 }
@@ -851,8 +852,8 @@ contract test {
 	{		
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 
-		local price: number := 10;
-		local thisAddr:address := $THIS_ADDRESS;
+		local price: number = 10;
+		local thisAddr:address = $THIS_ADDRESS;
 		Token.transfer(from, thisAddr, "SOUL", price);
 
 		emit MyPayment(from, price);
@@ -867,7 +868,7 @@ A more complex version of the previous example, showcasing custom description sc
 description payment_event {
 
 	code(from:address, amount:number): string {
-		local result:string := "";
+		local result:string = "";
 		result += from;
 		result += " paid ";
 		result += amount;
@@ -894,7 +895,7 @@ struct my_event_data {
 description payment_event {
 
 	code(from:address, data:my_event_data): string {
-		local result:string := "";
+		local result:string = "";
 		result += from;
 		result += " paid ";
 		result += data.amount;
@@ -962,7 +963,7 @@ contract test {
 
 	constructor(owner:address)
 	{
-		_counter := 0;
+		_counter = 0;
 	}
 
 	public registerUser(from:address, amount:number)
@@ -970,17 +971,17 @@ contract test {
 		local target: method<address>;
 
 		if (amount > 10) {
-			target := incCounter;
+			target = incCounter;
 		}
 		else {
-			target := decCounter;
+			target = decCounter;
 		}
 
 		_callMap.set(from, target);
 	}
 
 	public callUser(from:address) {
-		local target: method<address> := _callMap.get(from);
+		local target: method<address> = _callMap.get(from);
 
 		Call.method(target, from);
 	}
@@ -1017,8 +1018,8 @@ It is possible to let TOMB compiler auto-detect type of a local variable if you 
 ```c#
 contract test {
     public calculate():string {
-         local a := "hello ";
-         local b := "world";
+         local a = "hello ";
+         local b = "world";
         return a + b;
     }
 }
@@ -1037,8 +1038,8 @@ contract test {
 	global deadline:timestamp;
 
 	constructor(owner:address) {
-		victory := false;
-		time := Time.now() + time.hours(2);
+		victory = false;
+		time = Time.now() + time.hours(2);
 		Task.start(checkResult, owner, 0, TaskFrequency.Always, 999);
 	}
 
@@ -1047,7 +1048,7 @@ contract test {
 			break;
 		}
 
-		local now: timestamp := Time.now();
+		local now: timestamp = Time.now();
 
 		if (time >= deadline) {
 			break;
@@ -1058,7 +1059,7 @@ contract test {
 
 	public win(from:address)
 	{
-		victory := true;
+		victory = true;
 	}
 }
 ```
@@ -1080,11 +1081,11 @@ contract test {
 	}
 
 	private validateSignatures() {
-		local index:number := 0;
-		local count:number := owners.count();
+		local index:number = 0;
+		local count:number = owners.count();
 
 		while (index < count) {
-			local addr:address := owners.get(index);
+			local addr:address = owners.get(index);
 			if (!Runtime.isWitness(addr)) {
 				throw "missing signature of "+addr;
 			}
@@ -1092,11 +1093,11 @@ contract test {
 	}
 
 	public isOwner(target:address):bool {
-		local index:number := 0;
-		local count:number := owners.count();
+		local index:number = 0;
+		local count:number = owners.count();
 
 		while (index < count) {
-			local addr:address := owners.get(index);
+			local addr:address = owners.get(index);
 			if (addr == target) {
 				return true;
 			}
@@ -1141,7 +1142,7 @@ token DOG { // this defines the token symbol as DOG
 	global _admin: address;
 	
 	constructor(owner:address)	{
-       _admin := owner;
+       _admin = owner;
 	}
 
 	// allows the token to be upgraded later, remove this trigger if you want a imutable fungible token
@@ -1249,7 +1250,7 @@ token NACHO {
 	}	
 
 	constructor (addr:address) {
-		_owner := addr;
+		_owner = addr;
 		// at least one token series must exist, here we create 2 series
 		// they don't have to be created in the constructor though, can be created later
 		NFT.createSeries(_owner, $THIS_SYMBOL, LUCHADOR_SERIES, LUCHADOR_SUPPLY, TokenSeries.Unique, luchador);
@@ -1274,14 +1275,14 @@ contract test {
 
 	private getContractCount(tokenId:number):number {
 	
-		local count:number := Call.interop<number>("Map.Get",  "OTHERCONTRACT", "_storageMap", tokenId, $TYPE_OF(number));
+		local count:number = Call.interop<number>("Map.Get",  "OTHERCONTRACT", "_storageMap", tokenId, $TYPE_OF(number));
 		return count;
 		
 	}
 
 	public updateCount(tokenID:number) {
 	
-		local contractCounter:number := this.getContractCount(tokenID);
+		local contractCounter:number = this.getContractCount(tokenID);
 		contractCounter += 1;
 		counters.set(tokenID, contractCounter);
 		
@@ -1289,12 +1290,38 @@ contract test {
 
 	public getCount(tokenID:number):number {
 	
-		local temp:number := counters.get(tokenID);
+		local temp:number = counters.get(tokenID);
 		return temp;
 		
 	}
 }
 ```
+
+## Explicit register allocation
+It is possible to declare a variable that will be bound to a register, with the value being kept between a public contract call and all internal private calls.
+The value of register is not persisted anywhere (either do it manually or use globals instead).
+This is an advanced use case, it will bypass several compile time checks and can break the logic of your contract if not used properly.
+
+NOTE - This is broken due to frame allocation during CALL opcode
+
+```c#
+contract test {
+	register myReg : number;
+
+	private mutate():number
+	{
+		myReg = myReg + 1;
+	}
+
+	public fetch():number
+	{
+		myReg = 1;
+		this.mutate();
+		return myReg;
+	}
+}
+```
+
 
 # Builtins
 TOMB currently contains several "builtin" methods, aka code written in TOMB language itself and available as library for other contracts to use.

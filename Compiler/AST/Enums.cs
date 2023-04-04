@@ -293,6 +293,7 @@ namespace Phantasma.Tomb.AST
         Local,
         Argument,
         NFT,
+        Register,
     }
 
     public enum OperatorKind

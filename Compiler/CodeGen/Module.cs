@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Phantasma.Business.Blockchain.Contracts;
+using Phantasma.Business.Blockchain.Contracts.Native;
 using Phantasma.Business.Blockchain.Tokens;
 using Phantasma.Business.CodeGen.Assembler;
 using Phantasma.Business.VM;
@@ -122,6 +123,29 @@ namespace Phantasma.Tomb.CodeGen
 
         public const string FormatLibraryName = "Format";
 
+        private static void GenerateCasts(LibraryDeclaration libDecl, VarKind baseType, VarKind[] types)
+        {
+            foreach (var kind in types)
+            {
+                if (kind == VarKind.Bytes)
+                {
+                    throw new CompilerException("Don't try to generate toBytes, it will be automatically generated");
+                }
+
+                var castName = "to" + kind;
+                Console.WriteLine($"Found cast: {baseType}.{castName}()");
+
+                libDecl.AddMethod(castName, MethodImplementationType.Custom, kind, new[] { new MethodParameter("target", baseType) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var vmType = MethodInterface.ConvertType(kind);
+                        var reg = expr.arguments[0].GenerateCode(output);
+                        output.AppendLine(expr, $"CAST {reg} {reg} #{vmType}");
+                        return reg;
+                    });
+            }
+        }
+
         public static LibraryDeclaration LoadLibrary(string name, Scope scope, ModuleKind moduleKind)
         {
             if (name != name.UppercaseFirst() && name != "this")
@@ -185,8 +209,9 @@ namespace Phantasma.Tomb.CodeGen
                     return libDecl;
 
                 case "String":
-                    libDecl.AddMethod("toUpper", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_upper");
-                    libDecl.AddMethod("toLower", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_lower");
+                    // NOTE those are builtins, so they are no longer declared here
+                    //libDecl.AddMethod("toUpper", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_upper");
+                    //libDecl.AddMethod("toLower", MethodImplementationType.LocalCall, VarKind.String, new[] { new MethodParameter("s", VarKind.String) }).SetAlias("string_lower");
 
                     libDecl.AddMethod("length", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("target", VarKind.String) }).
                         SetPreCallback((output, scope, expr) =>
@@ -224,19 +249,21 @@ namespace Phantasma.Tomb.CodeGen
                             return reg;
                         });
 
+                    GenerateCasts(libDecl, VarKind.String, new VarKind[] { VarKind.Bool, VarKind.Number });
+
                     return libDecl;
 
                 case "Bytes":
-                    libDecl.AddMethod("toString", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.Bytes) }).
-                        SetPreCallback((output, scope, expr) =>
-                        {
-                            var reg = expr.arguments[0].GenerateCode(output);
-                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.String}");
-                            return reg;
-                        });
+                    GenerateCasts(libDecl, VarKind.Bytes, new VarKind[] { VarKind.Bool, VarKind.String, VarKind.Number });
+                    return libDecl;
+
+                case "Hash":
+                    GenerateCasts(libDecl, VarKind.Hash, new VarKind[] { VarKind.String, VarKind.Number});
                     return libDecl;
 
                 case "Enum":
+                    GenerateCasts(libDecl, VarKind.Enum, new VarKind[] { VarKind.String, VarKind.Number });
+
                     libDecl.AddMethod("isSet", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Enum), new MethodParameter("flag", VarKind.Enum) }).
                         SetPreCallback((output, scope, expr) =>
                         {
@@ -301,13 +328,9 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("isUser", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isSystem", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isInterop", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
-                    libDecl.AddMethod("toString", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) }).
-                        SetPreCallback((output, scope, expr) =>
-                        {
-                            var reg = expr.arguments[0].GenerateCode(output);
-                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.String}");
-                            return reg;
-                        });
+
+                    GenerateCasts(libDecl, VarKind.Bytes, new VarKind[] { VarKind.String});
+
                     return libDecl;
             }
 
@@ -441,7 +464,8 @@ namespace Phantasma.Tomb.CodeGen
                         return regA;
                     });
 
-                    libDecl.AddMethod("sqrt", MethodImplementationType.LocalCall, VarKind.Number, new[] { new MethodParameter("n", VarKind.Number) }).SetAlias("math_sqrt");
+                    // NOTE those are builtins, so they are no longer declared here
+                    //libDecl.AddMethod("sqrt", MethodImplementationType.LocalCall, VarKind.Number, new[] { new MethodParameter("n", VarKind.Number) }).SetAlias("math_sqrt");
                     break;
 
                 case "Time":
@@ -490,8 +514,9 @@ namespace Phantasma.Tomb.CodeGen
 
 
                 case "Random":
-                    libDecl.AddMethod("generate", MethodImplementationType.LocalCall, VarKind.Number, new MethodParameter[] { }).SetAlias("random_generate");
-                    libDecl.AddMethod("seed", MethodImplementationType.LocalCall, VarKind.None, new[] { new MethodParameter("seed", VarKind.Number) }).SetAlias("random_seed");
+                    // NOTE those are builtins, so they are no longer declared here
+                    //libDecl.AddMethod("generate", MethodImplementationType.LocalCall, VarKind.Number, new MethodParameter[] { }).SetAlias("random_generate");
+                    //libDecl.AddMethod("seed", MethodImplementationType.LocalCall, VarKind.None, new[] { new MethodParameter("seed", VarKind.Number) }).SetAlias("random_seed");
                     break;
 
                 case "Token":
@@ -599,7 +624,7 @@ namespace Phantasma.Tomb.CodeGen
                         var nameExpr = method.arguments[0] as LiteralExpression;
                         if (nameExpr != null && nameExpr.type.Kind == VarKind.String)
                         {
-                            var address = SmartContract.GetAddressForName(nameExpr.value);
+                            var address = SmartContract.GetAddressFromContractName(nameExpr.value);
                             var hex = Base16.Encode(address.ToByteArray());
                             output.AppendLine(method, $"LOAD {reg} 0x{hex}");
                             return reg;
