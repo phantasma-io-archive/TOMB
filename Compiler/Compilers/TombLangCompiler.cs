@@ -295,7 +295,7 @@ namespace Phantasma.Tomb.Compilers
                         }
 
                     case "global":
-                        {                            
+                        {
                             var varName = ExpectIdentifier();
                             ExpectToken(":");
                             var type = ExpectType();
@@ -345,6 +345,33 @@ namespace Phantasma.Tomb.Compilers
 
                             ExpectToken(";");
                             module.Scope.AddVariable(varDecl);
+                            break;
+                        }
+
+                    case "register":
+                        {
+                            var varName = ExpectIdentifier();
+                            ExpectToken(":");
+                            var type = ExpectType();
+
+                            switch (type.Kind)
+                            {
+                                case VarKind.Storage_Map:
+                                case VarKind.Storage_List:
+                                case VarKind.Storage_Set:
+                                    {
+                                        throw new CompilerException($"Type {type} cannot be used as register");
+                                    }
+
+                                default:
+                                    {
+                                        var varDecl = new VarDeclaration(module.Scope, varName, type, VarStorage.Register);
+                                        module.Scope.AddVariable(varDecl);
+                                        break;
+                                    }
+                            }
+
+                            ExpectToken(";");
                             break;
                         }
 
@@ -676,6 +703,7 @@ namespace Phantasma.Tomb.Compilers
                                     case "onBurn":
                                     case "onSend":
                                     case "onReceive": // address, symbol, amount
+                                    case "onInfuse":
                                         CheckParameters(name, parameters, new[] { VarKind.Address, VarKind.Address, VarKind.String, VarKind.Number });
                                         break;
 

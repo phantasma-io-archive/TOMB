@@ -19,12 +19,12 @@ namespace Phantasma.Tomb.AST.Declarations
             // DO NOTHING
         }
 
-        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarKind returnKind, MethodParameter[] parameters, string alias = null)
+        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarKind returnKind, MethodParameter[] parameters, string alias = null, bool isBuiltin = false)
         {
-            return AddMethod(name, convention, VarType.Find(returnKind), parameters, alias);
+            return AddMethod(name, convention, VarType.Find(returnKind), parameters, alias, isBuiltin);
         }
 
-        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarType returnType, MethodParameter[] parameters, string alias = null)
+        public MethodInterface AddMethod(string name, MethodImplementationType convention, VarType returnType, MethodParameter[] parameters, string alias = null, bool isBuiltin = false)
         {
             if (!returnType.IsWeird && Compiler.Instance != null)
             {
@@ -36,7 +36,12 @@ namespace Phantasma.Tomb.AST.Declarations
                 }
             }
 
-            var method = new MethodInterface(this, convention, name, true, MethodKind.Method, returnType, parameters, alias);
+            if (methods.ContainsKey(name))
+            {
+                throw new CompilerException($"duplicated method name: {this.Name}.{name}");
+            }
+
+            var method = new MethodInterface(this, convention, name, true, MethodKind.Method, returnType, parameters, alias, false, isBuiltin);
             methods[name] = method;
 
             return method;

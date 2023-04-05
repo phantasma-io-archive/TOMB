@@ -558,7 +558,7 @@ contract test {
 
 	constructor(owner:address)
 	{
-		val += "hello";
+		val = "hello";
 		val += " world";
 	}
 
@@ -693,7 +693,7 @@ contract test {
 		}
 
 		// convert the array back into a unicode string
-		local result:string = String.fromArray(my_array);
+		local result:string = String.fromArray(my_array); 
 		return result;
 	}
 }
@@ -707,19 +707,19 @@ If a seed is not specified, then the current transaction hash will be used as se
 ```c#
 contract test {
 	import Random;
+	import Hash;
+	import Runtime;
 
 	global my_state: number;
 
-	constructor(owner:address)
+	public mutateState():number
 	{
-		Random.seed(16676869); // optionally we can specify a seed, this will make the next sequence of random numbers to be deterministic
-		//my_state = mutateState(); // unable to call function inside constructor.
-		my_state = Random.generate() %1024;
-	}
-
-	public mutateState(): number
-	{
-		my_state = Random.generate() % 1024; // Use modulus operator to constrain the random number to a specific range
+        // use the current transaction hash to provide a random seed. This makes the result deterministic during node consensus
+        // 	optionally we can use other value, depending on your needs, eg: Random.seed(16676869); 
+        local tx_hash:hash = Runtime.transactionHash();
+        local mySeed:number = tx_hash.toNumber();
+		Random.seed(mySeed);
+		my_state = Random.generate() % 10; // Use modulus operator to constrain the random number to a specific range
 		return my_state;
 	}
 }
@@ -764,7 +764,7 @@ contract test {
 		Runtime.expect(Runtime.isWitness(from), "witness failed");
 
 		local flags:TokenFlags = Token.getFlags(symbol);
-		if (flags.isSet(TokenFlags.Fungible)) {
+    if (flags.isSet(TokenFlags.Fungible)) {
 			local thisAddr:address = $THIS_ADDRESS;
 			Token.transfer(from, thisAddr, "SOUL", price);
 		}
@@ -807,7 +807,7 @@ contract test {
 	{
 		local price: number = 10;
 		price = this.sum(price, x); // here we use 'this' for calling another method
-		alt_price = Call.method<number>(sum,price,x); //alternative method
+		//price = Call.method<number>(sum,price,x); //alternative way to call the method
 		return price;
 	}
 }
@@ -1030,7 +1030,8 @@ contract test {
 	{
 		_counter = 0;
 	}
-	private incCounter(target:address) {
+
+  private incCounter(target:address) {
 		_counter += 1;
 	}
 
@@ -1051,7 +1052,7 @@ contract test {
 
 		_callMap.set(from, target);
 	}
-
+}
 ```
 
 ## Returning multiple values
@@ -1078,8 +1079,8 @@ It is possible to let TOMB compiler auto-detect type of a local variable if you 
 ```c#
 contract test {
     public calculate():string {
-         local a := "hello ";
-         local b := "world";
+         local a = "hello ";
+         local b = "world";
         return a + b;
     }
 }
@@ -1099,8 +1100,8 @@ contract test {
 	global deadline:timestamp;
 
 	constructor(owner:address) {
-		victory := false;
-		time := Time.now() + time.hours(2);
+		victory = false;
+		time = Time.now() + time.hours(2);
 		Task.start(checkResult, owner, 0, TaskFrequency.Always, 999);
 	}
 
@@ -1109,7 +1110,7 @@ contract test {
 			break;
 		}
 
-		local now: timestamp := Time.now();
+		local now: timestamp = Time.now();
 
 		if (time >= deadline) {
 			break;
@@ -1120,7 +1121,7 @@ contract test {
 
 	public win(from:address)
 	{
-		victory := true;
+		victory = true;
 	}
 }
 ```
@@ -1350,28 +1351,49 @@ contract test {
 	global counters: storage_map<number, number>;
 
 	private getContractCount(tokenId:number):number {
-
 		local count:number = Call.interop<none>("Map.Get",  "OTHERCONTRACT", "_storageMap", tokenId, $TYPE_OF(number));
 		return count;
 
 	}
 
 	public updateCount(tokenID:number) {
-
 		local contractCounter:number = this.getContractCount(tokenID);
 		contractCounter += 1;
 		counters.set(tokenID, contractCounter);
-
 	}
 
 	public getCount(tokenID:number):number {
-
 		local temp:number = counters.get(tokenID);
 		return temp;
-
 	}
 }
 ```
+
+## Explicit register allocation
+It is possible to declare a variable that will be bound to a register, with the value being kept between a public contract call and all internal private calls.
+The value of register is not persisted anywhere (either do it manually or use globals instead).
+This is an advanced use case, it will bypass several compile time checks and can break the logic of your contract if not used properly.
+
+NOTE - This is broken due to frame allocation during CALL opcode
+
+```c#
+contract test {
+	register myReg : number;
+
+	private mutate():number
+	{
+		myReg = myReg + 1;
+	}
+
+	public fetch():number
+	{
+		myReg = 1;
+		this.mutate();
+		return myReg;
+	}
+}
+```
+
 
 # Builtins
 

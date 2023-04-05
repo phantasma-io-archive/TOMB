@@ -71,8 +71,9 @@ namespace Phantasma.Tomb.AST
         public int EndAsmLine;
 
         public bool IsMulti; // if true, method will emit multiple return values in the vm result stack
+        public bool IsBuiltin;
 
-        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, string alias = null, bool isMulti = false) 
+        public MethodInterface(LibraryDeclaration library, MethodImplementationType implementation, string name, bool isPublic, MethodKind kind, VarType returnType, MethodParameter[] parameters, string alias = null, bool isMulti = false, bool isBuiltin = false) 
         {
             this.Name = name;
             this.Library = library;
@@ -82,6 +83,7 @@ namespace Phantasma.Tomb.AST
             this.ReturnType = returnType;
             this.Parameters = parameters;
             this.IsMulti = isMulti;
+            this.IsBuiltin = isBuiltin;
 
             this.PreCallback = null;
             this.PostCallback = null;
@@ -114,7 +116,7 @@ namespace Phantasma.Tomb.AST
                 parameters.Add(entry);
             }
 
-            var newMethod = new MethodInterface(targetLibrary, method.Implementation, method.Name, method.IsPublic, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias);
+            var newMethod = new MethodInterface(targetLibrary, method.Implementation, method.Name, method.IsPublic, method.Kind, method.ReturnType, parameters.ToArray(), method.Alias, method.IsMulti, method.IsBuiltin);
             newMethod.Contract = method.Contract;
             newMethod.PreCallback = method.PreCallback;
             newMethod.PostCallback = method.PostCallback;

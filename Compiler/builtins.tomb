@@ -1,6 +1,7 @@
 contract builtins {
 	import Array;
 	import Runtime;
+	import Storage;
 	
 	private tomb_math_sqrt(n:number) : number {
 		local root:number = n / 2;
@@ -93,23 +94,20 @@ contract builtins {
 	
 	const RND_A:number = 16807;
 	const RND_M:number = 2147483647;	
-			
-	private random_seed(seed:number) 
+	const RND_SEED_KEY:string = "tomb_rnd_seed";	
+				
+	private tomb_random_seed(seed:number) 
 	{
-		local current_seed:number = seed;
+		Storage.write(RND_SEED_KEY, seed);
 	}
 
-	private random_generate(): number
+	private tomb_random_generate(): number
 	{
-		local current_seed:number = 0;		
-		return (RND_A * current_seed) % RND_M;
+		local seed: number;
+		local context:string = Runtime.context();
+		seed = Storage.read<number>(context, RND_SEED_KEY);
+		seed = (RND_A * seed) % RND_M;
+		Storage.write(RND_SEED_KEY, seed);
+		return seed;
 	}	
-
-    private random_init()
-	{
-		local tx_hash:hash = Runtime.transactionHash();
-		local seed:number = 0; //tx_hash.asNumber();
-		
-		this.random_seed(seed);
-	}
 }
