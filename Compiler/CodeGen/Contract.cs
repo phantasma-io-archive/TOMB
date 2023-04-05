@@ -6,6 +6,7 @@ using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Expressions;
+using static Grpc.Core.Metadata;
 
 namespace Phantasma.Tomb.CodeGen
 {
@@ -174,6 +175,49 @@ namespace Phantasma.Tomb.CodeGen
                 Parser.Instance.DeallocRegister(reg);
                 output.AppendLine(this, "THROW \"unknown method was called\"");
             }*/
+
+            var usedBuiltinMethods = new List<MethodInterface>();
+
+            foreach (var libDecl in this.Libraries.Values)
+            {
+                foreach (var method in libDecl.methods.Values)
+                {
+                    if (method.IsBuiltin)
+                    {
+                        usedBuiltinMethods.Add(method);
+                    }
+                }
+            }
+
+            foreach (var methodDecl in usedBuiltinMethods)
+            {
+                if (methodDecl.IsBuiltin)
+                {
+                    var builtin = Builtins.GetMethod(methodDecl.Alias);
+
+                    foreach (var aliasVar in builtin.InternalVariables)
+                    {
+                        // if we already have one with same name, skip => This expects it to be created by the code below, but if created other way... bug!
+                        if (Scope.FindVariable(aliasVar, false) != null)
+                        {
+                            continue;
+                        }
+
+                        var aliasType = VarType.Find(VarKind.Number); // HACK this wont work in every case
+                        var varDecl = new VarDeclaration(this.Scope, aliasVar, aliasType, VarStorage.Register);
+                        this.Scope.AddVariable(varDecl);
+                    }
+                }
+            }
+
+            foreach (var varDecl in this.Scope.Variables.Values)
+            {
+                if (varDecl.Storage == VarStorage.Register)
+                {
+                    output.AppendLine(this, $"// Explicit register allocation for \"{varDecl.Name}");
+                    varDecl.Register = Compiler.Instance.AllocRegister(output, this, varDecl.Name);
+                }
+            }
 
             foreach (var entry in Methods.Values)
             {

@@ -807,7 +807,7 @@ namespace Phantasma.Tomb
                                             break;
                                         }
 
-                                        throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
+                                        throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead. Or you might be missing \"Import {varDecl.Type.Kind}\"");
                                     }
 
                             }

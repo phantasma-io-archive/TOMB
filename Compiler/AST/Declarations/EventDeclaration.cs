@@ -8,6 +8,7 @@ using Phantasma.Tomb.CodeGen;
 using Phantasma.Core.Cryptography;
 using Phantasma.Business.Blockchain;
 using Phantasma.Business.CodeGen.Assembler;
+using Phantasma.Business.Blockchain.VM;
 
 namespace Phantasma.Tomb.AST.Declarations
 {
