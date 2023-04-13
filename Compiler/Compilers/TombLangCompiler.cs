@@ -1359,6 +1359,16 @@ namespace Phantasma.Tomb.Compilers
                             }
                             else
                             {
+                                if (next.kind == TokenKind.Separator)
+                                {
+                                    var next2 = FetchToken();
+
+                                    if (next2.value == "=")
+                                    {
+                                        throw new CompilerException("deprecated assignment operator ':='. Use just '=' instead");
+                                    }
+                                }
+
                                 throw new CompilerException("unexpected token: " + token.value);
                             }
 

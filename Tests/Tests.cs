@@ -2015,6 +2015,31 @@ contract arrays {
             });
         }
 
+
+        [Test]
+        public void DeprecatedAssigment()
+        {
+            var sourceCode = @"
+contract test {
+    global _addressOwner:address;
+
+    constructor(owner:address)
+    {
+        _addressOwner := owner;
+    }
+}
+";
+
+            var parser = new TombLangCompiler();
+
+            var exception = Assert.Catch<CompilerException>(() =>
+            {
+                var contract = parser.Process(sourceCode).First();
+            });
+
+            Assert.IsTrue(exception.Message.Contains("deprecated", StringComparison.OrdinalIgnoreCase));
+        }
+
         [Test]
         public void ArraySimple()
         {
