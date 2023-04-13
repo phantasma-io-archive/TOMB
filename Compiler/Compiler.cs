@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
@@ -1056,7 +1057,12 @@ namespace Phantasma.Tomb
                     }
                 }
 
-                ExpectToken(")");
+                //ExpectToken(")");
+                var endToken = FetchToken();
+
+                if (endToken.value != ")") {
+                    throw new CompilerException($"expected {paramCount} arguments to method {expr.method.Name}, but got {paramCount+1} (or more) instead");
+                }
             }
 
             return expr;

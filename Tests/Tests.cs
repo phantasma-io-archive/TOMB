@@ -1991,6 +1991,31 @@ contract test {
                 }*/
 
         [Test]
+        public void TooManyArgs()
+        {
+            var sourceCode = @"
+contract arrays {
+    import Array;
+
+	public mycall(x:number):number {
+        return x+ 1;
+    }
+
+	public something():number {
+		return this.mycall(2, 3); // extra argument here, should not compile		
+	}	
+}
+";
+
+            var parser = new TombLangCompiler();
+
+            Assert.Catch<CompilerException>(() =>
+            {
+                var contract = parser.Process(sourceCode).First();
+            });
+        }
+
+        [Test]
         public void ArraySimple()
         {
             // TODO make other tests also use multiline strings for source code, much more readable...
