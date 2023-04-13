@@ -1,8 +1,10 @@
 contract builtins {
 	import Array;
+	import Runtime;
+	import Storage;
 	
 	private tomb_math_sqrt(n:number) : number {
-		local root:number := n / 2;
+		local root:number = n / 2;
 		while (n < root * root) {
 			root += n / root;
 			root /= 2;
@@ -16,17 +18,17 @@ contract builtins {
 		local my_array: array<number>;		
 		
 		// extract chars from string into an array
-		my_array := s.toArray();	
+		my_array = s.toArray();	
 		
-		local length :number := Array.length(my_array);
-		local idx :number := 0;
+		local length :number = Array.length(my_array);
+		local idx :number = 0;
 		
 		while (idx < length) {
-			local ch : number := my_array[idx];
+			local ch : number = my_array[idx];
 			
 			if (ch >= 97) {
 				if (ch <= 122) {				
-					my_array[idx] := ch - 32; 
+					my_array[idx] = ch - 32; 
 				}
 			}
 						
@@ -34,7 +36,7 @@ contract builtins {
 		}
 				
 		// convert the array back into a unicode string
-		local result:string := String.fromArray(my_array); 
+		local result:string = String.fromArray(my_array); 
 		return result;
 	}		
 
@@ -43,17 +45,17 @@ contract builtins {
 		local my_array: array<number>;		
 		
 		// extract chars from string into an array
-		my_array := s.toArray();	
+		my_array = s.toArray();	
 		
-		local length :number := Array.length(my_array);
-		local idx :number := 0;
+		local length :number = Array.length(my_array);
+		local idx :number = 0;
 		
 		while (idx < length) {
-			local ch : number := my_array[idx];
+			local ch : number = my_array[idx];
 			
 			if (ch >= 65) {
 				if (ch <= 90) {				
-					my_array[idx] := ch + 32; 
+					my_array[idx] = ch + 32; 
 				}
 			}
 						
@@ -61,7 +63,7 @@ contract builtins {
 		}
 				
 		// convert the array back into a unicode string
-		local result:string := String.fromArray(my_array); 
+		local result:string = String.fromArray(my_array); 
 		return result;
 	}		
 	
@@ -71,13 +73,13 @@ contract builtins {
 		local my_array: array<number>;		
 		
 		// extract chars from string into an array
-		my_array := s.toArray();	
+		my_array = s.toArray();	
 		
-		local length :number := Array.length(my_array);
-		local idx :number := 0;
+		local length :number = Array.length(my_array);
+		local idx :number = 0;
 		
 		while (idx < length) {
-			local ch : number := my_array[idx];
+			local ch : number = my_array[idx];
 			
 			if (ch == x) {
 				// found, return index
@@ -89,4 +91,23 @@ contract builtins {
 		
 		return -1;		// not found
 	}		
+	
+	const RND_A:number = 16807;
+	const RND_M:number = 2147483647;	
+	const RND_SEED_KEY:string = "tomb_rnd_seed";	
+				
+	private tomb_random_seed(seed:number) 
+	{
+		Storage.write(RND_SEED_KEY, seed);
+	}
+
+	private tomb_random_generate(): number
+	{
+		local seed: number;
+		local context:string = Runtime.context();
+		seed = Storage.read<number>(context, RND_SEED_KEY);
+		seed = (RND_A * seed) % RND_M;
+		Storage.write(RND_SEED_KEY, seed);
+		return seed;
+	}	
 }

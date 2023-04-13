@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
@@ -807,7 +808,7 @@ namespace Phantasma.Tomb
                                             break;
                                         }
 
-                                        throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead");
+                                        throw new CompilerException($"expected {first.value} to be generic type, but is {varDecl.Type} instead. Or you might be missing \"Import {varDecl.Type.Kind}\"");
                                     }
 
                             }
@@ -862,12 +863,14 @@ namespace Phantasma.Tomb
                                     var leftSide = ExpectExpression(scope);
                                     ExpectToken(")");
                                     var op = FetchToken();
-                                    if (op.kind != TokenKind.Operator)
+                                    if (op.kind == TokenKind.Operator)
                                     {
-                                        throw new CompilerException($"expected operator, got {op.kind} instead");
+                                        var rightSide = ExpectExpression(scope);
+                                        return ParseBinaryExpression(scope, op, leftSide, rightSide);
                                     }
-                                    var rightSide = ExpectExpression(scope);
-                                    return ParseBinaryExpression(scope, op, leftSide, rightSide);
+
+                                    Rewind();
+                                    return leftSide;
                                 }
 
                             case "{":
@@ -922,7 +925,17 @@ namespace Phantasma.Tomb
         {
             var expr = new MethodCallExpression(scope);
 
-            var methodName = ExpectIdentifier();
+            string methodName;
+
+            if (library != null && library.Name == "Call")
+            {
+                var tmp = FetchToken();
+                methodName = tmp.value;
+            }
+            else
+            {
+                methodName = ExpectIdentifier();
+            }
 
             expr.method = library.FindMethod(methodName);
 
@@ -1044,7 +1057,12 @@ namespace Phantasma.Tomb
                     }
                 }
 
-                ExpectToken(")");
+                //ExpectToken(")");
+                var endToken = FetchToken();
+
+                if (endToken.value != ")") {
+                    throw new CompilerException($"expected {paramCount} arguments to method {expr.method.Name}, but got {paramCount+1} (or more) instead");
+                }
             }
 
             return expr;
@@ -1139,10 +1157,10 @@ namespace Phantasma.Tomb
                 case ">>":
                     return OperatorKind.ShiftRight;
 
-                case "or":
+                case "||":
                     return OperatorKind.Or;
 
-                case "and":
+                case "&&":
                     return OperatorKind.And;
 
                 case "xor":
