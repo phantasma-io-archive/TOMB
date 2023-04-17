@@ -145,6 +145,7 @@ The following libraries can be imported into a contract.
 | Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number)                                | None            | TODO                                                                                                 |
 | Token.getBalance(from:Address, symbol:String)                                                                                    | Number          | Returns the token balance of the specified address.                                                  |
 | Token.isMinter(address:Address, symbol:String)                                                                                   | Bool            | Returns true if the token is a Minter and false otherwise.                                           |
+| Token.availableSymbols()                                                                                   | Array<string>            | Returns list with symbols of all deployed fungible tokens.                                           |
 
 ### NFT
 
@@ -158,6 +159,7 @@ The following libraries can be imported into a contract.
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None        | Creates a series of NFTs.                                                                 |
 | NFT.readROM<T>(symbol:String, id:Number)                                                                             | T           | Returns the ROM by the NFTID.                                                             |
 | NFT.readRAM<T>(symbol:String, id:Number)                                                                             | T           | Returns the RAM by the NFTID.                                                             |
+| NFT.availableSymbols()                                                                                   | Array<string>            | Returns list with symbols of all deployed non-fungible tokens.                                           |
 
 ### Account
 
@@ -497,6 +499,20 @@ contract test {
             case 2: return "two";
             default: return "other";
         }
+	}
+}
+```
+
+## Constants
+```c#
+const MY_CONST_X : number = 10; // constants can be declared globally (all scripts / contracts in file can use them)
+
+contract test {
+	const MY_CONST_Y : number = 20; // constants can be declared inside a contract / script (only visible there)
+
+    public calculate(): number 
+	{
+		return MY_CONST_X + MY_CONST_Y;
 	}
 }
 ```
@@ -1334,6 +1350,38 @@ token NACHO {
 	}
 }
 
+```
+
+## Contract Macros
+
+Besides the macros listed in the Available macros section, each of your contracts will also come with its own macros.<br/>
+Contract macros are useful when you have multiple contracts in the same file.
+Note that for things not provided via macros you can also use global constants. 
+
+```c#
+token BOO {
+	property name: string = "BOO"; //placeHolder for compiler reasons
+}
+
+contract simple_contract {
+	constructor (addr:address) {
+		// ...
+	}
+}
+
+contract my_test {
+	import Runtime;
+	import Token;
+
+	public transferBoos(quantity:number)
+	{
+		// The line below showcases 3 different compiler macros.
+		// $SIMPLE_CONTRACT_ADDRESS => This macro is the address of the simple_contract declared previously.
+		// $THIS_ADDRESS => This macro is the address of the contract currently executing (my_test contract).
+		// $BOO_SYMBOL => This macro is the symbol of the BOO token (the string "BOO") 
+		Token.transfer($SIMPLE_CONTRACT_ADDRESS, $THIS_ADDRESS, $BOO_SYMBOL, quantity);
+	}
+}
 ```
 
 ## Call contract from another contract

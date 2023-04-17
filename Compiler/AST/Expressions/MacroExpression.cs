@@ -92,7 +92,18 @@ namespace Phantasma.Tomb.AST.Expressions
                     }
 
                 default:
-                    throw new CompilerException($"unknown compile time macro: {value}");
+                    {
+                        var macro = Compiler.Instance.ResolveMacro(value);
+
+                        if (macro != null)
+                        {
+                            return new LiteralExpression(scope, macro.value, macro.type);
+                        }
+                        else
+                        {
+                            throw new CompilerException($"unknown compile time macro: {value}");
+                        }
+                    }
             }
         }
 

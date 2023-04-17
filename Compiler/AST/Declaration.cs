@@ -3,7 +3,7 @@ namespace Phantasma.Tomb.AST
     public abstract class Declaration: Node
     {
         public readonly string Name;
-        public Scope ParentScope { get; }
+        public Scope ParentScope { get; internal set; }
 
         protected Declaration(Scope parentScope, string name)
         {

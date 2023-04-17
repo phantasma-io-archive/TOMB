@@ -1206,5 +1206,49 @@ namespace Phantasma.Tomb
         }
 
         #endregion
+
+        #region MACROS
+        private readonly Dictionary<string, Macro> _macros = new Dictionary<string, Macro>();
+
+        public void RegisterMacro(string macroName, object value, VarKind macroKind)
+        {
+            macroName = macroName.ToUpper();
+
+            if (macroName.Contains(' '))
+            {
+                throw new CompilerException("Invalid macro name: " +  macroName);
+            }
+
+            RegisterMacro(macroName, value, VarType.Find(macroKind));
+        }
+
+        public void RegisterMacro(string macroName, object value, VarType macroType)
+        {
+            _macros[macroName] = new Macro(value.ToString(), macroType);
+        }
+
+        public Macro ResolveMacro(string macroName)
+        {
+            if (_macros.ContainsKey(macroName))
+            {
+                return _macros[macroName];
+            }
+
+            return null;
+        }
+        #endregion
     }
+
+    public class Macro
+    {
+        public readonly string value;
+        public readonly VarType type;
+
+        public Macro(string value, VarType type)
+        {
+            this.value = value;
+            this.type = type;
+        }
+    }
+
 }

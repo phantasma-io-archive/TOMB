@@ -230,6 +230,13 @@ namespace Phantasma.Tomb.CodeGen
             var events = Events.Values.Select(x => x.GetABI());
             var abi = new ContractInterface(methods, events);
 
+            Compiler.Instance.RegisterMacro($"{Name}_address", SmartContract.GetAddressFromContractName(Name), VarKind.Address);
+
+            if (this.Kind == ModuleKind.Token)
+            {
+                Compiler.Instance.RegisterMacro($"{Name}_symbol", Name, VarKind.String);
+            }
+
             return abi;
         }
 

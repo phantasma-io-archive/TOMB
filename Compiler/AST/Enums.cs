@@ -55,6 +55,11 @@ namespace Phantasma.Tomb.AST
             return Find(VarKind.Generic, index);
         }
 
+        public static VarType FindArray(VarKind kind)
+        {
+            return Find(VarKind.Array, kind.ToString());
+        }
+
         public static VarType Find(VarKind kind, object extra = null)
         {
             var key = kind.ToString();
