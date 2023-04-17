@@ -171,11 +171,12 @@ namespace Phantasma.Tomb.CodeGen
 						i++;
 					} while (true);
 
-#if DEBUG
-					Console.WriteLine($"Detected builtin: {libName}.{methodName}");
-#endif
+					if (Compiler.DebugMode)
+					{
+                        Console.WriteLine($"Detected builtin: {libName}.{methodName}");
+                    }
 
-					var alias = ("tomb_" + libName + "_" + methodName).ToLowerInvariant();
+                    var alias = ("tomb_" + libName + "_" + methodName).ToLowerInvariant();
 
 					var builtinCode = code.ToString();
 

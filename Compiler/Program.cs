@@ -162,6 +162,12 @@ namespace Phantasma.Tomb
                             break;
                         }
 
+                    case "debug":
+                        {
+                            Compiler.DebugMode = true;
+                            break;
+                        }
+
                     default:
                         ShowWarning("Unknown option: " + tag);
                         break;

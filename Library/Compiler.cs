@@ -30,6 +30,8 @@ namespace Phantasma.Tomb
 
     public abstract class Compiler
     {
+        public static bool DebugMode = false; // enable this to print some debugging info
+
         public readonly int TargetProtocolVersion;
 
         public Lexer Lexer { get; private set; }

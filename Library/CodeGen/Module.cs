@@ -135,7 +135,11 @@ namespace Phantasma.Tomb.CodeGen
                 }
 
                 var castName = "to" + kind;
-                Console.WriteLine($"Found cast: {baseType}.{castName}()");
+
+                if (Compiler.DebugMode)
+                {
+                    Console.WriteLine($"Found cast: {baseType}.{castName}()");
+                }
 
                 libDecl.AddMethod(castName, MethodImplementationType.Custom, kind, new[] { new MethodParameter("target", baseType) }).
                     SetPreCallback((output, scope, expr) =>
