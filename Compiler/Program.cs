@@ -9,6 +9,7 @@ using Phantasma.Tomb.CodeGen;
 
 using Module = Phantasma.Tomb.CodeGen.Module;
 using Phantasma.Core.Numerics;
+using Phantasma.Core.Domain;
 
 namespace Phantasma.Tomb
 {
@@ -48,34 +49,34 @@ namespace Phantasma.Tomb
             File.WriteAllText("libs.txt", sb.ToString());
         }
 
-        static void ExportModule(Module module)
+        static void ExportModule(Module module, string outputPath)
         {
             if (module.asm != null)
             {
-                File.WriteAllText(module.Name + ".asm", module.asm);
+                File.WriteAllText(Path.Combine(outputPath, module.Name + ".asm"), module.asm);
             }
 
             if (module.script != null)
             {
                 var extension = module.Kind == ModuleKind.Script ? ".tx" : ".pvm";
-                File.WriteAllBytes(module.Name + extension, module.script);
+                File.WriteAllBytes(Path.Combine(outputPath, module.Name + extension), module.script);
 
                 var hex = Base16.Encode(module.script);
-                File.WriteAllText(module.Name + extension + ".hex", hex);
+                File.WriteAllText(Path.Combine(outputPath, module.Name + extension + ".hex"), hex);
             }
 
             if (module.debugInfo != null)
             {
-                File.WriteAllText(module.Name + ".debug", module.debugInfo.ToJSON());
+                File.WriteAllText(Path.Combine(outputPath, module.Name + ".debug"), module.debugInfo.ToJSON());
             }
 
             if (module.abi != null)
             {
                 var abiBytes = module.abi.ToByteArray();
-                File.WriteAllBytes(module.Name + ".abi", abiBytes);
+                File.WriteAllBytes(Path.Combine(outputPath, module.Name + ".abi"), abiBytes);
 
                 var hex = Base16.Encode(abiBytes);
-                File.WriteAllText(module.Name + ".abi.hex", hex);
+                File.WriteAllText(Path.Combine(outputPath, module.Name + ".abi.hex"), hex);
             }
         }
 
@@ -123,15 +124,16 @@ namespace Phantasma.Tomb
 
         static void Main(string[] args)
         {
-            string sourceFilePath = null;
+            string sourceFileName = null;
+            string outputPath = null;
 
-            int targetProtocolVersion = 0;
+            int targetProtocolVersion = DomainSettings.LatestKnownProtocol;
 
             for (int i=0; i<args.Length; i++)
             {
                 if (i == args.Length - 1)
                 {
-                    sourceFilePath = args[i];
+                    sourceFileName = args[i];
                     break;
                 }
 
@@ -152,7 +154,13 @@ namespace Phantasma.Tomb
                         {
                             ShowWarning("Invalid protocol version: " + value);
                         }
-                        break; 
+                        break;
+
+                    case "output":
+                        {
+                            outputPath = value;
+                            break;
+                        }
 
                     default:
                         ShowWarning("Unknown option: " + tag);
@@ -160,10 +168,13 @@ namespace Phantasma.Tomb
                 }
             }
 
+            bool compilingBuiltins = false;
+
 #if DEBUG
-            if (string.IsNullOrEmpty(sourceFilePath))
+            if (string.IsNullOrEmpty(sourceFileName))
             {
-                sourceFilePath = @"..\..\..\builtins.tomb";
+                compilingBuiltins = true;
+                sourceFileName = @"..\..\..\builtins.tomb";
             }
 #else
             if (string.IsNullOrEmpty(sourceFilePath))
@@ -172,21 +183,49 @@ namespace Phantasma.Tomb
             }
 #endif
 
-            if (!File.Exists(sourceFilePath))
+            sourceFileName = Path.GetFullPath(sourceFileName);
+
+            if (!File.Exists(sourceFileName))
             {
-                Console.WriteLine("File not found:" + sourceFilePath);
+                Console.WriteLine("File not found:" + sourceFileName);
                 return;
             }
 
-            var sourceCode = File.ReadAllText(sourceFilePath);
+            if (outputPath == null)
+            {
+                outputPath = Path.GetDirectoryName(sourceFileName);
 
-            Console.WriteLine("Compiling " + sourceFilePath);
+                if (string.IsNullOrEmpty(outputPath) || compilingBuiltins)
+                {
+                    outputPath = "./";
+                }
+
+                outputPath = Path.GetFullPath(outputPath);
+            }
+
+            if (!Directory.Exists(outputPath))
+            {
+                Console.WriteLine("Directory not found:" + outputPath);
+            }
+
+            outputPath = Path.Combine(outputPath, "Output");
+            if (!Directory.Exists(outputPath))
+            {
+                Console.WriteLine("Creating output dir :" + outputPath);
+                Directory.CreateDirectory(outputPath);
+            }
+
+            Console.WriteLine("Output path: " + outputPath);
+
+            var sourceCode = File.ReadAllText(sourceFileName);
+
+            Console.WriteLine("Compiling " + sourceFileName);
             Console.WriteLine("Target protocol version: " + targetProtocolVersion);
 
-            var compiler = FindCompilerForFile(sourceFilePath, targetProtocolVersion);
+            var compiler = FindCompilerForFile(sourceFileName, targetProtocolVersion);
             if (compiler == null)
             {
-                Console.WriteLine("No compiler found for file: " + sourceFilePath);
+                Console.WriteLine("No compiler found for file: " + sourceFileName);
                 return;
             }
 
@@ -194,11 +233,11 @@ namespace Phantasma.Tomb
 
             foreach (var module in modules)
             {
-                ExportModule(module);
+                ExportModule(module, outputPath);
 
                 foreach (var subModule in module.SubModules)
                 {
-                    ExportModule(subModule);
+                    ExportModule(subModule, outputPath);
                 }
             }
 
