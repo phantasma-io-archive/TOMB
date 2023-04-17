@@ -985,7 +985,9 @@ namespace Phantasma.Tomb.CodeGen
             }
             catch (Exception e)
             {
-                System.IO.File.WriteAllText("output.asm", string.Join('\n', lines));
+                var outputFile = Path.Combine(Directory.GetCurrentDirectory(), "output.asm");
+                System.IO.File.WriteAllText(outputFile, string.Join('\n', lines));
+                Console.WriteLine("Dumped into "+ outputFile);
                 throw e;
             }
 

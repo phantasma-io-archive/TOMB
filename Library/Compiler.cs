@@ -279,7 +279,7 @@ namespace Phantasma.Tomb
 
                         if (expectedMacroKind == macro.type.Kind)
                         {
-                            return macro.value;
+                            return macro.GetValue();
                         }
                     }
                     else
@@ -1270,7 +1270,7 @@ namespace Phantasma.Tomb
 
     public class Macro
     {
-        public readonly string value;
+        private readonly string value;
         public readonly VarType type;
 
         public Macro(string value, VarType type)
@@ -1278,6 +1278,17 @@ namespace Phantasma.Tomb
             this.value = value;
             this.type = type;
         }
-    }
 
+        public string GetValue()
+        {
+            if (type.Kind == VarKind.String)
+            {
+                return $"\"{value}\"";
+            }
+            else
+            {
+                return value;
+            }
+        }
+    }
 }
