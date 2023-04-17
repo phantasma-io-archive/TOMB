@@ -11,6 +11,16 @@ TOMB smart contract compiler for Phantasma platform
   </a>
 </p>
 
+## How to use 
+
+TOMB is provided as a pre-built .NET (executable)[https://github.com/phantasma-io/TOMB//releases/latest]
+It works in Windows, Linux and OSX, but you will need to have the .NET runtimes installed.
+
+### Nuget Package
+
+TOMB is also optionally available as a C# library via Nuget.  
+The package is called Phantasma.TOMB
+
 ## Supported languages
 
 TOMB generates code that runs in the PhantasmaVM, and supports multiple programming languages.
