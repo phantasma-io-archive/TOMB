@@ -105,7 +105,9 @@ namespace Phantasma.Tomb
         {
             var extension = Path.GetExtension(fileName);
 
-            var compilerTypes = GetTypesWithHelpAttribute(Assembly.GetExecutingAssembly());
+            var compilerType = typeof(Compiler);
+
+            var compilerTypes = GetTypesWithHelpAttribute(compilerType.Assembly);
 
             foreach (var entry in compilerTypes)
             {
