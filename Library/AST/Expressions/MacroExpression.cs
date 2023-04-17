@@ -97,7 +97,7 @@ namespace Phantasma.Tomb.AST.Expressions
 
                         if (macro != null)
                         {
-                            return new LiteralExpression(scope, macro.value, macro.type);
+                            return new LiteralExpression(scope, macro.GetValue(), macro.type);
                         }
                         else
                         {

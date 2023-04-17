@@ -344,7 +344,7 @@ namespace Phantasma.Tomb.AST.Declarations
 
                 if (!hasReturn)
                 {
-                    throw new CompilerException($"not all paths return a value of type {returnType}");
+                    throw new CompilerException($"not all paths of method {@interface.Name} return a value of type {returnType}");
                 }
             }
         }

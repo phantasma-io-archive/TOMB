@@ -662,6 +662,23 @@ contract test {
 }
 ```
 
+### Macros for Decimals
+
+It is now possible to use macros to automatically fetch the correct decimals.
+
+```c#
+token BOO {
+	property name: string = "BOO"; //placeHolder for compiler reasons
+}
+
+contract test {
+	global val: decimal<$BOO_DECIMALS>; // using a macro here instead of a hardcoded decimal
+
+	// all rest is similar
+}
+```
+
+
 ## Enums
 
 There is compiler support for enumerated value types, that map directly to the Phantasma VM enum type.<br/>

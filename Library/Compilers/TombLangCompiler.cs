@@ -530,12 +530,14 @@ namespace Phantasma.Tomb.Compilers
 
                                 var returnType = ExpectType();
 
-                                if (!propertyName.StartsWith("is") || char.IsLower(propertyName[2]))
+                                var methodName = propertyName;
+
+                                if (!methodName.StartsWith("is") || char.IsLower(methodName[2]))
                                 {
-                                    propertyName = "get" + char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+                                    methodName = "get" + char.ToUpper(methodName[0]) + methodName.Substring(1);
                                 }
 
-                                var method = contract.AddMethod(line, propertyName, true, MethodKind.Property, returnType, parameters, scope, false);
+                                var method = contract.AddMethod(line, methodName, true, MethodKind.Property, returnType, parameters, scope, false);
 
                                 var next = FetchToken();
                                 if (next.value == "=")
@@ -547,9 +549,15 @@ namespace Phantasma.Tomb.Compilers
                                         throw new CompilerException($"Expected expression of type {returnType} for property {propertyName}, found {literal.ResultType} instead");
                                     }
 
+                                    var litExpr = literal as LiteralExpression;
+                                    if (litExpr != null)
+                                    {
+                                        RegisterMacro($"{contract.Name}_{propertyName}", litExpr.value, litExpr.ResultType);
+                                    }
+
                                     var block = new StatementBlock(scope);
                                     block.Commands.Add(new ReturnStatement(method, literal));
-                                    contract.SetMethodBody(propertyName, block);
+                                    contract.SetMethodBody(methodName, block);
 
                                     ExpectToken(";");
                                 }
@@ -558,7 +566,7 @@ namespace Phantasma.Tomb.Compilers
                                     Rewind();
 
                                     ExpectToken("{");
-                                    contract.SetMethodBody(propertyName, ParseCommandBlock(scope, method));
+                                    contract.SetMethodBody(methodName, ParseCommandBlock(scope, method));
                                     ExpectToken("}");
                                 }
 
