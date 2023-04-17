@@ -1,6 +1,8 @@
 # TOMB
 
-TOMB smart contract compiler for Phantasma platform
+TOMB compiler for Phantasma platform. 
+
+It lets you write custom smart contracts, tokens and smart NFTs.
 
 <p align="center">      
   <a href="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master)">
