@@ -1352,6 +1352,38 @@ token NACHO {
 
 ```
 
+## Contract Macros
+
+Besides the macros listed in the Available macros section, each of your contracts will also come with its own macros.<br/>
+Contract macros are useful when you have multiple contracts in the same file.
+Note that for things not provided via macros you can also use global constants. 
+
+```c#
+token BOO {
+	property name: string = "BOO"; //placeHolder for compiler reasons
+}
+
+contract simple_contract {
+	constructor (addr:address) {
+		// ...
+	}
+}
+
+contract my_test {
+	import Runtime;
+	import Token;
+
+	public transferBoos(quantity:number)
+	{
+		// The line below showcases 3 different compiler macros.
+		// $SIMPLE_CONTRACT_ADDRESS => This macro is the address of the simple_contract declared previously.
+		// $THIS_ADDRESS => This macro is the address of the contract currently executing (my_test contract).
+		// $BOO_SYMBOL => This macro is the symbol of the BOO token (the string "BOO") 
+		Token.transfer($SIMPLE_CONTRACT_ADDRESS, $THIS_ADDRESS, $BOO_SYMBOL, quantity);
+	}
+}
+```
+
 ## Call contract from another contract
 
 Example showcasing calling contract storage directly from another contract.<br/>
