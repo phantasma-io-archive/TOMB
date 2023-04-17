@@ -13,7 +13,8 @@ TOMB smart contract compiler for Phantasma platform
 
 ## How to use 
 
-TOMB is provided as a pre-built .NET (executable)[https://github.com/phantasma-io/TOMB//releases/latest]
+TOMB is provided as a pre-built .NET [executable](https://github.com/phantasma-io/TOMB//releases/latest).
+
 It works in Windows, Linux and OSX, but you will need to have the .NET runtimes installed.
 
 To compile your TOMB scripts, open a terminal and execute TombCompiler, passing your file as argument.
