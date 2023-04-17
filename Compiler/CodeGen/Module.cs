@@ -989,5 +989,14 @@ namespace Phantasma.Tomb.CodeGen
 
             asm = string.Join('\n', lines);
         }
+
+        public void MergeConsts(IEnumerable<ConstDeclaration> consts)
+        {
+            foreach (var entry in consts)
+            {
+                entry.ParentScope = this.Scope;
+                this.Scope.AddConstant(entry);
+            }
+        }
     }
 }

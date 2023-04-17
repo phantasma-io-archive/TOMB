@@ -614,7 +614,6 @@ contract test {
         }
 
 
-        // TODO this test needs a new version of the nuget packages
         [Test]
         public void StringArray()
         {
@@ -644,9 +643,9 @@ contract test {
             Assert.IsTrue(vm.Stack.Count == 1);
 
             var obj = vm.Stack.Pop();
-            // TODO
-            //            var array = obj.AsArray(VMType.String);
-            //          Assert.IsTrue(array.Length == 3);
+
+            var array = obj.AsArray(VMType.String);
+            Assert.IsTrue(array.Length == 3);
         }
 
         [Test]
@@ -806,6 +805,45 @@ contract test {
             var obj = vm.Stack.Pop();
             var newVal = obj.AsEnum<MyEnum>();
             var expectedVal = MyEnum.B;
+
+            Assert.IsTrue(newVal == expectedVal);
+        }
+
+        [Test]
+        public void Constants()
+        {
+            var VAL_A = 30;
+            var VAL_B = 4;
+
+            string[] sourceCode = new string[] {
+                $"const VAL_A : number = {VAL_A};",
+                "contract test{",
+                $"const VAL_B : number = {VAL_B};",
+                "public getValue() : number	{" ,
+                "return VAL_A + VAL_B;}" ,
+                "}"
+            };
+
+            var expectedVal = VAL_A + VAL_B;
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var getValue = contract.abi.FindMethod("getValue");
+            Assert.IsNotNull(getValue);
+
+            vm = new TestVM(contract, storage, getValue);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.AsNumber();
 
             Assert.IsTrue(newVal == expectedVal);
         }
@@ -1063,56 +1101,9 @@ contract test {
 
             Assert.IsTrue(newVal == expectedVal);
         }
+
+
         /*
-                [Test]
-                public void IsWitness()
-                {
-                    var keys = PhantasmaKeys.Generate();
-                    var keys2 = PhantasmaKeys.Generate();
-
-                    var nexus = new Nexus("simnet", null, null);
-                    nexus.SetOracleReader(new OracleSimulator(nexus));
-                    var simulator = new NexusSimulator(nexus, keys, 1234);
-
-                    var sourceCode =
-                        "contract test {\n" +
-                        "import Runtime;\n" +
-                        "global _address:address;" +
-                        "global _owner:address;" +
-                        "constructor(owner:address)	{\n" +
-                        "_address = @P2KEYzWsbrMbPNtW1tBzzDKeYxYi4hjzpx4EfiyRyaoLkMM;\n" +
-                        "_owner= owner;\n" +
-                        "}\n" +
-                        "public doStuff(from:address)\n" +
-                        "{\n" +
-                        "Runtime.expect(Runtime.isWitness(_address), \"witness failed\");\n" +
-                        "}\n"+
-                        "}\n";
-
-                    var parser = new TombLangCompiler();
-                    var contract = parser.Process(sourceCode).First();
-
-                    simulator.BeginBlock();
-                    simulator.GenerateCustomTransaction(keys, ProofOfWork.Minimal,
-                            () => ScriptUtils.BeginScript().AllowGas(keys.Address, Address.Null, 1, 9999)
-                            .CallInterop("Runtime.DeployContract", keys.Address, "test", contract.script, contract.abi.ToByteArray())
-                            .SpendGas(keys.Address)
-                            .EndScript());
-                    simulator.EndBlock();
-
-                    simulator.BeginBlock();
-                    simulator.GenerateCustomTransaction(keys, ProofOfWork.None, () =>
-                            ScriptUtils.BeginScript().
-                            AllowGas(keys.Address, Address.Null, 1, 9999).
-                            CallContract("test", "doStuff", keys.Address).
-                            SpendGas(keys.Address).
-                            EndScript());
-
-                    var ex = Assert.Throws<ChainException>(() => simulator.EndBlock());
-                    Assert.That(ex.Message, Is.EqualTo("add block @ main failed, reason: witness failed"));
-                }
-
-
                 [Test]
                 public void NFTs()
                 {

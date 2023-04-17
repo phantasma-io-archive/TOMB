@@ -55,6 +55,8 @@ namespace Phantasma.Tomb.Compilers
             InitEnums();
             InitStructs();
 
+            var globalConsts = new List<ConstDeclaration>();
+
             while (HasTokens())
             {
                 var firstToken = FetchToken();
@@ -175,6 +177,7 @@ namespace Phantasma.Tomb.Compilers
                             }
 
                             module = new Contract(contractName, firstToken.value == "token" ? ModuleKind.Token: ModuleKind.Contract);
+                            module.MergeConsts(globalConsts);
                             ExpectToken("{");
                             ParseModule(module);
                             ExpectToken("}");
@@ -187,10 +190,20 @@ namespace Phantasma.Tomb.Compilers
                             var scriptName = ExpectIdentifier();
 
                             module = new Script(scriptName, firstToken.value == "description" ? ModuleKind.Description : ModuleKind.Script);
+                            module.MergeConsts(globalConsts);
 
                             ExpectToken("{");
                             ParseModule(module);
                             ExpectToken("}");
+                            break;
+                        }
+
+
+                    case "const":
+                        {
+                            module = null;
+                            var constDecl = ParseConstant(null);
+                            globalConsts.Add(constDecl);
                             break;
                         }
 
@@ -204,6 +217,41 @@ namespace Phantasma.Tomb.Compilers
                     AddModule(module);
                 }
             }
+        }
+
+        private ConstDeclaration ParseConstant(Scope scope)
+        {
+            var constName = ExpectIdentifier();
+            ExpectToken(":");
+            var type = ExpectType();
+            ExpectToken("=");
+
+            string constVal;
+
+            switch (type.Kind)
+            {
+                case VarKind.String:
+                    constVal = ExpectString();
+                    break;
+
+                case VarKind.Number:
+                    constVal = ExpectNumber();
+                    break;
+
+                case VarKind.Bool:
+                    constVal = ExpectBool();
+                    break;
+
+                default:
+                    constVal = ExpectIdentifier();
+                    break;
+            }
+
+            ExpectToken(";");
+
+            var constDecl = new ConstDeclaration(scope, constName, type, constVal);
+
+            return constDecl;
         }
 
         private void ParseModule(Module module)
@@ -261,35 +309,7 @@ namespace Phantasma.Tomb.Compilers
 
                     case "const":
                         {
-                            var constName = ExpectIdentifier();
-                            ExpectToken(":");
-                            var type = ExpectType();
-                            ExpectToken("=");
-
-                            string constVal;
-
-                            switch (type.Kind)
-                            {
-                                case VarKind.String:
-                                    constVal = ExpectString();
-                                    break;
-
-                                case VarKind.Number:
-                                    constVal = ExpectNumber();
-                                    break;
-
-                                case VarKind.Bool:
-                                    constVal = ExpectBool();
-                                    break;
-
-                                default:
-                                    constVal = ExpectIdentifier();
-                                    break;
-                            }
-
-                            ExpectToken(";");
-
-                            var constDecl = new ConstDeclaration(module.Scope, constName, type, constVal);
+                            var constDecl = ParseConstant(module.Scope);
                             module.Scope.AddConstant(constDecl);
                             break;
                         }

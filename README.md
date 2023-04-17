@@ -501,6 +501,20 @@ contract test {
 }
 ```
 
+## Constants
+```c#
+const MY_CONST_X : number = 10; // constants can be declared globally (all scripts / contracts in file can use them)
+
+contract test {
+	const MY_CONST_Y : number = 20; // constants can be declared inside a contract / script (only visible there)
+
+    public calculate(): number 
+	{
+		return MY_CONST_X + MY_CONST_Y;
+	}
+}
+```
+
 ## Simple Counter
 
 Simple contract that implements a global counter (that can be incremented by anyone who calls the contract).<br/>
