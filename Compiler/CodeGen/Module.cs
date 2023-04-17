@@ -26,6 +26,7 @@ namespace Phantasma.Tomb.CodeGen
         Test,
     }
 
+
     public abstract class Module: Node
     {
         public readonly string Name;
@@ -36,6 +37,7 @@ namespace Phantasma.Tomb.CodeGen
         public readonly Module Parent;
 
         public readonly Dictionary<string, LibraryDeclaration> Libraries = new Dictionary<string, LibraryDeclaration>();
+
 
         public readonly LibraryDeclaration library;
 
@@ -532,6 +534,8 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("swap", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("targetChain", VarKind.String), new MethodParameter("source", VarKind.Address), new MethodParameter("destination", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("amount", VarKind.Number) }).SetAlias("Runtime.SwapTokens");
                     libDecl.AddMethod("getBalance", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetBalance");
                     libDecl.AddMethod("isMinter", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("address", VarKind.Address), new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.IsMinter");
+                    libDecl.AddMethod("getCurrentSupply", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetTokenSupply");
+                    libDecl.AddMethod("availableSymbols", MethodImplementationType.ExtCall, VarType.FindArray(VarKind.String), new MethodParameter[0] { }).SetAlias("Runtime.GetAvailableTokenSymbols");
                     break;
 
                 case "NFT":
@@ -543,8 +547,12 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("readRAM", MethodImplementationType.ExtCall, VarType.Generic(0), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadTokenRAM").SetPostCallback(ConvertGenericResult);
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) , new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
+
+                    libDecl.AddMethod("availableSymbols", MethodImplementationType.ExtCall, VarType.FindArray(VarKind.String), new MethodParameter[0] { }).SetAlias("Runtime.GetAvailableNFTSymbols");
+
                     libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).
                         SetAlias("Nexus.CreateTokenSeries").SetParameterCallback("nft", ConvertFieldToContractWithoutName);
+
                     libDecl.AddMethod("read", MethodImplementationType.ExtCall, VarType.Find(VarKind.Struct, "NFT"), new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.ReadToken")
                         .SetPreCallback((output, scope, expr) =>
                         {

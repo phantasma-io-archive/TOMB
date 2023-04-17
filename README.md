@@ -145,6 +145,7 @@ The following libraries can be imported into a contract.
 | Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number)                                | None            | TODO                                                                                                 |
 | Token.getBalance(from:Address, symbol:String)                                                                                    | Number          | Returns the token balance of the specified address.                                                  |
 | Token.isMinter(address:Address, symbol:String)                                                                                   | Bool            | Returns true if the token is a Minter and false otherwise.                                           |
+| Token.availableSymbols()                                                                                   | Array<string>            | Returns list with symbols of all deployed fungible tokens.                                           |
 
 ### NFT
 
@@ -158,6 +159,7 @@ The following libraries can be imported into a contract.
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None        | Creates a series of NFTs.                                                                 |
 | NFT.readROM<T>(symbol:String, id:Number)                                                                             | T           | Returns the ROM by the NFTID.                                                             |
 | NFT.readRAM<T>(symbol:String, id:Number)                                                                             | T           | Returns the RAM by the NFTID.                                                             |
+| NFT.availableSymbols()                                                                                   | Array<string>            | Returns list with symbols of all deployed non-fungible tokens.                                           |
 
 ### Account
 

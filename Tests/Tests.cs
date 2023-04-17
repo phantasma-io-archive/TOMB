@@ -29,6 +29,8 @@ namespace Tests
 
         public class TestVM : VirtualMachine
         {
+            private Module module;
+
             private Dictionary<string, Func<VirtualMachine, ExecutionState>> _interops = new Dictionary<string, Func<VirtualMachine, ExecutionState>>();
             private Func<string, ExecutionContext> _contextLoader;
             private Dictionary<string, ScriptContext> contexts;
@@ -36,6 +38,7 @@ namespace Tests
 
             public TestVM(Module module, Dictionary<byte[], byte[]> storage, ContractMethod method) : base(module.script, (uint)method.offset, module.Name)
             {
+                this.module = module;
                 this.storage = storage;
                 RegisterContextLoader(ContextLoader);
 
@@ -50,6 +53,9 @@ namespace Tests
                 RegisterMethod("Runtime.Version", Runtime_Version);
                 RegisterMethod("Runtime.TransactionHash", Runtime_TransactionHash);
                 RegisterMethod("Runtime.Context", Runtime_Context);
+
+                RegisterMethod("Runtime.GetAvailableTokenSymbols", Runtime_GetAvailableTokenSymbols);
+
                 contexts = new Dictionary<string, ScriptContext>();
             }
 
@@ -201,6 +207,15 @@ namespace Tests
                 return ExecutionState.Running;
             }
 
+            private ExecutionState Runtime_GetAvailableTokenSymbols(VirtualMachine vm)
+            {
+                var symbols = new string[] { "LOL", module.Name};
+
+                var val = VMObject.FromArray(symbols);
+                this.Stack.Push(val);
+
+                return ExecutionState.Running;
+            }            
         }
 
         [Test]
@@ -2811,6 +2826,49 @@ contract test {
 
             Assert.IsTrue(result == 11);
         }
+
+
+        [Test]
+        public void AvailableSymbols()
+        {
+            var tokenSymbol = "TOK";
+
+            string[] sourceCode = new string[] {
+                "token "+tokenSymbol+" {",
+                "   property name: string = \""+tokenSymbol+"\";",
+                "import Token;",
+                "public getSymbols() : array<string> {" ,
+                "   local symbols:array<string>;",
+                "   symbols = Token.availableSymbols();",
+                "return symbols;}" ,
+                "}"
+            };
+
+            var parser = new TombLangCompiler();
+            var contract = parser.Process(sourceCode).First();
+
+            var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+            TestVM vm;
+
+            var getSymbols = contract.abi.FindMethod("getSymbols");
+            Assert.IsNotNull(getSymbols);
+
+            vm = new TestVM(contract, storage, getSymbols);
+            var result = vm.Execute();
+            Assert.IsTrue(result == ExecutionState.Halt);
+
+            Assert.IsTrue(vm.Stack.Count == 1);
+
+            var obj = vm.Stack.Pop();
+            var newVal = obj.ToArray<string>();
+
+            Assert.IsTrue(newVal.Length == 2);
+            Assert.IsTrue(newVal[0] == "LOL");
+            Assert.IsTrue(newVal[1] == tokenSymbol);
+        }
+
+
     }
 
 }
