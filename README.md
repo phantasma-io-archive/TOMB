@@ -25,6 +25,14 @@ To compile your TOMB scripts, open a terminal and execute TombCompiler, passing 
 TombCompiler my_contract.tomb
 ```
 
+### Optional arguments 
+| Option  | Description |
+| --------- | -------------- |
+| -output | Specify the output path for compiled files. By default those files will be written to a Output directory inside the source file location. |
+| -protocol | Sets a specific protocol version for contracts. By default, it will use the LatestKnownProtocol constant obtained for Phantasma Chain package. |
+| -debug | Will print some extra debug info. |
+
+
 ### Nuget Package
 
 TOMB is also optionally available as a C# library via Nuget.  
