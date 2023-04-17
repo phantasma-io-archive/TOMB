@@ -259,6 +259,35 @@ namespace Phantasma.Tomb
 
             if (token.kind != expectedKind)
             {
+                if (token.kind == TokenKind.Macro)
+                {
+                    var macro = ResolveMacro(token.value);
+
+                    if (macro != null)
+                    {
+                        VarKind expectedMacroKind;
+
+                        switch (expectedKind)
+                        {
+                            case TokenKind.Number: expectedMacroKind = VarKind.Number; break;
+                            case TokenKind.Bool: expectedMacroKind = VarKind.Bool; break;
+                            case TokenKind.String: expectedMacroKind = VarKind.String; break;
+                            case TokenKind.Address: expectedMacroKind = VarKind.Address; break;
+                            default:
+                                throw new CompilerException($"expected {expectedKind}, got {token.kind} macro instead: " + token.value);
+                        }
+
+                        if (expectedMacroKind == macro.type.Kind)
+                        {
+                            return macro.value;
+                        }
+                    }
+                    else
+                    {
+                        throw new CompilerException($"expected {expectedKind}, got unknown macro instead: " + token.value);
+                    }
+                }
+
                 throw new CompilerException($"expected {expectedKind}, got {token.kind} instead: " + token.value);
             }
 
@@ -1212,18 +1241,18 @@ namespace Phantasma.Tomb
 
         public void RegisterMacro(string macroName, object value, VarKind macroKind)
         {
-            macroName = macroName.ToUpper();
-
-            if (macroName.Contains(' '))
-            {
-                throw new CompilerException("Invalid macro name: " +  macroName);
-            }
-
             RegisterMacro(macroName, value, VarType.Find(macroKind));
         }
 
         public void RegisterMacro(string macroName, object value, VarType macroType)
         {
+            macroName = macroName.ToUpper();
+
+            if (macroName.Contains(' '))
+            {
+                throw new CompilerException("Invalid macro name: " + macroName);
+            }
+
             _macros[macroName] = new Macro(value.ToString(), macroType);
         }
 

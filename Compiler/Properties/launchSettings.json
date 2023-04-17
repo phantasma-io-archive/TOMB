@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "TombCompiler": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\code\\TOMB\\Compiler\\builtins.tomb"
-    }
-  }
-}
