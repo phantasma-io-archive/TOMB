@@ -16,10 +16,42 @@ TOMB smart contract compiler for Phantasma platform
 TOMB is provided as a pre-built .NET (executable)[https://github.com/phantasma-io/TOMB//releases/latest]
 It works in Windows, Linux and OSX, but you will need to have the .NET runtimes installed.
 
+To compile your TOMB scripts, open a terminal and execute TombCompiler, passing your file as argument.
+
+```
+TombCompiler my_contract.tomb
+```
+
 ### Nuget Package
 
 TOMB is also optionally available as a C# library via Nuget.  
-The package is called Phantasma.TOMB
+The package is called 'Phantasma.TOMB'. 
+
+In order to compile scripts from within C#, install Phantasma.TOMB package then do something like:
+```c#
+using Phantasma.Tomb.Compilers;
+
+public class MyCompiler 
+{
+	static void Main(string[] args)
+	{
+		var sourceFileName = args[0];
+		var sourceCode = File.ReadAllText(sourceFilePath);
+
+		var compiler = new TombLangCompiler();	// You could also use SolidityCompiler or your own custom compiler class
+		var modules = compiler.Process(sourceCode);
+
+		// This will generate 3 files for each compiled module
+		foreach (var module in modules)
+		{
+			File.WriteAllText(module.Name + ".asm", module.asm);
+			File.WriteAllBytes(module.Name + ".pvm", module.script);
+			File.WriteAllBytes(module.Name + ".abi",  module.abi.ToByteArray());
+		}
+	}
+}
+```
+
 
 ## Supported languages
 
