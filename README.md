@@ -83,17 +83,17 @@ Also the operators "and" and "or" were changed to "&&" and "||" respectively.
 
 Different data types are recognized by the compiler.
 
-| Type           | Example                                                           |
+| Type           | Example                                                           |                                                 |
 | -------------- | ----------------------------------------------------------------- | ----------------------------------------------- |
-| Number         | 123                                                               |
+| Number         | 123                                                               |                                                 |
 | Decimal<X>     | 0.123                                                             | Where X is the number of maximum decimal places |
-| Bool           | false                                                             |
-| String         | "hello"                                                           |
-| Timestamp      | no literal support, use either Time.now or Time.unix              |
-| Byte array     | 0xFAFAFA2423424                                                   |
-| Address        | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA or @null         |
-| Hash           | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |
-| Compiler macro | $SOMETHING                                                        |
+| Bool           | false                                                             |                                                 |
+| String         | "hello"                                                           |                                                 |
+| Timestamp      | no literal support, use either Time.now or Time.unix              |                                                 |
+| Byte array     | 0xFAFAFA2423424                                                   |                                                 |
+| Address        | @P2K6p3VzyRhxqHE2KcNV2B3QjVrv5ekvWPZLevteDoBQTzA or @null         |                                                 |
+| Hash           | #E3FE7BB73996CF7057913BD916F1B07AC0EAB4916DF3BCBDC221829F5CBEA9AF |                                                 |
+| Compiler macro | $SOMETHING                                                        |                                                 |
 
 ## Available libraries
 
@@ -104,7 +104,7 @@ The following libraries can be imported into a contract.
 | Method                                    | Return type | Description                                                                    |
 | ----------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
 | Call.interop(...:Generic)                 | Any         | TODO                                                                           |
-| Call.contract(method:String, ...:Generic) | Any         | This is used to call another contract with a specified method.                 |
+| Call.contract(contractName, method:String, ...:Generic) | Any         | This is used to call another contract with a specified method.                 |
 | Call.method(...:Generic)                  | Any         | To call a method inside the contract, but instead of using "this.methodName()" |
 
 ### Runtime
