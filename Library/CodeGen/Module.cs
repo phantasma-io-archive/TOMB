@@ -119,7 +119,7 @@ namespace Phantasma.Tomb.CodeGen
         }
 
         public static string[] AvailableLibraries = new[] {
-            "Call", "Runtime", "Math","Token", "NFT", "Organization", "Oracle", "Storage", "Utils", "Array",
+            "Call", "Runtime", "Math","Token", "NFT", "Organization", "Oracle", "Storage", "Contract", "Array",
             "Leaderboard", "Market", "Account", "Crowdsale", "Stake", "Governance", "Relay", "Mail", 
             "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module",  FormatLibraryName };
 
@@ -512,12 +512,12 @@ namespace Phantasma.Tomb.CodeGen
                         // TODO IEnumerable<ContractMethod> GetTriggersForABI -> libDecl.AddMethod("GetTriggerForABI", MethodImplementationType.ContractCall, VarKind.Struct, new[] { new MethodParameter("triggers", VarKind.Address) }).SetContract(contract).SetAlias(nameof(AccountContract.GetTriggersForABI));
                         break;
                     }
+
                 case "UID":
                     {
                         libDecl.AddMethod("generate", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.GenerateUID");
                         break;
                     }
-
 
                 case "Random":
                     // NOTE those are builtins, so they are no longer declared here
@@ -630,8 +630,11 @@ namespace Phantasma.Tomb.CodeGen
                         break;
                     }
 
-                case "Utils":
-                    libDecl.AddMethod("contractAddress", MethodImplementationType.Custom, VarKind.Address, new[] { new MethodParameter("name", VarKind.String) }).SetPostCallback((output, scope, method, reg) =>
+                case "Contract":
+                    libDecl.AddMethod("call", MethodImplementationType.ContractCall, VarType.Generic(0), new[] { new MethodParameter("contract", VarKind.String), new MethodParameter("method", VarKind.String), new MethodParameter("...", VarKind.Any) });
+                    libDecl.AddMethod("exists", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("name", VarKind.String) }).SetAlias("Runtime.ContractExists");
+
+                    libDecl.AddMethod("address", MethodImplementationType.Custom, VarKind.Address, new[] { new MethodParameter("name", VarKind.String) }).SetPostCallback((output, scope, method, reg) =>
                     {
                         var nameExpr = method.arguments[0] as LiteralExpression;
                         if (nameExpr != null && nameExpr.type.Kind == VarKind.String)
@@ -749,6 +752,7 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
                     break;
+ 
                 case "Crowdsale":
                     {
                         var contract = NativeContractKind.Sale.ToString().ToLower();
@@ -770,6 +774,7 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("editSalePrice", MethodImplementationType.ContractCall, VarKind.Hash, new[] { new MethodParameter("saleHash", VarKind.Hash), new MethodParameter("price", VarKind.Number) }).SetContract(contract).SetAlias(nameof(SaleContract.CloseSale));
                         break;
                     }
+                
                 case "Stake":
                     {
                         var contract = NativeContractKind.Stake.ToString().ToLower();
@@ -799,6 +804,7 @@ namespace Phantasma.Tomb.CodeGen
                         //libDecl.AddMethod("getRate", MethodImplementationType.ContractCall, VarKind.Number, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetRate));
                         break;
                     }
+                
                 case "Governance":
                     {
                         var contract = NativeContractKind.Governance.ToString().ToLower();
@@ -811,7 +817,8 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("setValue", MethodImplementationType.ContractCall, VarKind.None, new [] { new MethodParameter("name", VarKind.String), new MethodParameter("value", VarKind.Number) }).SetContract(contract).SetAlias(nameof(GovernanceContract.SetValue));
                         break;
                     }
-                case "Relay":
+
+                case "Relay":                
                     {
                         var contract = NativeContractKind.Relay.ToString().ToLower();
                         libDecl.AddMethod("getBalance", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) } ).SetContract(contract).SetAlias(nameof(RelayContract.GetBalance));
@@ -823,6 +830,7 @@ namespace Phantasma.Tomb.CodeGen
                         // TODO settleChannel -> libDecl.AddMethod("settleChannel", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Struct) } ).SetContract(contract).SetAlias(nameof(RelayContract.SettleChannel));
                         break;
                     }
+                
                 case "Mail":
                     {
                         var contract = NativeContractKind.Mail.ToString().ToLower();
