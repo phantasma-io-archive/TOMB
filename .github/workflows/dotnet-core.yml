@@ -35,10 +35,10 @@ jobs:
           dotnet restore
       
     - name: Build
-      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      run: dotnet build --configuration Release  --no-restore
 
     - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
     - name: Combine Coverage Output
       run: reportgenerator "-reports:coverage/**/coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:Cobertura -assemblyfilters:"-Phantasma.Tendermint;-Phantasma.Tendermint.RPC;-Phantasma.Business.Tests;-Phantasma.Core.Tests;-phantasma-node;-Phantasma.Tests;-Phantasma.Infrastructure"
