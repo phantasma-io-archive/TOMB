@@ -4,7 +4,7 @@
     {
         public readonly int Decimals;
 
-        public DecimalDeclaration(Scope parentScope, string name, int decimals, VarStorage storage) : base(parentScope, name, VarType.Find(VarKind.Decimal), storage)
+        public DecimalDeclaration(Scope parentScope, string name, int decimals, VarStorage storage) : base(parentScope, name, VarType.Find(VarKind.Decimal, decimals), storage)
         {
             this.Decimals = decimals;
         }
