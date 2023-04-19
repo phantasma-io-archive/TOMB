@@ -9,6 +9,12 @@ on:
 permissions:
   pull-requests: write
   issues: write
+  contents: write
+  actions: write
+  id-token: write
+  packages: write
+  deployments: write
+  discussions: write
   
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
