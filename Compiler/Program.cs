@@ -183,9 +183,9 @@ namespace Phantasma.Tomb
                 sourceFileName = @"..\..\..\builtins.tomb";
             }
 #else
-            if (string.IsNullOrEmpty(sourceFilePath))
+            if (string.IsNullOrEmpty(sourceFileName))
             {
-                sourceFilePath = @"my_contract.tomb";
+                sourceFileName = @"my_contract.tomb";
             }
 #endif
 
