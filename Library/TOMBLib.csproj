@@ -7,7 +7,7 @@
     <Title>Phantasma.TOMB</Title>
     <Description>Provides runtime compilation of TOMB smart contracts and tokens.</Description>
     <PackageIcon>logo.png</PackageIcon>
-    <Version>1.5.1</Version>
+    <Version>1.5.3</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>Phantasma.TOMB</PackageId>
   </PropertyGroup>

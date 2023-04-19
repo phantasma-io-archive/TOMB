@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Expressions;
-using static Grpc.Core.Metadata;
+using Phantasma.Tomb.AST.Statements;
 
 namespace Phantasma.Tomb.CodeGen
 {
@@ -90,6 +87,7 @@ namespace Phantasma.Tomb.CodeGen
 
             if (this.Kind == ModuleKind.Token)
             {
+                bool hasSymbol = false;
                 bool hasName = false;
 
                 foreach (var method in this.Methods.Values)
@@ -116,8 +114,14 @@ namespace Phantasma.Tomb.CodeGen
                                 break;
 
                             case "Symbol":
+                                hasSymbol = true;
+                                checkForGlobals = true;
+                                ExpectMethodType(method, VarKind.String);
+                                break;
+
                             case "Decimals":
                                 checkForGlobals = true;
+                                ExpectMethodType(method, VarKind.Number);
                                 break;
                         }
                     }
@@ -158,6 +162,19 @@ namespace Phantasma.Tomb.CodeGen
                 if (!hasName)
                 {
                     throw new CompilerException($"token {this.Name} is missing property 'name'");
+                }
+
+                if (!hasSymbol)
+                {
+                    var type = VarType.Find(VarKind.String);
+                    var symbolScope = new Scope(this.Scope, "getSymbol");
+
+                    var symbolProperty = AddMethod(this.LineNumber, "getSymbol", true, MethodKind.Property, type, new MethodParameter[0], symbolScope, false);
+
+                    var body = new StatementBlock(symbolScope);
+                    body.Commands.Add(new ReturnStatement(symbolProperty, new LiteralExpression(symbolScope, $"\"{Name}\"", type)));
+
+                    this.SetMethodBody(symbolProperty.Name, body);
                 }
             }
 
