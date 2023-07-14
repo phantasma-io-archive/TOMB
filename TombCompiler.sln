@@ -5,9 +5,9 @@ VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TombCompiler", "Compiler\TombCompiler.csproj", "{A669C9C4-AA5E-4BBD-9A8A-569B6B50A5D4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{EF3836A5-FC50-4DCC-BA89-EBF129B87171}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOMBLib", "Library\src\TOMBLib.csproj", "{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOMBLib", "Library\TOMBLib.csproj", "{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOMBLib.Tests", "Library\tests\TOMBLib.Tests.csproj", "{EA79025B-F50F-4608-B2BC-77D776AE99EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,14 @@ Global
 		{A669C9C4-AA5E-4BBD-9A8A-569B6B50A5D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A669C9C4-AA5E-4BBD-9A8A-569B6B50A5D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A669C9C4-AA5E-4BBD-9A8A-569B6B50A5D4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF3836A5-FC50-4DCC-BA89-EBF129B87171}.Release|Any CPU.Build.0 = Release|Any CPU
 		{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
