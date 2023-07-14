@@ -351,8 +351,6 @@ The following libraries can be imported into a contract.
 | Stake.fuelToStake(fuelAmount:Number)                                                 | Number      | TODO        |
 | Stake.stakeToFuel(stakeAmount:Number)                                                | Number      | TODO        |
 | Stake.getAddressVotingPower(address:Address)                                         | Number      | TODO        |
-| Stake.updateRate()                                                                   | None        | TODO        |
-| Stake.getRate()                                                                      | Number      | TODO        |
 
 ### Governance
 
@@ -784,6 +782,35 @@ contract test {
 	}
 }
 ```
+
+## Type castings
+
+Every type provides methods to cast a variable to another compatible type.<br/>
+NOTE: Many are missing in the method list in this documentation, but they come in the the form Type.toOtherType()<br/>
+See examples below:<br/>
+
+```c#
+contract test {
+	import Time;
+
+	public convertTimeToNumber(x:timestamp):number
+	{
+		return Time.toNumber(x);
+	}
+
+	public convertHashToString(x:hash):string
+	{
+		return Hash.toString(x);
+	}
+	
+	public convertStringToNumber(x:string):number
+	{
+		return String.toNumber(x);
+	}
+	
+}
+```
+
 
 ## Random numbers
 
