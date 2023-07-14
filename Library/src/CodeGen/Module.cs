@@ -263,8 +263,12 @@ namespace Phantasma.Tomb.CodeGen
                     GenerateCasts(libDecl, VarKind.Bytes, new VarKind[] { VarKind.Bool, VarKind.String, VarKind.Number });
                     return libDecl;
 
+                case "Number":
+                    GenerateCasts(libDecl, VarKind.Number, new VarKind[] { VarKind.String, VarKind.Timestamp, VarKind.Bool});
+                    return libDecl;
+
                 case "Hash":
-                    GenerateCasts(libDecl, VarKind.Hash, new VarKind[] { VarKind.String, VarKind.Number});
+                    GenerateCasts(libDecl, VarKind.Hash, new VarKind[] { VarKind.String, VarKind.Number });
                     return libDecl;
 
                 case "Enum":
@@ -475,6 +479,8 @@ namespace Phantasma.Tomb.CodeGen
                     break;
 
                 case "Time":
+                    GenerateCasts(libDecl, VarKind.Timestamp, new VarKind[] { VarKind.String, VarKind.Number });
+
                     libDecl.AddMethod("now", MethodImplementationType.ExtCall, VarKind.Timestamp, new MethodParameter[] { }).SetAlias("Runtime.Time");
                     libDecl.AddMethod("unix", MethodImplementationType.Custom, VarKind.Timestamp, new[] { new MethodParameter("value", VarKind.Number) }).SetPostCallback((output, scope, method, reg) =>
                     {
@@ -787,7 +793,6 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("getMasterDate", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterDate));
                         libDecl.AddMethod("getMasterClaimDateFromReference", MethodImplementationType.ContractCall, VarKind.Timestamp, new[] { new MethodParameter("claimDistance", VarKind.Number), new MethodParameter("referenceTime", VarKind.Timestamp) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterClaimDateFromReference));
                         libDecl.AddMethod("getMasterRewards", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetMasterRewards));
-                        //libDecl.AddMethod("migrate", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("to", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.Migrate));
                         libDecl.AddMethod("masterClaim", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.MasterClaim));
                         libDecl.AddMethod("stake", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("stakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.Stake));
                         libDecl.AddMethod("unstake", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("unstakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.Unstake));
@@ -800,8 +805,6 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("fuelToStake", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("fuelAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.FuelToStake));
                         libDecl.AddMethod("stakeToFuel", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("stakeAmount", VarKind.Number) }).SetContract(contract).SetAlias(nameof(StakeContract.StakeToFuel));
                         libDecl.AddMethod("getAddressVotingPower", MethodImplementationType.ContractCall, VarKind.Number, new[] { new MethodParameter("address", VarKind.Address) }).SetContract(contract).SetAlias(nameof(StakeContract.GetAddressVotingPower));
-                        //libDecl.AddMethod("updateRate", MethodImplementationType.ContractCall, VarKind.None, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.UpdateRate));
-                        //libDecl.AddMethod("getRate", MethodImplementationType.ContractCall, VarKind.Number, new MethodParameter[] { }).SetContract(contract).SetAlias(nameof(StakeContract.GetRate));
                         break;
                     }
                 
