@@ -1,16 +1,45 @@
-# TOMB
+<p align="center">
+  <img
+    src="/logo.png"
+    width="125px"
+  >
+</p>
 
-TOMB compiler for Phantasma platform. 
+<h1 align="center">TOMB</h1>
 
+<p align="center">
+    TOMB compiler for Phantasma platform. 
+</p>
+
+<p align="center">
 It lets you write custom smart contracts, tokens and smart NFTs.
+</p>
 
 <p align="center">      
-  <a href="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master)">
-    <img src="https://github.com/Relfos/TOMB/workflows/.NET%20Core/badge.svg?branch=master">
-  </a>
-  <a href="https://github.com/phantasma-io/PhantasmaChain/blob/master/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg">
-  </a>
+    <a href="https://github.com/phantasma-io/TOMB/workflows/.NET%20Core/badge.svg?branch=master">
+        <img src="https://github.com/phantasma-io/TOMB/workflows/.NET%20Core/badge.svg">
+    </a>
+    <a href="https://github.com/phantasma-io/TOMB/blob/master/LICENSE">
+        <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+    </a>
+    <a href="https://discord.gg/RsKn8EN">
+        <img src="https://img.shields.io/discord/404769727634997261.svg">
+    </a>
+    <a href="https://twitter.com/phantasmachain">
+        <img src="https://img.shields.io/twitter/follow/phantasmachain.svg?style=social">
+    </a>
+
+</p>
+<p align="center">
+    <a href="">
+        <img src="https://img.shields.io/github/last-commit/phantasma-io/TOMB.svg?style=flat">
+    </a>
+    <a href="">
+        <img src="https://img.shields.io/github/commit-activity/y/phantasma-io/TOMB.svg?style=flat">
+    </a>
+    <a href="https://github.com/phantasma-io/TOMB">
+        <img src="https://tokei.rs/b1/github/phantasma-io/TOMB">
+    </a>
 </p>
 
 ## How to use 
