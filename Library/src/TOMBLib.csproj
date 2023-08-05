@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -21,8 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\phantasma-ng\Phantasma.Business\src\Phantasma.Business.csproj" />
-    <ProjectReference Include="..\..\..\phantasma-ng\Phantasma.Core\src\Phantasma.Core.csproj" />
+    <PackageReference Include="Phantasma.Business" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

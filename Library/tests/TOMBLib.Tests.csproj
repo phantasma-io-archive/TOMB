@@ -19,8 +19,6 @@
     </ItemGroup>
     
     <ItemGroup>
-        <ProjectReference Include="..\..\..\phantasma-ng\Phantasma.Business\src\Phantasma.Business.csproj" />
-        <ProjectReference Include="..\..\..\phantasma-ng\Phantasma.Core\src\Phantasma.Core.csproj" />
         <ProjectReference Include="..\src\TOMBLib.csproj" />
     </ItemGroup>
 
