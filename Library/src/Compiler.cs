@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using Phantasma.Business.VM;
+﻿using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
@@ -538,7 +534,7 @@ namespace Phantasma.Tomb
                                     }
                                 }
 
-                                var indexExpression = ParseArrayIndexingExpression(scope, tmp, arrayType.elementType);
+                                var indexExpression = ParseArrayIndexingExpression(scope, tmp, VarType.Find(VarKind.Number));
                                 return new ArrayElementExpression(scope, arrayVar, indexExpression);
                             }
 

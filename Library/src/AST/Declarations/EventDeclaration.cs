@@ -9,6 +9,15 @@ using Phantasma.Core.Cryptography;
 using Phantasma.Business.Blockchain;
 using Phantasma.Business.CodeGen.Assembler;
 using Phantasma.Business.Blockchain.VM;
+using Phantasma.Core.Domain.VM;
+using Phantasma.Core.Domain.Interfaces;
+using Phantasma.Core.Domain.Token.Structs;
+using Phantasma.Core.Cryptography.Structs;
+using Phantasma.Core.Domain.Token.Enums;
+using Phantasma.Core.Domain.Contract;
+using Phantasma.Core.Domain.VM.Enums;
+using Phantasma.Core.Domain.Events.Structs;
+using Phantasma.Core.Domain.Execution.Enums;
 
 namespace Phantasma.Tomb.AST.Declarations
 {

@@ -7,6 +7,7 @@ using Phantasma.Tomb.Compilers;
 using Phantasma.Core.Utils;
 using Phantasma.Tomb;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Execution.Enums;
 
 namespace TOMBLib.Tests
 {

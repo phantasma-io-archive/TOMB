@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Phantasma.Business" Version="1.0.7" />
+    <PackageReference Include="Phantasma.Business" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

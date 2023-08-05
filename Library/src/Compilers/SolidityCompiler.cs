@@ -11,6 +11,8 @@ using Phantasma.Tomb.CodeGen;
 using Phantasma.Tomb.Lexers;
 using Phantasma.Tomb.AST.Expressions;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Contract;
+using Phantasma.Core.Domain.Validation;
 
 namespace Phantasma.Tomb.Compilers
 {

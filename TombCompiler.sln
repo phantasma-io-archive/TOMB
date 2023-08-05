@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TombCompiler", "Compiler\To
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOMBLib", "Library\src\TOMBLib.csproj", "{86AA09AA-ED89-4097-97A3-E3E3E0EF5A86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOMBLib.Tests", "Library\tests\TOMBLib.Tests.csproj", "{EA79025B-F50F-4608-B2BC-77D776AE99EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOMBLib.Tests", "Library\tests\TOMBLib.Tests.csproj", "{EA79025B-F50F-4608-B2BC-77D776AE99EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
