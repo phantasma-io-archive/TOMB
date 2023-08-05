@@ -1,4 +1,5 @@
 ﻿using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Contract;
 using Phantasma.Core.Numerics;
 using Phantasma.Tomb.CodeGen;
 

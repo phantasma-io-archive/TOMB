@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using Phantasma.Business.VM;
+﻿using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;

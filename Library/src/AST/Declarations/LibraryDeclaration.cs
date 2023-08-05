@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Validation;
 using Phantasma.Tomb.CodeGen;
 
 namespace Phantasma.Tomb.AST.Declarations

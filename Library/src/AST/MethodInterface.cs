@@ -4,6 +4,7 @@ using Phantasma.Tomb.CodeGen;
 using Phantasma.Tomb.AST.Expressions;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.VM.Enums;
 
 namespace Phantasma.Tomb.AST
 {

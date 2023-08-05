@@ -3,6 +3,8 @@ using System.Linq;
 using NUnit.Framework;
 using Phantasma.Core.Cryptography;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Execution.Enums;
+using Phantasma.Core.Domain.VM.Enums;
 using Phantasma.Core.Utils;
 using Phantasma.Tomb.Compilers;
 

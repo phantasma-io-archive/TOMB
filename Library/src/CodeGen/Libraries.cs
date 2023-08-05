@@ -1,5 +1,7 @@
 ﻿using Phantasma.Business.Blockchain.Contracts.Native;
-using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Contract;
+using Phantasma.Core.Domain.Contract.Enums;
+using Phantasma.Core.Domain.VM.Enums;
 using Phantasma.Core.Numerics;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
@@ -224,6 +226,24 @@ namespace Phantasma.Tomb.CodeGen
                                 output.AppendLine(expr, $"COUNT {reg} {reg}");
                                 return reg;
                             });
+
+                        libDecl.AddMethod("get", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) })
+                            .SetPreCallback((output, scope, expr) =>
+                            {
+                                var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                                var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                                output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                                output.AppendLine(expr, $"PUSH {reg}");
+
+                                return reg;
+                            })
+                            .SetPostCallback(ConvertGenericResult);
+
+                        // TODO not implemented yet... for now use builtin TOMB array support, eg: local temp: array<number>
+                        libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
+                        libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) });
+                        libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any) });
 
                         return libDecl;
                     }
@@ -455,6 +475,10 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("burn", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number) }).SetAlias("Runtime.BurnToken");
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number), new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
 
+                    var nftArray = VarType.Find(VarKind.Array, VarType.Find(VarKind.Struct, "NFT"));
+
+                    libDecl.AddMethod("getInfusions", MethodImplementationType.ExtCall, nftArray, new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("token_id", VarKind.Number)}).SetAlias("Runtime.ReadInfusions");
+
                     libDecl.AddMethod("availableSymbols", MethodImplementationType.ExtCall, VarType.FindArray(VarKind.String), new MethodParameter[0] { }).SetAlias("Runtime.GetAvailableNFTSymbols");
 
                     libDecl.AddMethod("createSeries", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("seriesID", VarKind.Number), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("mode", VarType.Find(VarKind.Enum, "TokenSeries")), new MethodParameter("nft", VarKind.Module) }).
@@ -582,28 +606,6 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("editAuction", MethodImplementationType.ContractCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("baseSymbol", VarKind.String), new MethodParameter("quoteSymbol", VarKind.String), new MethodParameter("tokenID", VarKind.Number), new MethodParameter("price", VarKind.Number), new MethodParameter("endPrice", VarKind.Number), new MethodParameter("startDate", VarKind.Timestamp), new MethodParameter("endDate", VarKind.Timestamp), new MethodParameter("extensionPeriod", VarKind.Number), }).SetContract(contract).SetAlias(nameof(MarketContract.EditAuction));
                         break;
                     }
-
-                case "Array":
-                    libDecl.AddMethod("get", MethodImplementationType.Custom, VarType.Generic(0), new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) })
-                        .SetPreCallback((output, scope, expr) =>
-                        {
-                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
-                            var reg = Compiler.Instance.AllocRegister(output, expr);
-
-                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
-                            output.AppendLine(expr, $"PUSH {reg}");
-
-                            return reg;
-                        })
-                        .SetPostCallback(ConvertGenericResult);
-
-                    // TODO not implemented yet... for now use builtin TOMB array support, eg: local temp: array<number>
-                    libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
-                    libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) });
-                    libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any) });
-                    libDecl.AddMethod("count", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("array", VarKind.Any) });
-                    break;
-
 
                 case "Map":
                     libDecl.AddMethod("get", MethodImplementationType.ExtCall, VarType.Generic(1), new[] { new MethodParameter("map", VarKind.String), new MethodParameter("key", VarType.Generic(0)) }).SetParameterCallback("map", ConvertFieldToStorageAccessRead)
