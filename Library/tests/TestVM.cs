@@ -7,11 +7,12 @@ using Phantasma.Core.Domain;
 using Phantasma.Core.Domain.Contract;
 using Phantasma.Core.Domain.Execution.Enums;
 using Phantasma.Core.Domain.Serializer;
+using Phantasma.Core.Domain.Token.Structs;
 using Phantasma.Core.Domain.VM;
 using Phantasma.Core.Domain.VM.Enums;
 using Phantasma.Core.Numerics;
 using Phantasma.Tomb.CodeGen;
-
+using System.Numerics;
 using ExecutionContext = Phantasma.Core.Domain.Execution.ExecutionContext;
 
 namespace TOMBLib.Tests;
@@ -46,6 +47,7 @@ public class TestVM : VirtualMachine
         RegisterMethod("Runtime.TransactionHash", Runtime_TransactionHash);
         RegisterMethod("Runtime.Context", Runtime_Context);
         RegisterMethod("Runtime.ReadInfusions", Runtime_ReadInfusions);
+        RegisterMethod("Runtime.GetOwnerships", Runtime_GetOwnerships);
 
         RegisterMethod("Runtime.GetAvailableTokenSymbols", Runtime_GetAvailableTokenSymbols);
 
@@ -192,12 +194,31 @@ public class TestVM : VirtualMachine
 
         return ExecutionState.Running;
     }
+
+    private ExecutionState Runtime_GetOwnerships(VirtualMachine vm)
+    {
+        var from = vm.Stack.Pop();
+        var symbol = vm.PopString("symbol");
+
+        var array = new BigInteger[] { 123, 456, 789 };
+
+        var val = VMObject.FromArray(array);
+        this.Stack.Push(val);
+
+        return ExecutionState.Running;
+    }
+
     private ExecutionState Runtime_ReadInfusions(VirtualMachine vm)
     {
         var symbol = vm.PopString("symbol");
         var id = vm.PopNumber("token_id");
 
-        var val = Serialization.Unserialize<VMObject>(Base16.Decode("0102030100081E0102040653796D626F6C0404534F554C040556616C7565030500CA9A3B0003020100083A0102040653796D626F6C04044E434F4C040556616C756503219905474F01A1DC34E8C3DB6657A297B6A3F69EE81E7BEC97DF171F79231AAD1C00"));
+        var infusion = new TokenInfusion("SOUL", 1234);
+
+        var infusionArray = new TokenInfusion[] { infusion };
+
+        var val = VMObject.FromArray(infusionArray);
+
         this.Stack.Push(val);
 
         return ExecutionState.Running;

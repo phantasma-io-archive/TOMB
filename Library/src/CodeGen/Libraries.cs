@@ -476,8 +476,10 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("infuse", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("id", VarKind.Number), new MethodParameter("infuseSymbol", VarKind.String), new MethodParameter("infuseValue", VarKind.Number) }).SetAlias("Runtime.InfuseToken");
 
                     var nftArray = VarType.Find(VarKind.Array, VarType.Find(VarKind.Struct, "NFT"));
-
                     libDecl.AddMethod("getInfusions", MethodImplementationType.ExtCall, nftArray, new[] { new MethodParameter("symbol", VarKind.String), new MethodParameter("token_id", VarKind.Number)}).SetAlias("Runtime.ReadInfusions");
+
+                    var numberArray = VarType.Find(VarKind.Array, VarType.Find(VarKind.Number));
+                    libDecl.AddMethod("getOwnerships", MethodImplementationType.ExtCall, numberArray, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String)}).SetAlias("Runtime.GetOwnerships");
 
                     libDecl.AddMethod("availableSymbols", MethodImplementationType.ExtCall, VarType.FindArray(VarKind.String), new MethodParameter[0] { }).SetAlias("Runtime.GetAvailableNFTSymbols");
 

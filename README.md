@@ -241,7 +241,9 @@ The following libraries can be imported into a contract.
 | NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None        | Creates a series of NFTs.                                                                 |
 | NFT.readROM<T>(symbol:String, id:Number)                                                                             | T           | Returns the ROM by the NFTID.                                                             |
 | NFT.readRAM<T>(symbol:String, id:Number)                                                                             | T           | Returns the RAM by the NFTID.                                                             |
-| NFT.availableSymbols()                                                                                   | Array<string>            | Returns list with symbols of all deployed non-fungible tokens.                                           |
+| NFT.getInfusions(symbol:String, id:Number)                                                                           | Array<Infusion>            | Returns list with all tokens infused into a specific token.		|
+| NFT.getOwnerships(from:Address, symbol:String)                                                                           | Array<Number>          | Returns list with token ids of NFTs owned by the specified address and symbol.                                                  |
+| NFT.availableSymbols()                                                                                   			   | Array<string>            | Returns list with symbols of all deployed non-fungible tokens.     |
 
 ### Account
 
@@ -1477,6 +1479,48 @@ token NACHO {
 }
 
 ```
+
+## Listing ownerships of NFTs
+Many times it's necessary to obtain a list of NFTs owned by a specific address.
+For that you can use the NFT.getOwnerships() method.
+Note that this method requires a symbol. If you need to know all the owned NFTs of a specific address, call NFT.availableSymbols and iterate over it.
+
+```c#
+contract test {
+
+import NFT;
+import Array;
+
+public getOwnedList(from:address) : array<number> {
+	local symbol: string = "MYTOK";
+    local result: array<number> = NFT.getOwnerships(from, symbol);
+    return result;
+    }
+}
+```
+
+## Listing NFTs infused inside other NFTs
+Many times it's necessary to obtain a list of NFTs infused into a specific NFT.
+For that you can use the NFT.getInfusions() method.
+It will return an array of Infusion structs, that have a Symbol: string and Value: Number as fields.
+Note that the Value field will be an amount for fungible-tokens and a tokenID for NFTs.
+
+```c#
+contract test {
+
+import NFT;
+import Array;
+
+public getFirstInfusedToken(infusedTokenID: number) : Infusion {
+    local nfts: array<Infusion> = NFT.getInfusions("MYTOK", infusedTokenID);
+
+    local first: Infusion = nfts[0];
+
+    return first;
+    }
+}
+```
+
 
 ## Contract Macros
 
