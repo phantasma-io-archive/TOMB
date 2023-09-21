@@ -11,6 +11,18 @@ namespace Phantasma.Tomb.CodeGen
 {
     public partial class Module
     {
+        private static List<string> _abiPaths = new List<string>();
+
+        public static void AddLibraryPath(string path)
+        {
+            if (!path.EndsWith(Path.DirectorySeparatorChar))
+            {
+                path += Path.DirectorySeparatorChar;
+            }
+
+            _abiPaths.Add(path);
+        }
+
         public void ImportLibrary(string name)
         {
             var lib = LoadLibrary(name, this.Scope, this.Kind);
@@ -56,6 +68,11 @@ namespace Phantasma.Tomb.CodeGen
             if (name != name.UppercaseFirst() && name != "this")
             {
                 throw new CompilerException("invalid library name: " + name);
+            }
+
+            if (name.Contains("."))
+            {
+                return FindExternalLibrary(name, scope, moduleKind);
             }
 
             var libDecl = new LibraryDeclaration(scope, name);
@@ -750,10 +767,74 @@ namespace Phantasma.Tomb.CodeGen
                         break;
                     }
                 default:
-                    throw new CompilerException("unknown library: " + name);
+                    return FindExternalLibrary(name, scope, moduleKind);
             }
 
             return libDecl;
+        }
+
+        private static Dictionary<string, LibraryDeclaration> _externalLibs = new Dictionary<string, LibraryDeclaration>(StringComparer.OrdinalIgnoreCase);
+
+        private static LibraryDeclaration FindExternalLibrary(string importName, Scope scope, ModuleKind moduleKind)
+        {
+            if (_externalLibs.ContainsKey(importName))
+            {
+                return _externalLibs[importName];
+            }
+
+            string libraryFileName = null;
+
+            var libNamePrefix = importName.Replace('.', Path.DirectorySeparatorChar);
+
+            foreach (var path in _abiPaths)
+            {
+                var possibleName = $"{path}{libNamePrefix}.abi"; 
+                if (File.Exists(possibleName))
+                {
+                    libraryFileName = possibleName;
+                    break;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(libraryFileName))
+            {
+                try
+                {
+                    var bytes = File.ReadAllBytes(libraryFileName);
+                    var abi = ContractInterface.FromBytes(bytes);
+
+                    var name = Path.GetFileNameWithoutExtension(libraryFileName);
+
+                    var libDecl = new LibraryDeclaration(scope, name);
+
+                    foreach (var method in abi.Methods)
+                    {
+                        var returnType = MethodInterface.ConvertType(method.returnType);
+
+                        var parameters = new List<MethodParameter>();
+
+                        foreach (var param in method.parameters)
+                        {
+                            var paramType = MethodInterface.ConvertType(param.type);
+                            parameters.Add(new MethodParameter(param.name, paramType));
+                        }
+
+                        libDecl.AddMethod(method.name, MethodImplementationType.ContractCall, returnType, parameters.ToArray()).SetContract(name);
+                    }
+
+                    Builtins.FillLibrary(libDecl);
+
+                    _externalLibs[importName] = libDecl;
+
+                    return libDecl;
+                }
+                catch (Exception e)
+                {
+                    throw new CompilerException("unable to load library: " + libraryFileName);
+                }
+            }
+
+            throw new CompilerException("unknown library: " + libraryFileName);
         }
     }
 }

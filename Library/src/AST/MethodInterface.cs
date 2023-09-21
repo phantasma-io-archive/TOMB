@@ -218,5 +218,41 @@ namespace Phantasma.Tomb.AST
             }
         }
 
+        public static VarKind ConvertType(VMType type)
+        {
+            switch (type)
+            {
+                case VMType.Object:
+                    return VarKind.Address; // WARNING this is not valid in some situations...
+
+                case VMType.Bytes:
+                    return VarKind.Bytes;
+
+                case VMType.Bool:
+                    return VarKind.Bool;
+
+                case VMType.Enum:
+                    return VarKind.Enum;
+
+                case VMType.Number:
+                    return VarKind.Number;
+
+                case VMType.String:
+                    return VarKind.String;
+
+                case VMType.Timestamp:
+                    return VarKind.Timestamp;
+
+                case VMType.None:
+                    return VarKind.None;
+
+                case VMType.Struct:
+                    return VarKind.Struct;
+
+                default:
+                    throw new System.Exception("Not a valid vm type: " + type);
+            }
+        }
+
     }
 }
