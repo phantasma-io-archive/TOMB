@@ -529,6 +529,30 @@ throw "something happened";
 }
 ```
 
+## Importing libraries
+
+Previously you could always use the Call.xxx methods to interact with any deployed contract, but the Call.xxx methods don't have full type and argument validation.
+In latest version of TOMB, it is also possible to import any valid Phantasma ABI file.
+Using this feature of ABIfiles adds more compile time safety and is also easier to use.
+
+For example, if we have a CustomContract that was previously compiled by TOMB, we should have at least a .pvm and a .abi file for it.
+That .abi file contains a list of public interface of the contract, and we can import that so that other contracts can call their methods.
+
+```c#
+...
+import CustomContract; // by doing this, we can now call any public method of CustomContract 
+
+// the sintax is the same as other contract method calls, eg: CustomContract.doSomething(1234);
+...
+}
+```
+
+### ABI import paths
+If you do a import CustomContract, the compiler will need to find a customcontract.abi file somewhere.
+By default, it will look in the output folder that you specified, but you can also pass extra library paths:
+
+tomb.exe libpath:c:\something\compiled_abis target.tomb
+
 # Examples
 
 ## Simple Sum

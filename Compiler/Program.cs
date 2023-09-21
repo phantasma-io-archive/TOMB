@@ -162,6 +162,12 @@ namespace Phantasma.Tomb
                             break;
                         }
 
+                    case "libpath":
+                        {
+                            Module.AddLibraryPath(value);
+                            break;
+                        }
+
                     case "debug":
                         {
                             Compiler.DebugMode = true;
@@ -221,6 +227,7 @@ namespace Phantasma.Tomb
                 Directory.CreateDirectory(outputPath);
             }
 
+            Module.AddLibraryPath(outputPath);
             Console.WriteLine("Output path: " + outputPath);
 
             var sourceCode = File.ReadAllText(sourceFileName);
