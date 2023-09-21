@@ -8,7 +8,7 @@ namespace TOMBLib.Tests.Contracts;
 
 public class StructTests
 {
-    private struct MyStruct
+    private struct MyLocalStruct
     {
         public string name;
         public BigInteger age;
@@ -19,15 +19,15 @@ public class StructTests
     {
         var sourceCode =
             @"
-struct my_local_struct {
+struct MyLocalStruct {
     name:string;
     age:number;
 }
 
 contract test{
     import Struct;          
-    public testMyStruct (name:string, age:number) : my_local_struct {
-        local myStruct : my_local_struct = Struct.my_local_struct(name, age);
+    public testMyStruct (name:string, age:number) : MyLocalStruct {
+        local myStruct : MyLocalStruct = Struct.MyLocalStruct(name, age);
         if ( myStruct.age == 10 ) {
             myStruct.age = 20;
         }
@@ -43,7 +43,7 @@ contract test{
         TestVM vm;
         var method = contract.abi.FindMethod("testMyStruct");
         // Age 10
-        var myStruct = new MyStruct();
+        var myStruct = new MyLocalStruct();
         myStruct.name = "John";
         myStruct.age = 10;
         vm = new TestVM(contract, storage, method);
@@ -55,7 +55,7 @@ contract test{
         Assert.IsTrue(vm.Stack.Count == 1);
 
         var obj = vm.Stack.Pop();
-        var returnObject = obj.AsStruct<MyStruct>();
+        var returnObject = obj.AsStruct<MyLocalStruct>();
         Assert.AreEqual(myStruct.name,returnObject.name );
         Assert.AreEqual(myStruct.age, (BigInteger)20);
         
@@ -70,7 +70,7 @@ contract test{
         Assert.IsTrue(vm.Stack.Count == 1);
 
         obj = vm.Stack.Pop();
-        returnObject = obj.AsStruct<MyStruct>();
+        returnObject = obj.AsStruct<MyLocalStruct>();
         Assert.AreEqual(myStruct.name,returnObject.name );
         Assert.AreEqual(myStruct.age, returnObject.age);
     }

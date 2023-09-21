@@ -6,6 +6,7 @@ using Phantasma.Core.Cryptography;
 using Phantasma.Core.Domain;
 using Phantasma.Core.Domain.Execution.Enums;
 using Phantasma.Core.Domain.VM;
+using Phantasma.Core.Numerics;
 using Phantasma.Core.Utils;
 using Phantasma.Tomb.Compilers;
 
@@ -115,11 +116,12 @@ contract test {
         var sourceCode =
             @"
 contract test {
+    import Runtime;
     public check(x:decimal<2>): decimal<2> {
         switch (x) {
-            case 1.0: return x;
-            case 1.1: return x;
-            default: return x;
+            case 1.00: return 1.00;
+            case 1.10: return 1.10;
+            default: return 5.00;
         }                  
      }}";
 
@@ -140,30 +142,25 @@ contract test {
             {
                 case 0: _value = 1.00m; break;
                 case 1: _value = 1.10m; break;
-                case 2:  _value = 1.20m; break;
-                default: _value = 1.50m; break;
+                default: _value = 5.00m; break;
             }
             
-            vm.Stack.Push(VMObject.FromObject( _value));
+            vm.Stack.Push(VMObject.FromObject(_value));
             var state = vm.Execute();
             Assert.IsTrue(state == ExecutionState.Halt);
             var obj = vm.Stack.Pop();
-            Assert.Fail(obj.AsNumber());
-            
-            // TODO: Finish this one.
-            /* 
             var result = obj.AsNumber();
-
+            var resultConverted = UnitConversion.ToDecimal(result, 2); 
+            
             decimal expected = _value;
             switch (i)
             {
-                case 0: expected += 1 ; break;
-                case 1: expected += 2; break;
-                case 2:  expected += 3; break;
-                default: expected += 5m; break;
-            }*/
-            
-           // Assert.AreEqual(expected, result);
+                case 0: expected = 1.00m ; break;
+                case 1: expected = 1.10m; break;
+                default: expected = 5.00m; break;
+            }
+
+             Assert.AreEqual(expected, resultConverted);
         }
     }
 }
