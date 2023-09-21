@@ -1184,10 +1184,22 @@ namespace Phantasma.Tomb.Compilers
 
                             ExpectToken("(");
 
-                            ExpectToken("local");
+                            bool mustExist;
+
+                            var next = FetchToken();
+                            if (next.value == "local")
+                            {
+                                mustExist = false;
+                            }
+                            else
+                            {
+                                mustExist = true;
+                                Rewind();
+                            }
 
                             AssignStatement initCmd;
-                            forCommand.loopVar = ParseVariableDeclaration(scope, out initCmd);
+                            forCommand.loopVar = ParseVariableDeclaration(scope, out initCmd, mustExist);
+
                             if (initCmd == null)
                             {
                                 throw new CompilerException("variable missing initialization statement in for loop");
@@ -1212,7 +1224,7 @@ namespace Phantasma.Tomb.Compilers
                                 throw new CompilerException($"expected variable {varName} (temporary compiler limitation, no complex for statements supported!)");
                             }
 
-                            var next = FetchToken();
+                            next = FetchToken();
 
                             if (next.kind == TokenKind.Postfix)
                             {
@@ -1457,7 +1469,7 @@ namespace Phantasma.Tomb.Compilers
             }
         }
 
-        private VarDeclaration ParseVariableDeclaration(Scope scope, out AssignStatement assignment)
+        private VarDeclaration ParseVariableDeclaration(Scope scope, out AssignStatement assignment, bool mustExist = false)
         {
             var varName = ExpectIdentifier();
 
@@ -1475,9 +1487,17 @@ namespace Phantasma.Tomb.Compilers
 
             Expression initExpr = ParseVariableInitialization(scope, ref type);
 
-            var varDecl = new VarDeclaration(scope, varName, type, VarStorage.Local);
+            VarDeclaration varDecl;
 
-            scope.AddVariable(varDecl);
+            if (mustExist)
+            {
+                varDecl = scope.FindVariable(varName);
+            }
+            else
+            {
+                varDecl = new VarDeclaration(scope, varName, type, VarStorage.Local);
+                scope.AddVariable(varDecl);
+            }
 
             if (initExpr != null)
             {
