@@ -206,4 +206,40 @@ contract arrays {
         result = vm.Stack.Pop().AsString();
         Assert.IsTrue(result == "ABCD");
     }
+    
+    
+    [Test]
+    public void StringParameters()
+    {
+	    var sourceCode = @"
+contract handlerstring {
+	import String;
+
+	public joinStrings(s:string, idx:number, k:string, y:string):string {        	
+		return s + k + y + idx;
+	}	
+}
+";
+
+	    var parser = new TombLangCompiler();
+	    var contract = parser.Process(sourceCode).First();
+
+	    var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+	    TestVM vm;
+
+	    var test = contract.abi.FindMethod("joinStrings");
+	    Assert.IsNotNull(test);
+
+	    vm = new TestVM(contract, storage, test);
+	    vm.Stack.Push(VMObject.FromObject("IJKL"));
+	    vm.Stack.Push(VMObject.FromObject("EFGH"));
+	    vm.Stack.Push(VMObject.FromObject(2));
+	    vm.Stack.Push(VMObject.FromObject("ABCD"));
+	    var state = vm.Execute();
+	    Assert.IsTrue(state == ExecutionState.Halt);
+
+	    var result = vm.Stack.Pop().AsString();
+	    Assert.AreEqual("ABCDEFGHIJKL2", result );
+    }
 }

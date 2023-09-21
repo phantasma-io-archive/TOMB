@@ -102,13 +102,16 @@ contract test {
             @"
 contract test {
     public sign(x:number, name:string): number {
-        if (x > 0 || name == ""hello"")
+        if (x > 5 && name == ""hello"")
         {
             return 1;
         }
         else if (x == 0 && name == ""world"")
         {
             return 5;
+        }else if (x < 5 ||  name == ""tomb"")
+        {
+            return 10;
         }
 
         return 0;        
@@ -125,8 +128,8 @@ contract test {
 
         // Test for the 1st case
         var vm = new TestVM(contract, storage, countStuff);
-        vm.Stack.Push(VMObject.FromObject((BigInteger)10));
         vm.Stack.Push(VMObject.FromObject("hello"));
+        vm.Stack.Push(VMObject.FromObject((BigInteger)10));
         var result = vm.Execute();
         Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -136,8 +139,8 @@ contract test {
         
         // test for 2nd case
         vm = new TestVM(contract, storage, countStuff);
-        vm.Stack.Push(VMObject.FromObject(0));
         vm.Stack.Push(VMObject.FromObject("world"));
+        vm.Stack.Push(VMObject.FromObject(0));
         result = vm.Execute();
         Assert.IsTrue(result == ExecutionState.Halt);
         Assert.IsTrue(vm.Stack.Count == 1);
@@ -147,8 +150,19 @@ contract test {
         
         // test for the 3rd case
         vm = new TestVM(contract, storage, countStuff);
-        vm.Stack.Push(VMObject.FromObject(1234));
         vm.Stack.Push(VMObject.FromObject("tomb"));
+        vm.Stack.Push(VMObject.FromObject(1234));
+        result = vm.Execute();
+        Assert.IsTrue(result == ExecutionState.Halt);
+        Assert.IsTrue(vm.Stack.Count == 1);
+        
+        val = vm.Stack.Pop().AsNumber();
+        Assert.AreEqual((BigInteger)10, val);
+        
+        // test for the 4th case
+        vm = new TestVM(contract, storage, countStuff);
+        vm.Stack.Push(VMObject.FromObject("tombcompiler"));
+        vm.Stack.Push(VMObject.FromObject(1234));
         result = vm.Execute();
         Assert.IsTrue(result == ExecutionState.Halt);
         Assert.IsTrue(vm.Stack.Count == 1);
