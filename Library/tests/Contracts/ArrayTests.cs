@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using Phantasma.Core.Domain;
 using Phantasma.Core.Domain.Execution.Enums;
@@ -114,5 +115,83 @@ contract arrays {
 
         var result = vm.Stack.Pop().AsNumber();
         Assert.IsTrue(result == 6);
+    }
+    
+    
+    [Test]
+    public void ArraySizeTest()
+    {
+        // TODO make other tests also use multiline strings for source code, much more readable...
+        var sourceCode = @"
+contract arrays {
+	import Array;
+	public test(x:number):number {
+		local my_array: array<number> = {1};		
+		for (local i = 0; i < 10000; i+=1) {
+		    my_array[i] = x;
+		}
+		return Array.length(my_array);	
+	}	
+}
+";
+
+        var parser = new TombLangCompiler();
+        var contract = parser.Process(sourceCode).First();
+
+        var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+        TestVM vm;
+
+        var test = contract.abi.FindMethod("test");
+        Assert.IsNotNull(test);
+
+        vm = new TestVM(contract, storage, test);
+        vm.Stack.Push(VMObject.FromObject(1));
+        var state = vm.Execute();
+        Assert.IsTrue(state == ExecutionState.Halt);
+
+        var result = vm.Stack.Pop().AsNumber();
+        Assert.IsTrue(result == 10000);
+    }
+    
+    [Test]
+    public void ArraySumAllMembers()
+    {
+	    // TODO make other tests also use multiline strings for source code, much more readable...
+	    var sourceCode = @"
+contract arrays {
+	import Array;
+	public test(x:number):number {
+		local my_array: array<number> = {1};		
+		for (local i = 0; i < 100; i+=1) {
+		    my_array[i] = i;
+		}
+
+		local total = 0;
+		for(local i = 0; i < 100; i+=1) {
+		    total += my_array[i];
+		}
+		return total;	
+	}	
+}
+";
+
+	    var parser = new TombLangCompiler();
+	    var contract = parser.Process(sourceCode).First();
+
+	    var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+	    TestVM vm;
+
+	    var test = contract.abi.FindMethod("test");
+	    Assert.IsNotNull(test);
+
+	    vm = new TestVM(contract, storage, test);
+	    vm.Stack.Push(VMObject.FromObject(1));
+	    var state = vm.Execute();
+	    Assert.IsTrue(state == ExecutionState.Halt);
+
+	    var result = vm.Stack.Pop().AsNumber();
+	    Assert.AreEqual(result, (BigInteger)1000);
     }
 }
