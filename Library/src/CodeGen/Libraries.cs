@@ -70,6 +70,11 @@ namespace Phantasma.Tomb.CodeGen
                 throw new CompilerException("invalid library name: " + name);
             }
 
+            if (name.Contains("."))
+            {
+                return FindExternalLibrary(name, scope, moduleKind);
+            }
+
             var libDecl = new LibraryDeclaration(scope, name);
 
             Builtins.FillLibrary(libDecl);
@@ -770,18 +775,20 @@ namespace Phantasma.Tomb.CodeGen
 
         private static Dictionary<string, LibraryDeclaration> _externalLibs = new Dictionary<string, LibraryDeclaration>(StringComparer.OrdinalIgnoreCase);
 
-        private static LibraryDeclaration FindExternalLibrary(string name, Scope scope, ModuleKind moduleKind)
+        private static LibraryDeclaration FindExternalLibrary(string importName, Scope scope, ModuleKind moduleKind)
         {
-            if (_externalLibs.ContainsKey(name))
+            if (_externalLibs.ContainsKey(importName))
             {
-                return _externalLibs[name];
+                return _externalLibs[importName];
             }
 
             string libraryFileName = null;
 
+            var libNamePrefix = importName.Replace('.', Path.DirectorySeparatorChar);
+
             foreach (var path in _abiPaths)
             {
-                var possibleName = $"{path}{name}.abi"; 
+                var possibleName = $"{path}{libNamePrefix}.abi"; 
                 if (File.Exists(possibleName))
                 {
                     libraryFileName = possibleName;
@@ -795,6 +802,8 @@ namespace Phantasma.Tomb.CodeGen
                 {
                     var bytes = File.ReadAllBytes(libraryFileName);
                     var abi = ContractInterface.FromBytes(bytes);
+
+                    var name = Path.GetFileNameWithoutExtension(libraryFileName);
 
                     var libDecl = new LibraryDeclaration(scope, name);
 
@@ -815,7 +824,7 @@ namespace Phantasma.Tomb.CodeGen
 
                     Builtins.FillLibrary(libDecl);
 
-                    _externalLibs[name] = libDecl;
+                    _externalLibs[importName] = libDecl;
 
                     return libDecl;
                 }
@@ -825,7 +834,7 @@ namespace Phantasma.Tomb.CodeGen
                 }
             }
 
-            throw new CompilerException("unknown library: " + name);
+            throw new CompilerException("unknown library: " + libraryFileName);
         }
     }
 }

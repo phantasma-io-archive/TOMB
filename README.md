@@ -553,6 +553,18 @@ By default, it will look in the output folder that you specified, but you can al
 
 tomb.exe libpath:c:\something\compiled_abis target.tomb
 
+### Sub-folders
+
+You can also specify subfolders directly in the import.
+
+```c#
+...
+import MyContracts.CustomContract; // this will search for a .abi file in a folder called MyContracts (within all possible libray path folders specified in the compiler args)
+...
+}
+```
+
+
 # Examples
 
 ## Simple Sum

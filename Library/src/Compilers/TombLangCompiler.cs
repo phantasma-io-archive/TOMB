@@ -410,7 +410,25 @@ namespace Phantasma.Tomb.Compilers
                     case "import":
                         {
                             var libName = ExpectIdentifier();
-                            ExpectToken(";");
+                            do
+                            {
+                                var next = FetchToken();
+                                
+                                if (next.value == ";")
+                                {
+                                    break;
+                                }
+                                
+                                if (next.value == ".")
+                                {
+                                    var subPath = ExpectIdentifier();
+                                    libName = libName + "." + subPath;
+                                }
+                                else
+                                {
+                                    throw new CompilerException("Import syntax error");
+                                }
+                            } while (true);
 
                             var libDecl = Contract.LoadLibrary(libName, module.Scope, module.Kind);
                             module.Libraries[libName] = libDecl;
