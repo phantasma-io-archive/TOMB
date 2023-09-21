@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using Phantasma.Business.VM;
+﻿using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
@@ -538,7 +534,7 @@ namespace Phantasma.Tomb
                                     }
                                 }
 
-                                var indexExpression = ParseArrayIndexingExpression(scope, tmp, arrayType.elementType);
+                                var indexExpression = ParseArrayIndexingExpression(scope, tmp, VarType.Find(VarKind.Number));
                                 return new ArrayElementExpression(scope, arrayVar, indexExpression);
                             }
 
@@ -750,6 +746,27 @@ namespace Phantasma.Tomb
                         }
 
                         var rightSide = ParseExpression(scope, false);
+                        if (rightSide == null)
+                        {
+                            Rewind();
+                            var token = FetchToken();
+
+                            if (token.value != null)
+                            {
+                                if (token.value.Equals("and", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    throw new CompilerException($"Operator 'and' is obsolete, please use && instead");
+                                }
+
+                                if (token.value.Equals("or", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    throw new CompilerException($"Operator 'or' is obsolete, please use || instead");
+                                }
+                            }
+
+                            throw new CompilerException($"expected right side expression. Possible compiler error?");
+                        }
+
                         var result = ParseBinaryExpression(scope, second, leftSide, rightSide);
 
                         var next = FetchToken();

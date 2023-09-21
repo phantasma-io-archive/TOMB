@@ -10,6 +10,12 @@ using Phantasma.Tomb.AST.Expressions;
 using Phantasma.Tomb.Lexers;
 using Phantasma.Core.Domain;
 using Phantasma.Core.Numerics;
+using Phantasma.Core.Domain.Triggers.Enums;
+using Phantasma.Core.Domain.Token.Enums;
+using Phantasma.Core.Domain.Tasks.Enum;
+using Phantasma.Core.Domain.Validation;
+using Phantasma.Core.Domain.Contract;
+using Phantasma.Core.Domain.Events.Structs;
 
 namespace Phantasma.Tomb.Compilers
 {
@@ -46,6 +52,12 @@ namespace Phantasma.Tomb.Compilers
                 new StructField("RAM", VarKind.Bytes),
                 new StructField("seriesID", VarKind.Number),
                 new StructField("mintID", VarKind.Number),
+            });
+
+            CreateStruct("Infusion", new[]
+            {
+                new StructField("Symbol", VarKind.String),
+                new StructField("Value", VarKind.Number)
             });
         }
 
@@ -694,7 +706,7 @@ namespace Phantasma.Tomb.Compilers
                                 {
                                     case ModuleKind.Account:
                                     case ModuleKind.Contract:
-                                        validTriggerNames = Enum.GetNames(typeof(AccountTrigger)).ToArray();
+                                        validTriggerNames = Enum.GetNames(typeof(ContractTrigger)).ToArray();
                                         break;
 
                                     case ModuleKind.Token:

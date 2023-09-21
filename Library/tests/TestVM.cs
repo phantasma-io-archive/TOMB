@@ -1,13 +1,19 @@
-using System;
-using System.Collections.Generic;
 using Phantasma.Business.Blockchain.VM;
 using Phantasma.Business.CodeGen.Assembler;
 using Phantasma.Business.VM;
 using Phantasma.Business.VM.Utils;
-using Phantasma.Core.Cryptography;
+using Phantasma.Core.Cryptography.Structs;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Contract;
+using Phantasma.Core.Domain.Execution.Enums;
+using Phantasma.Core.Domain.Serializer;
+using Phantasma.Core.Domain.Token.Structs;
+using Phantasma.Core.Domain.VM;
+using Phantasma.Core.Domain.VM.Enums;
+using Phantasma.Core.Numerics;
 using Phantasma.Tomb.CodeGen;
-using ExecutionContext = Phantasma.Core.Domain.ExecutionContext;
+using System.Numerics;
+using ExecutionContext = Phantasma.Core.Domain.Execution.ExecutionContext;
 
 namespace TOMBLib.Tests;
 
@@ -40,6 +46,8 @@ public class TestVM : VirtualMachine
         RegisterMethod("Runtime.Version", Runtime_Version);
         RegisterMethod("Runtime.TransactionHash", Runtime_TransactionHash);
         RegisterMethod("Runtime.Context", Runtime_Context);
+        RegisterMethod("Runtime.ReadInfusions", Runtime_ReadInfusions);
+        RegisterMethod("Runtime.GetOwnerships", Runtime_GetOwnerships);
 
         RegisterMethod("Runtime.GetAvailableTokenSymbols", Runtime_GetAvailableTokenSymbols);
 
@@ -182,6 +190,35 @@ public class TestVM : VirtualMachine
     {
         var val = VMObject.FromObject(
             Hash.FromString("F6C095A0ED5984F76994EDD8BA555EC10A4B601337B0A15F94162DCD38348534"));
+        this.Stack.Push(val);
+
+        return ExecutionState.Running;
+    }
+
+    private ExecutionState Runtime_GetOwnerships(VirtualMachine vm)
+    {
+        var from = vm.Stack.Pop();
+        var symbol = vm.PopString("symbol");
+
+        var array = new BigInteger[] { 123, 456, 789 };
+
+        var val = VMObject.FromArray(array);
+        this.Stack.Push(val);
+
+        return ExecutionState.Running;
+    }
+
+    private ExecutionState Runtime_ReadInfusions(VirtualMachine vm)
+    {
+        var symbol = vm.PopString("symbol");
+        var id = vm.PopNumber("token_id");
+
+        var infusion = new TokenInfusion("SOUL", 1234);
+
+        var infusionArray = new TokenInfusion[] { infusion };
+
+        var val = VMObject.FromArray(infusionArray);
+
         this.Stack.Push(val);
 
         return ExecutionState.Running;

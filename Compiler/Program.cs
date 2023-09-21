@@ -235,16 +235,24 @@ namespace Phantasma.Tomb
                 return;
             }
 
-            var modules = compiler.Process(sourceCode);
-
-            foreach (var module in modules)
+            try
             {
-                ExportModule(module, outputPath);
+                var modules = compiler.Process(sourceCode);
 
-                foreach (var subModule in module.SubModules)
+                foreach (var module in modules)
                 {
-                    ExportModule(subModule, outputPath);
+                    ExportModule(module, outputPath);
+
+                    foreach (var subModule in module.SubModules)
+                    {
+                        ExportModule(subModule, outputPath);
+                    }
                 }
+            }
+            catch (CompilerException ex) 
+            {
+                Console.WriteLine(ex.Message);
+                System.Environment.Exit(-1);
             }
 
             Console.WriteLine("Success!");

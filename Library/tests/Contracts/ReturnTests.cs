@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Execution.Enums;
 using Phantasma.Core.Utils;
 using Phantasma.Tomb;
 using Phantasma.Tomb.Compilers;

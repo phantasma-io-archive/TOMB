@@ -1,5 +1,8 @@
 using Phantasma.Business.VM;
 using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.Contract;
+using Phantasma.Core.Domain.Validation;
+using Phantasma.Core.Domain.VM.Structs;
 using Phantasma.Tomb.AST;
 using Phantasma.Tomb.AST.Declarations;
 using Phantasma.Tomb.AST.Expressions;

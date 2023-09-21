@@ -1,4 +1,5 @@
 ﻿using Phantasma.Core.Domain;
+using Phantasma.Core.Domain.VM.Enums;
 using Phantasma.Tomb.CodeGen;
 
 using System;

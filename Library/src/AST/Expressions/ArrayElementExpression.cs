@@ -31,7 +31,15 @@ namespace Phantasma.Tomb.AST.Expressions
             var dstReg = Compiler.Instance.AllocRegister(output, this);
             var idxReg = indexExpression.GenerateCode(output);
 
-            output.AppendLine(this, $"GET {decl.Register} {dstReg} {idxReg}");
+            var reg = decl.Register;
+            output.AppendLine(this, $"GET {reg} {dstReg} {idxReg}");
+
+            var arrayType = decl.Type as ArrayVarType;
+            if (arrayType == null)
+            {
+                throw new CompilerException(this, $"expected array type:" + decl.Name);
+            }
+            this.CallNecessaryConstructors(output, arrayType.elementType, decl.Register);
 
             Compiler.Instance.DeallocRegister(ref idxReg);
 
