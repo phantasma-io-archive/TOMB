@@ -38,6 +38,11 @@ contract test{
         var parser = new TombLangCompiler();
         var contract = parser.Process(sourceCode).First();
 
+        if (contract.asm != null)
+        {
+            File.WriteAllText(@"c:\code\output.asm", contract.asm);
+        }
+
         var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 
         TestVM vm;
@@ -47,8 +52,8 @@ contract test{
         myStruct.name = "John";
         myStruct.age = 10;
         vm = new TestVM(contract, storage, method);
-        vm.Stack.Push(VMObject.FromObject(myStruct.name));
         vm.Stack.Push(VMObject.FromObject(myStruct.age));
+        vm.Stack.Push(VMObject.FromObject(myStruct.name));
         var result = vm.Execute();
         Assert.IsTrue(result == ExecutionState.Halt);
 
@@ -56,14 +61,14 @@ contract test{
 
         var obj = vm.Stack.Pop();
         var returnObject = obj.AsStruct<MyLocalStruct>();
-        Assert.AreEqual(myStruct.name,returnObject.name );
-        Assert.AreEqual(myStruct.age, (BigInteger)20);
+        Assert.AreEqual(returnObject.name, myStruct.name);
+        Assert.AreEqual(returnObject.age, (BigInteger)20);
         
         myStruct.name = "BartSimpson";
         myStruct.age = 50;
         vm = new TestVM(contract, storage, method);
-        vm.Stack.Push(VMObject.FromObject(myStruct.name));
         vm.Stack.Push(VMObject.FromObject(myStruct.age));
+        vm.Stack.Push(VMObject.FromObject(myStruct.name));
         result = vm.Execute();
         Assert.IsTrue(result == ExecutionState.Halt);
 
