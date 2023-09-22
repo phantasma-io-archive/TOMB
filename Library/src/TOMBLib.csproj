@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Phantasma.Business" Version="1.1.0" />
+    <ProjectReference Include="..\..\..\phantasma-ng\Phantasma.Business\src\Phantasma.Business.csproj" />
   </ItemGroup>
 
 </Project>

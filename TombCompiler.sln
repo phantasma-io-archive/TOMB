@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOMBLib", "Library\src\TOMB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOMBLib.Tests", "Library\tests\TOMBLib.Tests.csproj", "{EA79025B-F50F-4608-B2BC-77D776AE99EB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Business", "..\phantasma-ng\Phantasma.Business\src\Phantasma.Business.csproj", "{D2F11718-13B7-4B32-AC7E-FDA3F608A681}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phantasma.Core", "..\phantasma-ng\Phantasma.Core\src\Phantasma.Core.csproj", "{7DE33894-0395-41EE-8FF7-21BBBEDC72E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA79025B-F50F-4608-B2BC-77D776AE99EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2F11718-13B7-4B32-AC7E-FDA3F608A681}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2F11718-13B7-4B32-AC7E-FDA3F608A681}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2F11718-13B7-4B32-AC7E-FDA3F608A681}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2F11718-13B7-4B32-AC7E-FDA3F608A681}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DE33894-0395-41EE-8FF7-21BBBEDC72E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DE33894-0395-41EE-8FF7-21BBBEDC72E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DE33894-0395-41EE-8FF7-21BBBEDC72E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DE33894-0395-41EE-8FF7-21BBBEDC72E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
