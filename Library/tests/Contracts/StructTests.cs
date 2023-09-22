@@ -38,10 +38,7 @@ contract test{
         var parser = new TombLangCompiler();
         var contract = parser.Process(sourceCode).First();
 
-        if (contract.asm != null)
-        {
-            File.WriteAllText(@"c:\code\output.asm", contract.asm);
-        }
+        //File.WriteAllText(@"c:\code\output.asm", contract.asm); // for debugging
 
         var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 
@@ -161,9 +158,9 @@ contract test{
         myStruct.name = "John";
         myStruct.age = 10;
         vm = new TestVM(contract, storage, method);
-        vm.Stack.Push(VMObject.FromObject(myStruct.name));
-        vm.Stack.Push(VMObject.FromObject(myStruct.age));
         vm.Stack.Push(VMObject.FromObject(MyEnum.First));
+        vm.Stack.Push(VMObject.FromObject(myStruct.age));
+        vm.Stack.Push(VMObject.FromObject(myStruct.name));
         var result = vm.Execute();
         Assert.IsTrue(result == ExecutionState.Halt);
 
