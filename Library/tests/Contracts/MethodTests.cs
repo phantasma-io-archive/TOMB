@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using Phantasma.Core.Cryptography;
 using Phantasma.Core.Domain;
@@ -134,5 +135,52 @@ contract test {
         var result = vm.Stack.Pop().AsNumber();
 
         Assert.IsTrue(result == 11);
+    }
+    
+    [Test]
+    public void TestContractLengthViaParamNameWithNumber()
+    {
+        var sourceCode =
+            @"
+contract test {
+    import Call;
+
+    private countLetters(x1:string) : number 
+    { 
+        if ( x1.length() == 0 ) {
+            return 0;
+        }
+
+        return x1.length();
+    } 
+
+    public fetch(val:string) : number
+    { 
+        return this.countLetters(val);
+    }
+}";
+
+        var parser = new TombLangCompiler();
+        var contract = parser.Process(sourceCode).First();
+
+        var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+        TestVM vm;
+
+        var keys = PhantasmaKeys.Generate();
+
+        // call fetch
+        var fetch = contract.abi.FindMethod("fetch");
+        Assert.IsNotNull(fetch);
+
+        vm = new TestVM(contract, storage, fetch);
+        vm.Stack.Push(VMObject.FromObject("helloworld"));
+        var state = vm.Execute();
+        Assert.IsTrue(state == ExecutionState.Halt);
+        var result = vm.Stack.Pop().AsNumber();
+        BigInteger expected = "helloworld".Length;
+        
+
+        Assert.AreEqual(expected, result);
     }
 }

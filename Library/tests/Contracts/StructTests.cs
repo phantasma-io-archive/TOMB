@@ -139,7 +139,7 @@ contract test{
     public testMyComplexStruct (name:string, age:number, _myEnum: MyEnum) : MyComplexStruct {
         local myStruct : MyLocalStruct = Struct.MyLocalStruct(name, age);
         local myStructWithEnum : MyStructWithEnum = Struct.MyStructWithEnum(name, age, _myEnum, myStruct);
-        local myComplextStruct : MyComplexStruct = Struct.MyComplexStruct(name, age, myStruct, _myEnum, myStructWithEnum);
+        local myComplextStruct : MyComplexStruct = Struct.MyComplexStruct(name, age, myStruct, MyEnum.Second, myStructWithEnum);
         return myComplextStruct;
     }
 }";
@@ -168,7 +168,7 @@ contract test{
         var returnObject = obj.AsStruct<MyComplexStruct>();
         Assert.AreEqual(myStruct.name,returnObject.name );
         Assert.AreEqual(myStruct.age, (BigInteger)10);
-        Assert.AreEqual(MyEnum.First, returnObject.myEnum);
+        Assert.AreEqual(MyEnum.Second, returnObject.myEnum);
         Assert.AreEqual(myStruct.name,returnObject.myStructWithEnum.name );
         Assert.AreEqual(myStruct.age, returnObject.myStructWithEnum.age);
         Assert.AreEqual(MyEnum.First, returnObject.myStructWithEnum.myEnum);
@@ -215,6 +215,7 @@ contract test{
         myComplexStruct.age = 20;
         myComplexStruct.myStructWithEnum.name = ""Something else"";
         myComplexStruct.myStructWithEnum.localStruct.age = 30;
+        myComplexStruct.myEnum = MyEnum.Second;
         return myComplextStruct;
     }
 }";
@@ -249,7 +250,7 @@ contract test{
         var myResultStruct = obj.AsStruct<MyComplexStruct>();
         Assert.AreEqual(myComplexStructStruct.name,myResultStruct.name );
         Assert.AreEqual((BigInteger)20, myResultStruct.age);
-        Assert.AreEqual(myComplexStructStruct.myEnum, myResultStruct.myEnum);
+        Assert.AreEqual(MyEnum.Second, myResultStruct.myEnum);
         Assert.AreEqual("Something else",myResultStruct.myStructWithEnum.name );
         Assert.AreEqual(myComplexStructStruct.myStructWithEnum.age, myResultStruct.myStructWithEnum.age);
         Assert.AreEqual(myComplexStructStruct.myStructWithEnum.myEnum, myResultStruct.myStructWithEnum.myEnum);
