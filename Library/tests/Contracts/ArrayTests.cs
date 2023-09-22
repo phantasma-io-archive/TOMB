@@ -191,7 +191,9 @@ contract arrays {
 	    var state = vm.Execute();
 	    Assert.IsTrue(state == ExecutionState.Halt);
 
+        BigInteger sum = Enumerable.Range(0, 100).Sum();
+
 	    var result = vm.Stack.Pop().AsNumber();
-	    Assert.AreEqual(result, (BigInteger)1000);
+	    Assert.AreEqual(result, sum);
     }
 }
