@@ -366,7 +366,7 @@ namespace Phantasma.Tomb
                             }
                         }
 
-                        if (sb.Length != 0 && char.IsDigit(ch))
+                        if (sb.Length != 0 && char.IsDigit(ch) && CheckIfStringIsNumber(sb.ToString()))
                         {
                             insideNumber = true;
                         }
@@ -384,6 +384,40 @@ namespace Phantasma.Tomb
             }
 
             return tokens;
+        }
+
+        private static bool CheckIfStringIsNumber(string str)
+        {
+            var foundDot = false;
+
+            for (int i=0; i<str.Length; i++)
+            {
+                var ch = str[i];
+                if (char.IsDigit(ch))
+                {
+                    continue;    // valid, at least for now
+                }
+
+                if (ch == '.')
+                {
+                    if (i == 0) return false; // can't start a number with a dot
+                    if (foundDot) return false; // can't have more than one per number
+
+                    foundDot = true;
+                    continue;       // valid, at least for now
+                }
+
+                if (ch == '-')
+                {
+                    if (i > 0) return false; // minus sign can only be the first char
+                    continue;       // valid, at least for now
+                }
+
+                // NOTE maybe some edge cases missing, if yes, add them before this line
+                return false;
+            }
+
+            return true;
         }
     }
 }
