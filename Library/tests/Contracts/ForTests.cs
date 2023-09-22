@@ -129,8 +129,13 @@ contract test {
 }";
 
         var parser = new TombLangCompiler();
-        var contract = parser.Process(sourceCode).First();
 
+        Assert.Catch<CompilerException>(() =>
+        {
+            var contract = parser.Process(sourceCode).First();
+        });
+
+        /*
         var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
 
         var countStuff = contract.abi.FindMethod("countStuff");
@@ -138,7 +143,7 @@ contract test {
 
         var vm = new TestVM(contract, storage, countStuff);
         var result = vm.Execute();
-        Assert.IsTrue(result == ExecutionState.Fault);
+        Assert.IsTrue(result == ExecutionState.Fault);*/
     }
     
     [Test]
