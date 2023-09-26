@@ -145,7 +145,7 @@ contract test {
                 default: _value = 5.00m; break;
             }
             
-            vm.Stack.Push(VMObject.FromObject(_value));
+            vm.Stack.Push(VMObject.FromObject(UnitConversion.ToBigInteger(_value, 2)));
             var state = vm.Execute();
             Assert.IsTrue(state == ExecutionState.Halt);
             var obj = vm.Stack.Pop();

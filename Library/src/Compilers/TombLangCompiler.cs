@@ -59,6 +59,14 @@ namespace Phantasma.Tomb.Compilers
                 new StructField("Symbol", VarKind.String),
                 new StructField("Value", VarKind.Number)
             });
+            
+            CreateStruct("ContractMethod", new []
+            {
+                new StructField("name", VarKind.String),
+                new StructField("returnType", VarKind.Enum),
+                //new StructField("parameters", VarKind.Array),
+                new StructField("offset", VarKind.Number),
+            });
         }
 
 

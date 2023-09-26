@@ -1,6 +1,8 @@
 ﻿using Phantasma.Business.Blockchain.Contracts.Native;
 using Phantasma.Core.Domain.Contract;
 using Phantasma.Core.Domain.Contract.Enums;
+using Phantasma.Core.Domain.Serializer;
+using Phantasma.Core.Domain.VM;
 using Phantasma.Core.Domain.VM.Enums;
 using Phantasma.Core.Numerics;
 using Phantasma.Tomb.AST;
@@ -32,7 +34,7 @@ namespace Phantasma.Tomb.CodeGen
         public static string[] AvailableLibraries = new[] {
             "Call", "Runtime", "Math","Token", "NFT", "Organization", "Oracle", "Storage", "Contract", "Array",
             "Leaderboard", "Market", "Account", "Crowdsale", "Stake", "Governance", "Relay", "Mail",
-            "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module",  FormatLibraryName };
+            "Time", "Task", "UID", "Map", "List", "String", "Bytes", "Decimal", "Enum", "Address", "Module", "ABI",  FormatLibraryName };
 
         public const string FormatLibraryName = "Format";
 
@@ -102,6 +104,39 @@ namespace Phantasma.Tomb.CodeGen
 
             switch (name)
             {
+                case "ABI":
+                {
+                    libDecl.AddMethod("getMethod", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module), new MethodParameter("method", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var module = expr.arguments[0].AsLiteral<Module>();
+                            var methodName = expr.arguments[1].AsLiteral<string>();
+                            var method = module.abi.FindMethod(methodName);
+                            if (method == null)
+                            {
+                                throw new CompilerException($"Cannot find method '{methodName}' in module '{module.Name}'");
+                            }
+                            var vmObj = VMObject.FromStruct(method); 
+                            var hexString = vmObj.Serialize(); 
+                            output.AppendLine(expr, $"LOAD {reg} 0x{hexString}");       
+                            output.AppendLine(expr, $"UNPACK {reg} {reg}"); 
+                            return reg;
+                        });
+                    
+                    libDecl.AddMethod("hasMethod", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Module), new MethodParameter("method", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var module = expr.arguments[0].AsLiteral<Module>();
+                            var methodName = expr.arguments[1].AsLiteral<string>();
+                           
+                            var hasMethod = module.abi.HasMethod(methodName);
+                            output.AppendLine(expr, $"LOAD {reg} {hasMethod}");
+                            return reg;
+                        });
+                    break;
+                }
                 case "Module":
                     libDecl.AddMethod("getScript", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) }).
                     SetPreCallback((output, scope, expr) =>
@@ -466,7 +501,7 @@ namespace Phantasma.Tomb.CodeGen
                     break;
 
                 case "Token":
-                    libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("symbol", VarKind.String), new MethodParameter("name", VarKind.String), new MethodParameter("maxSupply", VarKind.Number), new MethodParameter("decimals", VarKind.Number), new MethodParameter("flags", VarType.Find(VarKind.Enum, "TokenFlags")), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi", VarKind.Bytes) }).SetAlias("Nexus.CreateToken");
+                    libDecl.AddMethod("create", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("from", VarKind.Address), new MethodParameter("script", VarKind.Bytes), new MethodParameter("abi bytes", VarKind.Bytes) }).SetAlias("Nexus.CreateToken");
                     libDecl.AddMethod("exists", MethodImplementationType.ExtCall, VarKind.Bool, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.TokenExists");
                     libDecl.AddMethod("getDecimals", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetTokenDecimals");
                     libDecl.AddMethod("getFlags", MethodImplementationType.ExtCall, VarType.Find(VarKind.Enum, "TokenFlag"), new[] { new MethodParameter("symbol", VarKind.String) }).SetAlias("Runtime.GetTokenFlags");
@@ -766,6 +801,7 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("getUserDomain", MethodImplementationType.ContractCall, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(MailContract.GetUserDomain));
                         break;
                     }
+
                 default:
                     return FindExternalLibrary(name, scope, moduleKind);
             }
