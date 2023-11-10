@@ -242,7 +242,9 @@ namespace Phantasma.Tomb
                 return;
             }
 
+#if !DEBUG
             try
+#endif
             {
                 var modules = compiler.Process(sourceCode);
 
@@ -256,12 +258,13 @@ namespace Phantasma.Tomb
                     }
                 }
             }
+#if !DEBUG
             catch (CompilerException ex) 
             {
                 Console.WriteLine(ex.Message);
                 System.Environment.Exit(-1);
             }
-
+#endif
             Console.WriteLine("Success!");
 
 #if DEBUG

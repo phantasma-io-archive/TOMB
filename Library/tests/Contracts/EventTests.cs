@@ -45,9 +45,11 @@ contract test {
         Assert.IsTrue(result == ExecutionState.Halt);
 
         Assert.IsTrue(vm.Stack.Count == 1);
+
+        Assert.IsTrue(vm.Events.Count() == 1);
     }
-    
-    
+
+
     [Test]
     public void TestEventWithDescription()
     {
@@ -97,6 +99,7 @@ contract test {
 	    Assert.IsTrue(result == ExecutionState.Halt);
 
 	    Assert.IsTrue(vm.Stack.Count == 1);
-	    
+        Assert.IsTrue(vm.Events.Count() == 1);
+
     }
 }
