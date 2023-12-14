@@ -15,11 +15,15 @@ using Phantasma.Tomb.CodeGen;
 using System.Numerics;
 using Phantasma.Core.Domain.Events.Structs;
 using ExecutionContext = Phantasma.Core.Domain.Execution.ExecutionContext;
+using Phantasma.Core.Domain.Structs;
 
 namespace TOMBLib.Tests;
 
 public class TestVM : VirtualMachine
 {
+    public IEnumerable<Event> Events => _events;
+    private List<Event> _events = new List<Event>();
+
     private Module module;
 
     private Dictionary<string, Func<VirtualMachine, ExecutionState>> _interops =
@@ -215,6 +219,10 @@ public class TestVM : VirtualMachine
         var kind = vm.Stack.Pop().AsEnum<EventKind>();
         var address = vm.Stack.Pop().AsAddress();
         var obj = vm.Stack.Pop();
+        var bytes = obj.Serialize();
+
+        // TODO contract name maybe should come from somewhere else?
+        _events.Add(new Event(kind, address, contract: "test", bytes));
 
         var array = new BigInteger[] { 123, 456, 789 };
 

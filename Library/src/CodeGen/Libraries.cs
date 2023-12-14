@@ -112,6 +112,7 @@ namespace Phantasma.Tomb.CodeGen
                             var reg = Compiler.Instance.AllocRegister(output, expr);
                             var module = expr.arguments[0].AsLiteral<Module>();
                             var methodName = expr.arguments[1].AsLiteral<string>();
+
                             var method = module.abi.FindMethod(methodName);
                             if (method == null)
                             {
