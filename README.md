@@ -42,7 +42,7 @@ It lets you write custom smart contracts, tokens and smart NFTs.
     </a>
 </p>
 
-## How to use 
+## How to use
 
 TOMB is provided as a pre-built .NET [executable](https://github.com/phantasma-io/TOMB//releases/latest).
 
@@ -54,24 +54,25 @@ To compile your TOMB scripts, open a terminal and execute TombCompiler, passing 
 TombCompiler my_contract.tomb
 ```
 
-### Optional arguments 
-| Option  | Description |
-| --------- | -------------- |
-| -output | Specify the output path for compiled files. By default those files will be written to a Output directory inside the source file location. |
-| -protocol | Sets a specific protocol version for contracts. By default, it will use the LatestKnownProtocol constant obtained for Phantasma Chain package. |
-| -debug | Will print some extra debug info. |
+### Optional arguments
 
+| Option    | Description                                                                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| -output   | Specify the output path for compiled files. By default those files will be written to a Output directory inside the source file location.      |
+| -protocol | Sets a specific protocol version for contracts. By default, it will use the LatestKnownProtocol constant obtained for Phantasma Chain package. |
+| -debug    | Will print some extra debug info.                                                                                                              |
 
 ### Nuget Package
 
 TOMB is also optionally available as a C# library via Nuget.  
-The package is called 'Phantasma.TOMB'. 
+The package is called 'Phantasma.TOMB'.
 
 In order to compile scripts from within C#, install Phantasma.TOMB package then do something like:
+
 ```c#
 using Phantasma.Tomb.Compilers;
 
-public class MyCompiler 
+public class MyCompiler
 {
 	static void Main(string[] args)
 	{
@@ -91,7 +92,6 @@ public class MyCompiler
 	}
 }
 ```
-
 
 ## Supported languages
 
@@ -147,10 +147,8 @@ TOMB generates code that runs in the PhantasmaVM, and supports multiple programm
 
 ## Feature Requests
 
-- Call a function from anywhere in the code
 - Create Classes that can be manipulated
 - Change Struct values of an instanciated struct without needing to recreated
-- Add && and || (currently its or, and)
 - Better support for Arrays, methods like, Array.shuffle() | Array.push() | Array.add() | Array.pop() | Array.shift()
 - Better Math Library, implement methods like, Math.Ceil() | Math.floor()
 - Multiple file support (Before compiling it, to make the code easier to write.)
@@ -183,11 +181,11 @@ The following libraries can be imported into a contract.
 
 ### Call
 
-| Method                                    | Return type | Description                                                                    |
-| ----------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
-| Call.interop(...:Generic)                 | Any         | TODO                                                                           |
+| Method                                                  | Return type | Description                                                                    |
+| ------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
+| Call.interop(...:Generic)                               | Any         | TODO                                                                           |
 | Call.contract(contractName, method:String, ...:Generic) | Any         | This is used to call another contract with a specified method.                 |
-| Call.method(...:Generic)                  | Any         | To call a method inside the contract, but instead of using "this.methodName()" |
+| Call.method(...:Generic)                                | Any         | To call a method inside the contract, but instead of using "this.methodName()" |
 
 ### Runtime
 
@@ -213,37 +211,65 @@ The following libraries can be imported into a contract.
 
 ### Token
 
-| Method                                                                                                                           | Return type     | Description                                                                                          |
-| -------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------- |
-| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None            | Method used to create a new token.                                                                   |
-| Token.exists(symbol:String)                                                                                                      | Bool            | Returns true if the token exists and false otherwise.                                                |
-| Token.getDecimals(symbol:String)                                                                                                 | Number          | Returns the number of decimals of the token.                                                         |
-| Token.getFlags(symbol:String)                                                                                                    | Enum<TokenFlag> | Returns an Enum with the TokenFlag of the token.                                                     |
-| Token.transfer(from:Address, to:Address, symbol:String, amount:Number)                                                           | None            | Transfers tokens from one Address, to another address with a specific symbol and the desired amount. |
-| Token.transferAll(from:Address, to:Address, symbol:String)                                                                       | None            | Transfer all tokens from one Address, to another address with a specific symbol.                     |
-| Token.mint(from:Address, to:Address, symbol:String, amount:Number)                                                               | None            | Mints tokens from one Address, to another address with a specific symbol and the desired amount.     |
-| Token.write(from:Address, symbol:String, tokenID:Number, ram:Any)                                                                | None            | Updates the Token/NFT RAM with the given RAM.                                                        |
-| Token.burn(from:Address, symbol:String, amount:Number)                                                                           | None            | Burn tokens from the given address, given symbol and the desired amount.                             |
-| Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number)                                | None            | TODO                                                                                                 |
-| Token.getBalance(from:Address, symbol:String)                                                                                    | Number          | Returns the token balance of the specified address.                                                  |
-| Token.isMinter(address:Address, symbol:String)                                                                                   | Bool            | Returns true if the token is a Minter and false otherwise.                                           |
-| Token.availableSymbols()                                                                                   | Array<string>            | Returns list with symbols of all deployed fungible tokens.                                           |
+| Method                                                                                                                           | Return type      | Description                                                                                          |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
+| Token.create(from:Address, symbol:String, name:String, maxSupply:Number, decimals:Number, flags:Number, script:Bytes, abi:Bytes) | None             | Method used to create a new token.                                                                   |
+| Token.exists(symbol:String)                                                                                                      | Bool             | Returns true if the token exists and false otherwise.                                                |
+| Token.getDecimals(symbol:String)                                                                                                 | Number           | Returns the number of decimals of the token.                                                         |
+| Token.getFlags(symbol:String)                                                                                                    | Enum\<TokenFlag> | Returns an Enum with the TokenFlag of the token.                                                     |
+| Token.transfer(from:Address, to:Address, symbol:String, amount:Number)                                                           | None             | Transfers tokens from one Address, to another address with a specific symbol and the desired amount. |
+| Token.transferAll(from:Address, to:Address, symbol:String)                                                                       | None             | Transfer all tokens from one Address, to another address with a specific symbol.                     |
+| Token.mint(from:Address, to:Address, symbol:String, amount:Number)                                                               | None             | Mints tokens from one Address, to another address with a specific symbol and the desired amount.     |
+| Token.write(from:Address, symbol:String, tokenID:Number, ram:Any)                                                                | None             | Updates the Token/NFT RAM with the given RAM.                                                        |
+| Token.burn(from:Address, symbol:String, amount:Number)                                                                           | None             | Burn tokens from the given address, given symbol and the desired amount.                             |
+| Token.swap(targetChain:String, source:Address, destination:Address, symbol:String, amount:Number)                                | Number           | TODO                                                                                                 |
+| Token.getBalance(from:Address, symbol:String)                                                                                    | Number           | Returns the token balance of the specified address.                                                  |
+| Token.isMinter(address:Address, symbol:String)                                                                                   | Bool             | Returns true if the token is a Minter and false otherwise.                                           |
+| Token.availableSymbols()                                                                                                         | Array\<string>   | Returns list with symbols of all deployed fungible tokens.                                           |
+| Token.getCurrentSupply(symbol: String)                                                                                           | Number           | Returns the current supply of the given Symbol.                                                      |
 
 ### NFT
 
-| Method                                                                                                               | Return type | Description                                                                               |
-| -------------------------------------------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------- |
-| NFT.transfer(from:Address, to:Address, symbol:String, id:Number)                                                     | None        | Transfer an NFT from one address to another, by the nftID and symbol.                     |
-| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any, seriesID:Number)                                 | None        | Mint an NFT from one address to another, with the specific ROM and RAM, and the seriesID. |
-| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Any)                                                      | None        | Write NFT is to update the RAM inside the NFT by the nftID.                               |
-| NFT.burn(from:Address, symbol:String, id:Number)                                                                     | None        | Burn the nft by the NFTID.                                                                |
-| NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number)                          | None        | Infuse the NFT with other tokens/NFT with a given amount.                                 |
-| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum<TokenSeries>, nft:Module) | None        | Creates a series of NFTs.                                                                 |
-| NFT.readROM<T>(symbol:String, id:Number)                                                                             | T           | Returns the ROM by the NFTID.                                                             |
-| NFT.readRAM<T>(symbol:String, id:Number)                                                                             | T           | Returns the RAM by the NFTID.                                                             |
-| NFT.getInfusions(symbol:String, id:Number)                                                                           | Array<Infusion>            | Returns list with all tokens infused into a specific token.		|
-| NFT.getOwnerships(from:Address, symbol:String)                                                                           | Array<Number>          | Returns list with token ids of NFTs owned by the specified address and symbol.                                                  |
-| NFT.availableSymbols()                                                                                   			   | Array<string>            | Returns list with symbols of all deployed non-fungible tokens.     |
+| Method                                                                                                                | Return type      | Description                                                                               |
+| --------------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| NFT.transfer(from:Address, to:Address, symbol:String, id:Number)                                                      | None             | Transfer an NFT from one address to another, by the nftID and symbol.                     |
+| NFT.mint(from:Address, to:Address, symbol:String, rom:Any, ram:Any, seriesID:Number)                                  | Number           | Mint an NFT from one address to another, with the specific ROM and RAM, and the seriesID. |
+| NFT.write(from:Address, symbol:String, tokenID:Number, ram:Any)                                                       | None             | Write NFT is to update the RAM inside the NFT by the nftID.                               |
+| NFT.burn(from:Address, symbol:String, id:Number)                                                                      | None             | Burn the nft by the NFTID.                                                                |
+| NFT.infuse(from:Address, symbol:String, id:Number, infuseSymbol:String, infuseValue:Number)                           | None             | Infuse the NFT with other tokens/NFT with a given amount.                                 |
+| NFT.createSeries(from:Address, symbol:String, seriesID:Number, maxSupply:Number, mode:Enum\<TokenSeries>, nft:Module) | None             | Creates a series of NFTs.                                                                 |
+| NFT.readROM\<T>(symbol:String, id:Number)                                                                             | T                | Returns the ROM by the NFTID.                                                             |
+| NFT.readRAM\<T>(symbol:String, id:Number)                                                                             | T                | Returns the RAM by the NFTID.                                                             |
+| NFT.getInfusions(symbol:String, id:Number)                                                                            | Array\<Infusion> | Returns list with all tokens infused into a specific token.                               |
+| NFT.getOwnerships(from:Address, symbol:String)                                                                        | Array\<Number>   | Returns list with token ids of NFTs owned by the specified address and symbol.            |
+| NFT.availableSymbols()                                                                                                | Array\<string>   | Returns list with symbols of all deployed non-fungible tokens.                            |
+| NFT.read(symbol:String, id:Number)                                                                                    | NFT Struct       | Returns an NFT struct for the given ID and Symbol.                                        |
+
+##### Token Series
+
+| Name                   | Description                                           |
+| ---------------------- | ----------------------------------------------------- |
+| TokenSeries.Unique     | Used when every NFT will have a one of a kind RAM/ROM |
+| TokenSeries.Duplicated | Used when there is no difference in the ROM           |
+
+##### _NOTE_
+
+    It is good practice to use a Unique Identifer within the ROM when using TokenSeries.Unique, UID -UID.generate()- or a timestamp -Time.now()- is most common. If creating a TokenSeries.Duplicated() then DO NOT use RAM as ram implies uniqueness of some sort.
+
+##### NFT Struct
+
+```c#
+//The structure that will be returned by NFT.read
+struct NFT {
+	chain: address,
+    owner: address,
+    creator: address,
+    ROM: bytes,
+    RAM: bytes,
+    seriesID: number,
+    mintID: number
+}
+```
 
 ### Account
 
@@ -516,6 +542,18 @@ The following libraries can be imported into a contract.
 | $THIS_SYMBOL  | The symbol of the current token     |
 | $TYPE_OF      | The type of the argument            |
 
+### Type Casting
+
+| Type    | Available Casts         |
+| ------- | ----------------------- |
+| String  | Bool, Number            |
+| Bytes   | Bool, String, Number    |
+| Number  | String, Timestamp, Bool |
+| Hash    | String, Number          |
+| Enum    | String, Number          |
+| Address | String                  |
+| Time    | String, Number          |
+
 ## Exception support
 
 Currently it is possible to throw exceptions with a string message.<br/>
@@ -540,7 +578,7 @@ That .abi file contains a list of public interface of the contract, and we can i
 
 ```c#
 ...
-import CustomContract; // by doing this, we can now call any public method of CustomContract 
+import CustomContract; // by doing this, we can now call any public method of CustomContract
 
 // the sintax is the same as other contract method calls, eg: CustomContract.doSomething(1234);
 ...
@@ -548,6 +586,7 @@ import CustomContract; // by doing this, we can now call any public method of Cu
 ```
 
 ### ABI import paths
+
 If you do a import CustomContract, the compiler will need to find a customcontract.abi file somewhere.
 By default, it will look in the output folder that you specified, but you can also pass extra library paths:
 
@@ -563,7 +602,6 @@ import MyContracts.CustomContract; // this will search for a .abi file in a fold
 ...
 }
 ```
-
 
 # Examples
 
@@ -622,13 +660,14 @@ contract test {
 ```
 
 ## Constants
+
 ```c#
 const MY_CONST_X : number = 10; // constants can be declared globally (all scripts / contracts in file can use them)
 
 contract test {
 	const MY_CONST_Y : number = 20; // constants can be declared inside a contract / script (only visible there)
 
-    public calculate(): number 
+    public calculate(): number
 	{
 		return MY_CONST_X + MY_CONST_Y;
 	}
@@ -751,7 +790,6 @@ contract test {
 }
 ```
 
-
 ## Enums
 
 There is compiler support for enumerated value types, that map directly to the Phantasma VM enum type.<br/>
@@ -844,7 +882,7 @@ contract test {
 		}
 
 		// convert the array back into a unicode string
-		local result:string = String.fromArray(my_array); 
+		local result:string = String.fromArray(my_array);
 		return result;
 	}
 }
@@ -853,7 +891,7 @@ contract test {
 ## Type castings
 
 Every type provides methods to cast a variable to another compatible type.<br/>
-NOTE: Many are missing in the method list in this documentation, but they come in the the form Type.toOtherType()<br/>
+NOTE: They come in the the form Type.toOtherType()<br/>
 See examples below:<br/>
 
 ```c#
@@ -869,15 +907,14 @@ contract test {
 	{
 		return Hash.toString(x);
 	}
-	
+
 	public convertStringToNumber(x:string):number
 	{
 		return String.toNumber(x);
 	}
-	
+
 }
 ```
-
 
 ## Random numbers
 
@@ -895,7 +932,7 @@ contract test {
 	public mutateState():number
 	{
         // use the current transaction hash to provide a random seed. This makes the result deterministic during node consensus
-        // 	optionally we can use other value, depending on your needs, eg: Random.seed(16676869); 
+        // 	optionally we can use other value, depending on your needs, eg: Random.seed(16676869);
         local tx_hash:hash = Runtime.transactionHash();
         local mySeed:number = tx_hash.toNumber();
 		Random.seed(mySeed);
@@ -1517,6 +1554,7 @@ token NACHO {
 ```
 
 ## Listing ownerships of NFTs
+
 Many times it's necessary to obtain a list of NFTs owned by a specific address.
 For that you can use the NFT.getOwnerships() method.
 Note that this method requires a symbol. If you need to know all the owned NFTs of a specific address, call NFT.availableSymbols and iterate over it.
@@ -1536,6 +1574,7 @@ public getOwnedList(from:address) : array<number> {
 ```
 
 ## Listing NFTs infused inside other NFTs
+
 Many times it's necessary to obtain a list of NFTs infused into a specific NFT.
 For that you can use the NFT.getInfusions() method.
 It will return an array of Infusion structs, that have a Symbol: string and Value: Number as fields.
@@ -1557,12 +1596,11 @@ public getFirstInfusedToken(infusedTokenID: number) : Infusion {
 }
 ```
 
-
 ## Contract Macros
 
 Besides the macros listed in the Available macros section, each of your contracts will also come with its own macros.<br/>
 Contract macros are useful when you have multiple contracts in the same file.
-Note that for things not provided via macros you can also use global constants. 
+Note that for things not provided via macros you can also use global constants.
 
 ```c#
 token BOO {
@@ -1584,7 +1622,7 @@ contract my_test {
 		// The line below showcases 3 different compiler macros.
 		// $SIMPLE_CONTRACT_ADDRESS => This macro is the address of the simple_contract declared previously.
 		// $THIS_ADDRESS => This macro is the address of the contract currently executing (my_test contract).
-		// $BOO_SYMBOL => This macro is the symbol of the BOO token (the string "BOO") 
+		// $BOO_SYMBOL => This macro is the symbol of the BOO token (the string "BOO")
 		Token.transfer($SIMPLE_CONTRACT_ADDRESS, $THIS_ADDRESS, $BOO_SYMBOL, quantity);
 	}
 }
@@ -1624,6 +1662,7 @@ contract test {
 ```
 
 ## Explicit register allocation
+
 It is possible to declare a variable that will be bound to a register, with the value being kept between a public contract call and all internal private calls.
 The value of register is not persisted anywhere (either do it manually or use globals instead).
 This is an advanced use case, it will bypass several compile time checks and can break the logic of your contract if not used properly.
@@ -1647,7 +1686,6 @@ contract test {
 	}
 }
 ```
-
 
 # Builtins
 
