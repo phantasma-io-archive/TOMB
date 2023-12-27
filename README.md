@@ -207,9 +207,10 @@ The following libraries can be imported into a contract.
 ### Math
 
 | Method                       | Return type | Description                     |
-| ---------------------------- | ----------- | ------------------------------- |
+|------------------------------| ----------- |---------------------------------|
 | Math.min(a:Number, b:Number) | Number      | Returns smallest of two numbers |
 | Math.max(a:Number, b:Number) | Number      | Returns largest of two numbers  |
+| Math.pow(a:Number, b:Number) | Number      | Returns a power of b.           |
 
 ### Token
 

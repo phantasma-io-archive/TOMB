@@ -424,6 +424,24 @@ namespace Phantasma.Tomb.CodeGen
                         Compiler.Instance.DeallocRegister(ref regB);
                         return regA;
                     });
+                    libDecl.AddMethod("abs", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("val", VarKind.Number) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = expr.arguments[0].GenerateCode(output);
+                        output.AppendLine(expr, $"ABS {reg} {reg}");
+                        return reg;
+                    });
+                    libDecl.AddMethod("pow", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("val", VarKind.Number), new MethodParameter("exp", VarKind.Number) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var regResult = Compiler.Instance.AllocRegister(output, expr);
+                        var regA = expr.arguments[0].GenerateCode(output);
+                        var regB = expr.arguments[1].GenerateCode(output);
+                        output.AppendLine(expr, $"POW {regA} {regB} {regResult}");
+                        Compiler.Instance.DeallocRegister(ref regA);
+                        Compiler.Instance.DeallocRegister(ref regB);
+                        return regResult;
+                    });
 
                     // NOTE those are builtins, so they are no longer declared here
                     //libDecl.AddMethod("sqrt", MethodImplementationType.LocalCall, VarKind.Number, new[] { new MethodParameter("n", VarKind.Number) }).SetAlias("math_sqrt");
