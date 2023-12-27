@@ -859,6 +859,9 @@ See examples below:<br/>
 ```c#
 contract test {
 	import Time;
+	import Hash;
+	import String;
+	import Address;
 
 	public convertTimeToNumber(x:timestamp):number
 	{
@@ -873,6 +876,11 @@ contract test {
 	public convertStringToNumber(x:string):number
 	{
 		return String.toNumber(x);
+	}
+	
+	public convertAddressToString(x:address):string
+	{
+		return Address.toString(x);
 	}
 	
 }

@@ -273,7 +273,7 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("isSystem", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isInterop", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
 
-                    GenerateCasts(libDecl, VarKind.Bytes, new VarKind[] { VarKind.String });
+                    GenerateCasts(libDecl, VarKind.Address, new VarKind[] { VarKind.String });
 
                     return libDecl;
             }
