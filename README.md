@@ -205,9 +205,10 @@ The following libraries can be imported into a contract.
 ### Math
 
 | Method                       | Return type | Description                     |
-| ---------------------------- | ----------- | ------------------------------- |
+|------------------------------| ----------- |---------------------------------|
 | Math.min(a:Number, b:Number) | Number      | Returns smallest of two numbers |
 | Math.max(a:Number, b:Number) | Number      | Returns largest of two numbers  |
+| Math.pow(a:Number, b:Number) | Number      | Returns a power of b.           |
 
 ### Token
 
@@ -513,11 +514,12 @@ struct NFT {
 ### Address
 
 | Method                            | Return type | Description                                                            |
-| --------------------------------- | ----------- | ---------------------------------------------------------------------- |
+|-----------------------------------|-------------|------------------------------------------------------------------------|
 | Address.isNull(target:Address)    | Bool        | Returns true if the address is null, false otherwise.                  |
 | Address.isUser(target:Address)    | Bool        | Returns true if the address is a user, false otherwise.                |
 | Address.isSystem(target:Address)  | Bool        | Returns true if the address is a System address, false otherwise.      |
 | Address.isInterop(target:Address) | Bool        | Returns true if the address is an Internal Operation, false otherwise. |
+| Address.text(target:Address)      | String      | Returns the address converted to string.                               |
 
 ### Module
 

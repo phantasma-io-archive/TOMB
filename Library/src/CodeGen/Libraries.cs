@@ -1,4 +1,5 @@
 ﻿using Phantasma.Business.Blockchain.Contracts.Native;
+using Phantasma.Core.Cryptography.Structs;
 using Phantasma.Core.Domain.Contract;
 using Phantasma.Core.Domain.Contract.Enums;
 using Phantasma.Core.Domain.Serializer;
@@ -104,40 +105,6 @@ namespace Phantasma.Tomb.CodeGen
 
             switch (name)
             {
-                case "ABI":
-                {
-                    libDecl.AddMethod("getMethod", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module), new MethodParameter("method", VarKind.String) }).
-                        SetPreCallback((output, scope, expr) =>
-                        {
-                            var reg = Compiler.Instance.AllocRegister(output, expr);
-                            var module = expr.arguments[0].AsLiteral<Module>();
-                            var methodName = expr.arguments[1].AsLiteral<string>();
-
-                            var method = module.abi.FindMethod(methodName);
-                            if (method == null)
-                            {
-                                throw new CompilerException($"Cannot find method '{methodName}' in module '{module.Name}'");
-                            }
-                            var vmObj = VMObject.FromStruct(method); 
-                            var hexString = vmObj.Serialize(); 
-                            output.AppendLine(expr, $"LOAD {reg} 0x{hexString}");       
-                            output.AppendLine(expr, $"UNPACK {reg} {reg}"); 
-                            return reg;
-                        });
-                    
-                    libDecl.AddMethod("hasMethod", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Module), new MethodParameter("method", VarKind.String) }).
-                        SetPreCallback((output, scope, expr) =>
-                        {
-                            var reg = Compiler.Instance.AllocRegister(output, expr);
-                            var module = expr.arguments[0].AsLiteral<Module>();
-                            var methodName = expr.arguments[1].AsLiteral<string>();
-                           
-                            var hasMethod = module.abi.HasMethod(methodName);
-                            output.AppendLine(expr, $"LOAD {reg} {hasMethod}");
-                            return reg;
-                        });
-                    break;
-                }
                 case "Module":
                     libDecl.AddMethod("getScript", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module) }).
                     SetPreCallback((output, scope, expr) =>
@@ -297,7 +264,46 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
                         libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) });
                         libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any) });
+                        libDecl.AddMethod("push", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("value", VarType.Generic(0)) })
+                            .SetPreCallback((output, scope, expr) =>
+                            {
+                                var arrayReg = expr.arguments[0].GenerateCode(output);
+                                var elem = expr.arguments[1].GenerateCode(output);
+                                var sizeReg = Compiler.Instance.AllocRegister(output, expr);
+                                
+                                // Assuming SIZE opcode gets the size of the array
+                                output.AppendLine(expr, $"COUNT {arrayReg} {sizeReg}");
+                                output.AppendLine(expr, $"PUT {elem} {arrayReg} {sizeReg}");
+                                
+                                Compiler.Instance.DeallocRegister(ref sizeReg);
+                                Compiler.Instance.DeallocRegister(ref elem);
+                                return arrayReg; 
+                            });
 
+                        libDecl.AddMethod("pop", MethodImplementationType.Custom, VarType.Generic(0),
+                                new[] { new MethodParameter("array", VarKind.Any) })
+                            .SetPreCallback((output, scope, expr) =>
+                            {
+                                var arrayReg = expr.arguments[0].GenerateCode(output);
+                                var sizeReg = Compiler.Instance.AllocRegister(output, expr);
+                                
+                                // Assuming SIZE opcode gets the size of the array
+                                output.AppendLine(expr, $"COUNT {arrayReg} {sizeReg}");
+                                output.AppendLine(expr, $"DEC {sizeReg}");
+
+                                // Retrieve the last element
+                                var elementReg = Compiler.Instance.AllocRegister(output, expr);
+                                output.AppendLine(expr, $"GET {arrayReg} {elementReg} {sizeReg}");
+
+                                // Assuming there's a way to reduce the array size, do it here
+                                output.AppendLine(expr, $"REMOVE {arrayReg} {sizeReg}");
+                                
+                                // Return the last element
+                                Compiler.Instance.DeallocRegister(ref sizeReg);
+                                Compiler.Instance.DeallocRegister(ref arrayReg);
+                                return elementReg;
+                            }).SetPostCallback(ConvertGenericResult);
+                        
                         return libDecl;
                     }
 
@@ -308,6 +314,15 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("isUser", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isSystem", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
                     libDecl.AddMethod("isInterop", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Address) });
+                    libDecl.AddMethod("text", MethodImplementationType.Custom, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) })
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            
+                            var reg = expr.arguments[0].GenerateCode(output);
+                            output.AppendLine(expr, $"CAST {reg} {reg} #{VMType.String}"); // String
+                            return reg;
+                        });
+                    
 
                     GenerateCasts(libDecl, VarKind.Bytes, new VarKind[] { VarKind.String });
 
@@ -379,6 +394,8 @@ namespace Phantasma.Tomb.CodeGen
                     {
                         libDecl.AddMethod("AESDecrypt", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("data", VarKind.Bytes), new MethodParameter("key", VarKind.Bytes) }).SetAlias("Runtime.AESDecrypt");
                         libDecl.AddMethod("AESEncrypt", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("data", VarKind.Bytes), new MethodParameter("key", VarKind.Bytes) }).SetAlias("Runtime.AESEncrypt");
+                        // TODO: Implement the validate . libDecl.AddMethod("Validate", MethodImplementationType.ExtCall, VarKind.Bytes, new[] { new MethodParameter("data", VarKind.Bytes), new MethodParameter("key", VarKind.Bytes) }).SetAlias("Runtime.AESEncrypt");
+                        
                         break;
                     }
 
@@ -415,6 +432,9 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("previousContext", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] { }).SetAlias("Runtime.PreviousContext");
                     libDecl.AddMethod("version", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { }).SetAlias("Runtime.Version");
                     libDecl.AddMethod("getGovernanceValue", MethodImplementationType.ExtCall, VarKind.Number, new MethodParameter[] { new MethodParameter("tag", VarKind.String) }).SetAlias("Nexus.GetGovernanceValue");
+                    libDecl.AddMethod("notify", MethodImplementationType.ExtCall, VarKind.None, new MethodParameter[] { new MethodParameter("evtkind", VarKind.Number), new MethodParameter("from", VarKind.Address), new MethodParameter("data", VarKind.Any), new MethodParameter("name", VarKind.String) }).SetAlias("Runtime.Notify");
+                    libDecl.AddMethod("nexus", MethodImplementationType.ExtCall, VarKind.String, new MethodParameter[] {  }).SetAlias("Runtime.Nexus");
+                    // TODO Validate Signature
                     break;
 
                 case "Task":
@@ -442,6 +462,24 @@ namespace Phantasma.Tomb.CodeGen
                         output.AppendLine(expr, $"MAX {regA} {regA} {regB}");
                         Compiler.Instance.DeallocRegister(ref regB);
                         return regA;
+                    });
+                    libDecl.AddMethod("abs", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("val", VarKind.Number) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var reg = expr.arguments[0].GenerateCode(output);
+                        output.AppendLine(expr, $"ABS {reg} {reg}");
+                        return reg;
+                    });
+                    libDecl.AddMethod("pow", MethodImplementationType.Custom, VarKind.Number, new[] { new MethodParameter("val", VarKind.Number), new MethodParameter("exp", VarKind.Number) }).
+                    SetPreCallback((output, scope, expr) =>
+                    {
+                        var regResult = Compiler.Instance.AllocRegister(output, expr);
+                        var regA = expr.arguments[0].GenerateCode(output);
+                        var regB = expr.arguments[1].GenerateCode(output);
+                        output.AppendLine(expr, $"POW {regA} {regB} {regResult}");
+                        Compiler.Instance.DeallocRegister(ref regA);
+                        Compiler.Instance.DeallocRegister(ref regB);
+                        return regResult;
                     });
 
                     // NOTE those are builtins, so they are no longer declared here
@@ -711,6 +749,18 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("removeAt", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("toArray", MethodImplementationType.ExtCall, VarKind.Array, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead)
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback(ConvertGenericResult);
                     break;
 
                 case "Crowdsale":
@@ -802,6 +852,64 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("getUserDomain", MethodImplementationType.ContractCall, VarKind.String, new[] { new MethodParameter("target", VarKind.Address) }).SetContract(contract).SetAlias(nameof(MailContract.GetUserDomain));
                         break;
                     }
+                
+                case "ABI":
+                {
+                    libDecl.AddMethod("getMethod", MethodImplementationType.Custom, VarKind.Bytes, new[] { new MethodParameter("target", VarKind.Module), new MethodParameter("method", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var module = expr.arguments[0].AsLiteral<Module>();
+                            //var nameReg = expr.arguments[1].GenerateCode(output);
+                            string methodName =  expr.arguments[1].AsLiteral<string>().Replace("\"", "");
+                            var method = module.abi.FindMethod(methodName);
+                            if (method == null)
+                            {
+                                throw new CompilerException($"Cannot find method '{methodName}' in module '{module.Name}'");
+                            }
+                            var vmObj = VMObject.FromStruct(method); 
+                            var hexString = Base16.Encode(vmObj.Serialize()); 
+                            output.AppendLine(expr, $"LOAD {reg} 0x{hexString}");       
+                            output.AppendLine(expr, $"UNPACK {reg} {reg}"); 
+                            return reg;
+                        });
+                    
+                    libDecl.AddMethod("hasMethod", MethodImplementationType.Custom, VarKind.Bool, new[] { new MethodParameter("target", VarKind.Module), new MethodParameter("method", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var module = expr.arguments[0].AsLiteral<Module>();
+                            var methodName = expr.arguments[1].AsLiteral<string>();
+                           
+                            var hasMethod = module.abi.HasMethod(methodName);
+                            output.AppendLine(expr, $"LOAD {reg} {hasMethod}");
+                            return reg;
+                        });
+                    /*libDecl.AddMethod("createPropertyScript", MethodImplementationType.Custom, VarKind.Generic, new[] { new MethodParameter("script", VarKind.Bytes), new MethodParameter("method", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var methodName = expr.arguments[0].AsLiteral<byte[]>();
+                            var methodName = expr.arguments[1].AsLiteral<string>();
+                           
+                            var hasMethod = module.abi.HasMethod(methodName);
+                            output.AppendLine(expr, $"LOAD {reg} {hasMethod}");
+                            return reg;
+                        });
+                    
+                    libDecl.AddMethod("replaceMethod", MethodImplementationType.Custom, VarKind.Generic, new[] { new MethodParameter("script", VarKind.Bytes), new MethodParameter("method", VarKind.String) }).
+                        SetPreCallback((output, scope, expr) =>
+                        {
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+                            var methodName = expr.arguments[0].AsLiteral<byte[]>();
+                            var methodName = expr.arguments[1].AsLiteral<string>();
+                           
+                            var hasMethod = module.abi.HasMethod(methodName);
+                            output.AppendLine(expr, $"LOAD {reg} {hasMethod}");
+                            return reg;
+                        });*/
+                    break;
+                }
 
                 default:
                     return FindExternalLibrary(name, scope, moduleKind);

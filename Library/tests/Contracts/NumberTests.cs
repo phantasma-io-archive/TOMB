@@ -97,6 +97,111 @@ contract test{
         var result = vm.Stack.Pop().AsNumber();
         Assert.IsTrue(result == 2);
     }
+    
+    [Test]
+    public void MathPow()
+    {
+        var sourceCode =
+            @"
+contract test{
+    import Math;
+    public power(a:number, b:number):number {
+        return Math.pow(a, b);
+    }
+}";
+
+        var parser = new TombLangCompiler();
+        var contract = parser.Process(sourceCode).First();
+
+        var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+        TestVM vm;
+
+        // call increment
+        var calculate = contract.abi.FindMethod("power");
+        Assert.IsNotNull(calculate);
+
+        vm = new TestVM(contract, storage, calculate);
+        vm.Stack.Push(VMObject.FromObject(5));
+        vm.Stack.Push(VMObject.FromObject(2));
+        var state = vm.Execute();
+        Assert.IsTrue(state == ExecutionState.Halt);
+
+        var result = vm.Stack.Pop().AsNumber();
+        Assert.IsTrue(result == 32, $"{result} == 32");
+    }
+    
+    [Test]
+    public void MathPowNumberNegative()
+    {
+        var sourceCode =
+            @"
+contract test{
+    import Math;
+    public power(a:number, b:number):number {
+        return Math.pow(a, b);
+    }
+}";
+
+        var parser = new TombLangCompiler();
+        var contract = parser.Process(sourceCode).First();
+
+        var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+        TestVM vm;
+
+        // call increment
+        var calculate = contract.abi.FindMethod("power");
+        Assert.IsNotNull(calculate);
+
+        vm = new TestVM(contract, storage, calculate);
+        vm.Stack.Push(VMObject.FromObject(5));
+        vm.Stack.Push(VMObject.FromObject(-2));
+        var state = vm.Execute();
+        Assert.IsTrue(state == ExecutionState.Halt);
+
+        var result = vm.Stack.Pop().AsNumber();
+        Assert.IsTrue(result == -32, $"{result} == 32");
+    }
+    
+    [Test]
+    public void MathPowNegative()
+    {
+        var sourceCode =
+            @"
+contract test{
+    import Math;
+    public power(a:number, b:number):number {
+        return Math.pow(a, b);
+    }
+}";
+
+        var parser = new TombLangCompiler();
+        var contract = parser.Process(sourceCode).First();
+
+        var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+        TestVM vm;
+
+        // call increment
+        var calculate = contract.abi.FindMethod("power");
+        Assert.IsNotNull(calculate);
+
+        vm = new TestVM(contract, storage, calculate);
+        vm.Stack.Push(VMObject.FromObject(-5));
+        vm.Stack.Push(VMObject.FromObject(-2));
+        try
+        {
+            var state = vm.Execute();
+            Assert.IsTrue(state == ExecutionState.Halt);
+            var result = vm.Stack.Pop().AsNumber();
+            Assert.IsTrue(result == 32, $"{result} == 32");
+        }
+        catch(Exception e)
+        {
+            Assert.IsTrue(e.Message == "The number must be greater than or equal to zero. (Parameter 'exponent')");
+        }
+    }
 
     [Test]
     public void UpdateNumberMethod()

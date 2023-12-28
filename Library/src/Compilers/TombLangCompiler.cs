@@ -515,7 +515,8 @@ namespace Phantasma.Tomb.Compilers
 
                                 ExpectToken(";");
 
-                                var value = (byte)((byte)EventKind.Custom + contract.Events.Count);
+                                //var value = (byte)((byte)EventKind.Custom + contract.Events.Count);
+                                var value = (byte)EventKind.Custom;
 
                                 var eventDecl = new EventDeclaration(module.Scope, eventName, value, eventType, description);
 

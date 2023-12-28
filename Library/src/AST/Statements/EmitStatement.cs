@@ -39,6 +39,9 @@ namespace Phantasma.Tomb.AST.Statements
 
             reg = addressExpr.GenerateCode(output);
             output.AppendLine(this, $"PUSH {reg}");
+            
+            /*output.AppendLine(this, $"LOAD {reg} {eventDecl.Name}");
+            output.AppendLine(this, $"PUSH {reg}");*/
 
             output.AppendLine(this, $"LOAD {reg} {eventDecl.value}");
             output.AppendLine(this, $"PUSH {reg}");
