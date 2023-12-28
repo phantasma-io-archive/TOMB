@@ -264,7 +264,46 @@ namespace Phantasma.Tomb.CodeGen
                         libDecl.AddMethod("set", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number), new MethodParameter("value", VarType.Generic(0)) });
                         libDecl.AddMethod("remove", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("index", VarKind.Number) });
                         libDecl.AddMethod("clear", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any) });
+                        libDecl.AddMethod("push", MethodImplementationType.Custom, VarKind.None, new[] { new MethodParameter("array", VarKind.Any), new MethodParameter("value", VarType.Generic(0)) })
+                            .SetPreCallback((output, scope, expr) =>
+                            {
+                                var arrayReg = expr.arguments[0].GenerateCode(output);
+                                var elem = expr.arguments[1].GenerateCode(output);
+                                var sizeReg = Compiler.Instance.AllocRegister(output, expr);
+                                
+                                // Assuming SIZE opcode gets the size of the array
+                                output.AppendLine(expr, $"COUNT {arrayReg} {sizeReg}");
+                                output.AppendLine(expr, $"PUT {elem} {arrayReg} {sizeReg}");
+                                
+                                Compiler.Instance.DeallocRegister(ref sizeReg);
+                                Compiler.Instance.DeallocRegister(ref elem);
+                                return arrayReg; 
+                            });
 
+                        libDecl.AddMethod("pop", MethodImplementationType.Custom, VarType.Generic(0),
+                                new[] { new MethodParameter("array", VarKind.Any) })
+                            .SetPreCallback((output, scope, expr) =>
+                            {
+                                var arrayReg = expr.arguments[0].GenerateCode(output);
+                                var sizeReg = Compiler.Instance.AllocRegister(output, expr);
+                                
+                                // Assuming SIZE opcode gets the size of the array
+                                output.AppendLine(expr, $"COUNT {arrayReg} {sizeReg}");
+                                output.AppendLine(expr, $"DEC {sizeReg}");
+
+                                // Retrieve the last element
+                                var elementReg = Compiler.Instance.AllocRegister(output, expr);
+                                output.AppendLine(expr, $"GET {arrayReg} {elementReg} {sizeReg}");
+
+                                // Assuming there's a way to reduce the array size, do it here
+                                output.AppendLine(expr, $"REMOVE {arrayReg} {sizeReg}");
+                                
+                                // Return the last element
+                                Compiler.Instance.DeallocRegister(ref sizeReg);
+                                Compiler.Instance.DeallocRegister(ref arrayReg);
+                                return elementReg;
+                            }).SetPostCallback(ConvertGenericResult);
+                        
                         return libDecl;
                     }
 
@@ -710,6 +749,18 @@ namespace Phantasma.Tomb.CodeGen
                     libDecl.AddMethod("removeAt", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String), new MethodParameter("index", VarKind.Number) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
                     libDecl.AddMethod("count", MethodImplementationType.ExtCall, VarKind.Number, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead);
                     libDecl.AddMethod("clear", MethodImplementationType.ExtCall, VarKind.None, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessWrite);
+                    libDecl.AddMethod("toArray", MethodImplementationType.ExtCall, VarKind.Array, new[] { new MethodParameter("list", VarKind.String) }).SetParameterCallback("list", ConvertFieldToStorageAccessRead)
+                        .SetPreCallback((output, scope, expr) =>
+                        {
+                            var vmType = MethodInterface.ConvertType(expr.method.ReturnType);
+                            var reg = Compiler.Instance.AllocRegister(output, expr);
+
+                            output.AppendLine(expr, $"LOAD {reg} {(int)vmType} // field type");
+                            output.AppendLine(expr, $"PUSH {reg}");
+
+                            return reg;
+                        })
+                        .SetPostCallback(ConvertGenericResult);
                     break;
 
                 case "Crowdsale":

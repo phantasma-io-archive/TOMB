@@ -117,6 +117,47 @@ contract arrays {
         Assert.IsTrue(result == 6);
     }
     
+    [Test]
+    public void ArrayVariablePop()
+    {
+	    // TODO make other tests also use multiline strings for source code, much more readable...
+	    var sourceCode = @"
+contract arrays {
+	import Array;
+	public test(x:number, idx:number):number {
+		local my_array: array<number> = {1};
+
+		for (local i = 0; i < 2; i+=1) {
+		    my_array[i] = x + i;
+		}
+
+		local num : number = Array.pop<number>(my_array);
+		local k : number = Array.pop<number>(my_array);
+		return k;
+	}	
+}
+";
+
+	    var parser = new TombLangCompiler();
+	    var contract = parser.Process(sourceCode).First();
+
+	    var storage = new Dictionary<byte[], byte[]>(new ByteArrayComparer());
+
+	    TestVM vm;
+
+	    var test = contract.abi.FindMethod("test");
+	    Assert.IsNotNull(test);
+
+	    vm = new TestVM(contract, storage, test);
+	    vm.Stack.Push(VMObject.FromObject(2));
+	    vm.Stack.Push(VMObject.FromObject(2));
+	    var state = vm.Execute();
+	    Assert.IsTrue(state == ExecutionState.Halt);
+
+	    var result = vm.Stack.Pop().AsNumber();
+	    Assert.IsTrue(result == 2, "Expected 2, got " + result);
+    }
+    
     
     [Test]
     public void ArraySizeTest()
